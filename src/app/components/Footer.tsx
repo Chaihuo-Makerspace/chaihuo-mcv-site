@@ -14,7 +14,7 @@ export function Footer() {
       variants={fadeUp}
       transition={springTransition}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           {/* Logo + 描述 */}
           <div className="md:col-span-1">

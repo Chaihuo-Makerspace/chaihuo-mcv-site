@@ -107,7 +107,7 @@ export default function About() {
           <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 py-32 md:py-40">
+        <div className="relative max-w-6xl mx-auto px-6 py-32 md:py-40">
           <motion.div
             variants={stagger(0.2)}
             initial="hidden"
@@ -220,7 +220,7 @@ export default function About() {
 
       {/* ═══ 柴火历程 — 大字年份 + 上下交错事件 ═══ */}
       <section className="py-24 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-10">
+        <div className="max-w-6xl mx-auto px-6 mb-10">
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -250,99 +250,136 @@ export default function About() {
           </motion.div>
         </div>
 
-        {/* 横向滑动时间线 */}
+        {/* 横向滑动时间线 — 年份沿曲线浮动 */}
         <div
           ref={scrollRef}
           className="overflow-x-auto"
           style={{ scrollbarWidth: 'none' }}
         >
-          <div className="relative min-w-max px-12 md:px-20">
+          {(() => {
+            const colW = 260;
+            const totalW = TIMELINE_DATA.length * colW + 120;
+            const centerY = 280;
+            const amplitude = 40;
 
-            {/* SVG 曲线连接线 */}
-            <svg
-              className="absolute left-0 pointer-events-none"
-              style={{ top: '200px', height: '80px', width: `${TIMELINE_DATA.length * 240 + 80}px` }}
-              viewBox={`0 0 ${TIMELINE_DATA.length * 240 + 80} 80`}
-              fill="none"
-              preserveAspectRatio="none"
-            >
-              <path
-                d={TIMELINE_DATA.map((_, i) => {
-                  const x = i * 240 + 120;
-                  const y = i % 2 === 0 ? 20 : 60;
-                  const prevY = i === 0 ? 40 : (i - 1) % 2 === 0 ? 20 : 60;
-                  const prevX = i === 0 ? 0 : (i - 1) * 240 + 120;
-                  if (i === 0) return `M 0 40 Q ${x / 2} ${y} ${x} ${y}`;
-                  const cpX = (prevX + x) / 2;
-                  return `Q ${cpX} ${prevY} ${cpX} 40 Q ${cpX} ${y} ${x} ${y}`;
-                }).join(' ') + ` Q ${TIMELINE_DATA.length * 240} 40 ${TIMELINE_DATA.length * 240 + 40} 40`}
-                stroke="#f3d230"
-                strokeWidth="3"
-                strokeDasharray="8 6"
-                opacity="0.4"
-              />
-            </svg>
+            // 每个年份的 Y 偏移（正弦曲线）
+            const getYOffset = (i: number) => Math.sin((i / (TIMELINE_DATA.length - 1)) * Math.PI * 2.5) * amplitude;
 
-            <div className="inline-flex">
-              {TIMELINE_DATA.map((entry, i) => {
-                const isAbove = i % 2 === 0;
-                const phase = PHASES.find(p => i >= p.range[0] && i < p.range[1]);
-                const showPhaseLabel = phase && i === phase.range[0];
+            // SVG 曲线路径
+            const points = TIMELINE_DATA.map((_, i) => ({
+              x: i * colW + 60 + colW / 2,
+              y: centerY + getYOffset(i),
+            }));
 
-                return (
-                  <div key={entry.year} className="relative flex flex-col shrink-0" style={{ width: '240px' }}>
-                    {/* 上方事件区 */}
-                    <div className="h-[200px] flex flex-col justify-end pb-6 pr-6">
-                      {isAbove && entry.events.map((ev, j) => (
-                        <div key={j} className="mb-3 last:mb-0">
-                          <p className="text-[13px] font-bold text-neutral-900 leading-snug">
-                            {ev.month}：{ev.text}
-                          </p>
-                          {ev.en && (
-                            <p className="text-[11px] text-neutral-400 mt-1 leading-snug">{ev.en}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+            const curvePath = points.reduce((path, pt, i) => {
+              if (i === 0) return `M ${pt.x - colW} ${centerY} Q ${pt.x - colW / 2} ${pt.y} ${pt.x} ${pt.y}`;
+              const prev = points[i - 1];
+              const cpX = (prev.x + pt.x) / 2;
+              return `${path} S ${cpX} ${pt.y} ${pt.x} ${pt.y}`;
+            }, '');
 
-                    {/* 年份区域 — 透明背景 + 圆点节点 */}
-                    <div className="relative h-20 flex items-center">
-                      {/* 节点圆点 */}
-                      <div className={`absolute ${isAbove ? 'top-2' : 'bottom-2'} left-[120px] -translate-x-1/2 z-10`}>
-                        <div className="w-3 h-3 rounded-full bg-brand shadow-sm ring-4 ring-white" />
+            return (
+              <div className="relative min-w-max" style={{ width: totalW, height: 560 }}>
+                {/* SVG 曲线 */}
+                <svg
+                  className="absolute inset-0 pointer-events-none"
+                  width={totalW}
+                  height={560}
+                  fill="none"
+                >
+                  <path
+                    d={curvePath}
+                    stroke="#f3d230"
+                    strokeWidth="2.5"
+                    strokeDasharray="10 8"
+                    opacity="0.35"
+                  />
+                  {/* 节点圆点 */}
+                  {points.map((pt, i) => (
+                    <circle key={i} cx={pt.x} cy={pt.y} r="5" fill="#f3d230" stroke="white" strokeWidth="3" />
+                  ))}
+                </svg>
+
+                {/* 年份 + 事件 */}
+                {TIMELINE_DATA.map((entry, i) => {
+                  const isAbove = i % 2 === 0;
+                  const x = i * colW + 60;
+                  const yOffset = getYOffset(i);
+                  const phase = PHASES.find(p => i >= p.range[0] && i < p.range[1]);
+                  const showPhaseLabel = phase && i === phase.range[0];
+
+                  return (
+                    <div
+                      key={entry.year}
+                      className="absolute"
+                      style={{
+                        left: x,
+                        top: 0,
+                        width: colW,
+                        height: 560,
+                      }}
+                    >
+                      {/* 上方事件 */}
+                      <div
+                        className="absolute left-0 right-8 flex flex-col justify-end"
+                        style={{
+                          bottom: 560 - centerY - yOffset + 50,
+                          height: 180,
+                        }}
+                      >
+                        {isAbove && entry.events.map((ev, j) => (
+                          <div key={j} className="mb-3 last:mb-0">
+                            <p className="text-[13px] font-bold text-neutral-900 leading-snug">
+                              {ev.month}：{ev.text}
+                            </p>
+                            {ev.en && (
+                              <p className="text-[11px] text-neutral-400 mt-1 leading-snug">{ev.en}</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
 
-                      {/* 阶段水印标签 */}
-                      {showPhaseLabel && (
-                        <span className="absolute -bottom-1 left-0 text-[11px] font-semibold uppercase tracking-[0.15em] text-neutral-300 whitespace-nowrap select-none">
-                          {phase.label}
+                      {/* 年份数字 — 沿曲线偏移 */}
+                      <div
+                        className="absolute left-0"
+                        style={{ top: centerY + yOffset - 50 }}
+                      >
+                        <span className="text-[72px] md:text-[90px] font-black leading-none select-none tracking-tighter text-neutral-200 hover:text-brand/40 transition-colors duration-500">
+                          {entry.year}
                         </span>
-                      )}
+                        {/* 阶段标签 */}
+                        {showPhaseLabel && (
+                          <span className="block mt-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-neutral-300 whitespace-nowrap select-none">
+                            {phase.label}
+                          </span>
+                        )}
+                      </div>
 
-                      {/* 大字年份 */}
-                      <span className="text-[72px] md:text-[90px] font-black leading-none select-none tracking-tighter text-neutral-200 hover:text-brand/40 transition-colors duration-500">
-                        {entry.year}
-                      </span>
+                      {/* 下方事件 */}
+                      <div
+                        className="absolute left-0 right-8 flex flex-col justify-start"
+                        style={{
+                          top: centerY + yOffset + 50,
+                          height: 180,
+                        }}
+                      >
+                        {!isAbove && entry.events.map((ev, j) => (
+                          <div key={j} className="mb-3 last:mb-0">
+                            <p className="text-[13px] font-bold text-neutral-900 leading-snug">
+                              {ev.month}：{ev.text}
+                            </p>
+                            {ev.en && (
+                              <p className="text-[11px] text-neutral-400 mt-1 leading-snug">{ev.en}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-
-                    {/* 下方事件区 */}
-                    <div className="h-[200px] flex flex-col justify-start pt-6 pr-6">
-                      {!isAbove && entry.events.map((ev, j) => (
-                        <div key={j} className="mb-3 last:mb-0">
-                          <p className="text-[13px] font-bold text-neutral-900 leading-snug">
-                            {ev.month}：{ev.text}
-                          </p>
-                          {ev.en && (
-                            <p className="text-[11px] text-neutral-400 mt-1 leading-snug">{ev.en}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       </section>
 

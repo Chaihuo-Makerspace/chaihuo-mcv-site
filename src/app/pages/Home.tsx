@@ -304,7 +304,7 @@ export default function Home() {
         viewport={defaultViewport}
         variants={stagger(0.2)}
       >
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div variants={fadeUp}>
               <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
@@ -329,7 +329,7 @@ export default function Home() {
 
       {/* 基地车概况 - 流动的基础设施 */}
       <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-black">移动的AI实验室</h2>
           <p className="text-center text-neutral-500 mb-16 max-w-2xl mx-auto">
             一个可移动的AI实验室，集成边缘算力、数字加工与实验场景能力
