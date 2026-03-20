@@ -1,161 +1,211 @@
+import { Suspense, lazy } from 'react';
 import { Navigation } from '../components/Navigation';
-import vehicleImage from 'figma:asset/34db03516a0b451b193bafd565b0283ef280b3aa.png';
-import scanImage from 'figma:asset/9c4bd0c11f594f7b6fef6c99a7c53acf6bf85b73.png';
+
+const VehicleExplodedView = lazy(() =>
+  import('../components/VehicleExplodedView').then((m) => ({ default: m.VehicleExplodedView })),
+);
+import { Cpu, Factory, BatteryCharging, ChevronRight } from 'lucide-react';
+
+// 改装日志（后续由 scripts/sync-yuque.ts 从语雀同步到本地 Markdown）
+const modificationLogs = [
+  {
+    date: '2025/03/12-25',
+    title: '移动创客空间与 DIY 露营车研究',
+    description:
+      '改装一辆移动创客空间，既不同于普通的房车露营改装，也不同于固定的创客空间搭建。我们需要在有限空间里兼顾工作坊、展示、教学、旅居等多重功能。',
+    image:
+      'https://images.unsplash.com/photo-1504222490345-c075b6008014?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800&q=80',
+    tags: ['调研', '设计'],
+  },
+  {
+    date: '2025/03/01',
+    title: '基地车低分辨率扫描实践',
+    description:
+      '要展开设计，首先想到的是如何获得车辆的数字化模型。作为改装小白，我想在动手之前，先去熟悉的 SketchUp 里看看有哪些前辈的设计方案可供参考。',
+    image:
+      'https://images.unsplash.com/photo-1581094794329-c8112a89af12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800&q=80',
+    tags: ['3D扫描', '数字化'],
+  },
+  {
+    date: '2025/02/14',
+    title: '续航方案：太阳能板的挑战',
+    description:
+      '经过反复测试与验证，我们在基地车顶部加装了两组可折叠太阳能板组，每组峰值功率达800W。配合车载2000Ah锂电池组与智能电池管理系统，能在荒野停留时持续为AI服务器和数字加工设备提供动力。',
+    image:
+      'https://images.unsplash.com/photo-1509391366360-2e959784a276?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800&q=80',
+    tags: ['能源', '太阳能'],
+  },
+];
+
+// 装备清单
+const equipmentCategories = [
+  {
+    icon: Cpu,
+    title: 'AI & 计算系统',
+    items: [
+      { name: 'AI 推理服务器', spec: '4×NVIDIA L40 · 80GB VRAM' },
+      { name: '边缘工作站', spec: 'NVIDIA Jetson Orin · 64GB' },
+      { name: '卫星通信', spec: 'Starlink Gen 3 · 低轨卫星' },
+      { name: '散热系统', spec: '液冷循环 · 45°C 环境运行' },
+    ],
+  },
+  {
+    icon: Factory,
+    title: '数字加工中心',
+    items: [
+      { name: '3D 打印机', spec: 'Bambu Lab X1C · 多色打印' },
+      { name: '激光切割机', spec: 'xTool D1 Pro · 20W 模组' },
+      { name: '数控铣床', spec: 'CNC 3018 Pro · 铝材加工' },
+      { name: '电子工作台', spec: '示波器 · 焊台 · 万用表' },
+    ],
+  },
+  {
+    icon: BatteryCharging,
+    title: '能源与生活',
+    items: [
+      { name: '太阳能板', spec: '2×800W 可折叠 · JA Solar' },
+      { name: '储能电池', spec: 'LiFePO₄ 2000Ah · 磷酸铁锂' },
+      { name: '逆变器', spec: '5kW 纯正弦波 · 离网/并网' },
+      { name: '净水系统', spec: 'RO反渗透 · 200L水箱' },
+    ],
+  },
+];
 
 export default function Deconstruct() {
-  const modifications = [
-    {
-      date: '2025/03/12-25',
-      title: '移动创客空间与 DIY 露营车研究',
-      description: '改装一辆移动创客空间，既不同于普通的房车露营改装，也不同于固定的创客空间搭建。我们需要在有限空间里兼顾工作坊、展示、教学、旅居等多重功能。',
-      image: 'https://images.unsplash.com/photo-1768633647910-7e6fb53e5b0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjB3b3JraW5nJTIwZWxlY3Ryb25pY3MlMjB3b3Jrc2hvcHxlbnwxfHx8fDE3NzM2NTIxMjd8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      date: '2025/03/01',
-      title: '基地车低分辨率扫描实践',
-      description: '要展开设计，首先想到的是如何获得车辆的数字化模型。作为改装小白，我想在动手之前，先去熟悉的 SketchUp 里看看有哪些前辈的设计方案可供参考。',
-      image: scanImage,
-    },
-    {
-      date: '2025/02/14',
-      title: '续航方案：太阳能板的挑战',
-      description: '经过反复测试与验证，我们在基地车顶部加装了两组可折叠太阳能板组，每组峰值功率达800W。配合车载2000Ah锂电池组与智能电池管理系统，能在荒野停留时持续为AI服务器和数字加工设备提供动力，让科技在远离城市电网的环境下也能发挥作用。',
-      image: 'https://images.unsplash.com/photo-1773291934106-f6e551493b83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2xhciUyMHBhbmVsJTIwaW5zdGFsbGF0aW9uJTIwb3V0ZG9vcnN8ZW58MXx8fHwxNzczNjUyMTI3fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-  ];
-
-  const techSpecs = {
-    ai: [
-      { name: 'AI 服务器', spec: 'ML 4xT4/4x L40 80GB' },
-      { name: '工作站', spec: 'SFFE Remix Grid' },
-      { name: '服务器机箱', spec: 'Starlink Gen 3' },
-      { name: '机架', spec: 'Tiber x 10 Thermal' },
-    ],
-    factory: [
-      { name: '3D 打印机', spec: 'ML Prusa/mk Crealily K1' },
-      { name: '激光切割机', spec: 'Glowforge EMC x Axis' },
-      { name: '数控铣床', spec: 'Smart Machining Station' },
-    ],
-    power: [
-      { name: '太阳能板', spec: 'JA Solar 1.6KWH' },
-      { name: '电池组', spec: 'Li-Batt 2kWh Rack' },
-      { name: '逆变器', spec: 'Voltronic Ax Multi Stage' },
-      { name: '车辆底盘', spec: 'Smart Power AC' },
-    ],
-  };
-
   return (
     <div className="min-h-screen bg-[#f8f8f8]">
       <Navigation />
-      
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl mb-4 text-gray-900">普罗米修斯号 </h1>
-          <p className="text-gray-600 mb-8"></p>
-        </div>
-      </section>
 
-      {/* Vehicle 3D View */}
-      <section className="px-6 mb-16">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-gray-400 rounded-lg overflow-hidden relative">
-            <img 
-              src="https://images.unsplash.com/photo-1746032815159-0d929000c1aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2ZWhpY2xlJTIwZXhwbG9kZWQlMjB2aWV3JTIwZGlhZ3JhbSUyMHRlY2huaWNhbHxlbnwxfHx8fDE3NzM2NTI0OTN8MA&ixlib=rb-4.1.0&q=80&w=1080" 
-              alt="Prometheus Vehicle Exploded View" 
-              className="w-full h-auto"
-            />
+      {/* ═══════ HERO — 车辆标题 + 爆炸图 ═══════ */}
+      <section className="pt-24 pb-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          {/* 标题区 */}
+          <div className="text-center mb-12">
+            <p className="text-sm tracking-[0.3em] text-gray-400 uppercase mb-3">
+              Chaihuo Base Vehicle
+            </p>
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+              普罗米修斯号
+            </h1>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto">
+              一台为荒野而生的移动AI实验室，从底盘到算力，每一处都为极限场景而设计。
+            </p>
           </div>
+
+          {/* 车辆 3D 爆炸图 — R3F + Drei */}
+          <Suspense
+            fallback={
+              <div className="w-full h-[500px] md:h-[600px] rounded-xl bg-gradient-to-b from-gray-100 to-gray-200 flex items-center justify-center">
+                <div className="text-gray-400 text-sm animate-pulse">加载 3D 模型中...</div>
+              </div>
+            }
+          >
+            <VehicleExplodedView />
+          </Suspense>
         </div>
       </section>
 
-      {/* Modification Logs */}
-      <section className="px-6 mb-20">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl mb-2 text-gray-900">改装手记</h2>
-          <p className="text-gray-400 italic mb-8">Modification Logs</p>
-          
-          <div className="space-y-8">
-            {modifications.map((mod, index) => (
-              <div key={index} className="grid md:grid-cols-2 gap-6 bg-white p-6 rounded-lg">
-                <div>
-                  <div className="text-xs text-gray-500 mb-2">{mod.date}</div>
-                  <h3 className="text-xl mb-3 text-gray-900">{mod.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {mod.description}
+      {/* ═══════ 改装日志 ═══════ */}
+      <section className="px-6 pb-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">改装手记</h2>
+              <p className="text-gray-400 mt-1">从图纸到荒野的每一步</p>
+            </div>
+            <button className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-200 flex items-center gap-1 cursor-pointer">
+              查看全部
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {modificationLogs.map((log, index) => (
+              <article
+                key={index}
+                className="group grid md:grid-cols-[1fr_280px] gap-0 bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+              >
+                {/* 文字区 */}
+                <div className="p-8 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-3">
+                    <time className="text-xs text-gray-400 font-mono">{log.date}</time>
+                    <div className="flex gap-2">
+                      {log.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-xs px-2 py-0.5 bg-[#f3d230]/10 text-[#b8960a] rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-[#b8960a] transition-colors duration-200">
+                    {log.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+                    {log.description}
                   </p>
                 </div>
-                <div className="h-64 md:h-auto">
-                  <img 
-                    src={mod.image} 
-                    alt={mod.title}
-                    className="w-full h-full object-cover rounded"
+
+                {/* 图片区 */}
+                <div className="h-48 md:h-auto overflow-hidden">
+                  <img
+                    src={log.image}
+                    alt={log.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Technical Specifications */}
+      {/* ═══════ 装备清单 ═══════ */}
       <section className="px-6 pb-20">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl mb-12 text-center text-gray-900">技术参数清单</h2>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* AI & Computing */}
-            <div className="bg-white p-6 rounded-lg">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-                <h3 className="text-lg font-semibold text-gray-900">AI & 计算系统</h3>
-              </div>
-              <div className="space-y-3">
-                {techSpecs.ai.map((item, index) => (
-                  <div key={index} className="border-b border-gray-100 pb-2">
-                    <div className="text-sm text-gray-600">{item.name}</div>
-                    <div className="text-xs text-gray-500 font-mono">{item.spec}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">装备清单</h2>
+            <p className="text-gray-400 mt-1">荒野生存的全部家当</p>
+          </div>
 
-            {/* Digital Factory */}
-            <div className="bg-white p-6 rounded-lg">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-                <h3 className="text-lg font-semibold text-gray-900">数字化工厂</h3>
-              </div>
-              <div className="space-y-3">
-                {techSpecs.factory.map((item, index) => (
-                  <div key={index} className="border-b border-gray-100 pb-2">
-                    <div className="text-sm text-gray-600">{item.name}</div>
-                    <div className="text-xs text-gray-500 font-mono">{item.spec}</div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {equipmentCategories.map((category) => {
+              const IconComponent = category.icon;
+              return (
+                <div
+                  key={category.title}
+                  className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-[#f3d230]/10 rounded-lg flex items-center justify-center">
+                      <IconComponent className="w-5 h-5 text-[#f3d230]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Power & Vehicle */}
-            <div className="bg-white p-6 rounded-lg">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-                <h3 className="text-lg font-semibold text-gray-900">能源与车身</h3>
-              </div>
-              <div className="space-y-3">
-                {techSpecs.power.map((item, index) => (
-                  <div key={index} className="border-b border-gray-100 pb-2">
-                    <div className="text-sm text-gray-600">{item.name}</div>
-                    <div className="text-xs text-gray-500 font-mono">{item.spec}</div>
+                  <div className="space-y-4">
+                    {category.items.map((item) => (
+                      <div
+                        key={item.name}
+                        className="flex justify-between items-baseline border-b border-gray-100 pb-3 last:border-0"
+                      >
+                        <span className="text-sm text-gray-700">{item.name}</span>
+                        <span className="text-xs text-gray-400 font-mono text-right ml-4 shrink-0">
+                          {item.spec}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ═══════ Footer ═══════ */}
       <footer className="py-12 px-6 bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
@@ -169,37 +219,43 @@ export default function Deconstruct() {
             </div>
 
             <div>
-              <h4 className="text-xs uppercase tracking-wider mb-4 text-gray-800 font-semibold">项目入口</h4>
+              <h4 className="text-xs uppercase tracking-wider mb-4 text-gray-800 font-semibold">
+                项目入口
+              </h4>
               <div className="space-y-2 text-sm">
-                <a href="/" className="block text-gray-600 hover:text-black transition">首页</a>
-                <a href="/deconstruct" className="block text-gray-600 hover:text-black transition">解构基地车</a>
-                <a href="#" className="block text-gray-600 hover:text-black transition">完整纪实</a>
-                <a href="#" className="block text-gray-600 hover:text-black transition">上车指南</a>
+                <a href="/" className="block text-gray-600 hover:text-black transition-colors duration-200">首页</a>
+                <a href="/deconstruct" className="block text-gray-600 hover:text-black transition-colors duration-200">解构基地车</a>
+                <a href="/documentation" className="block text-gray-600 hover:text-black transition-colors duration-200">完整纪实</a>
+                <a href="/guide" className="block text-gray-600 hover:text-black transition-colors duration-200">上车指南</a>
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs uppercase tracking-wider mb-4 text-gray-800 font-semibold">联系我们</h4>
+              <h4 className="text-xs uppercase tracking-wider mb-4 text-gray-800 font-semibold">
+                联系我们
+              </h4>
               <div className="space-y-2 text-sm text-gray-600">
                 <p>深圳市南山区万科云城设计公社B602</p>
-                <p>成都狮马路92号</p>
+                <p>成都市青羊区狮马路92号</p>
                 <p>business@chaihuo.org</p>
                 <p>0755 - 36937037</p>
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs uppercase tracking-wider mb-4 text-gray-800 font-semibold">社交渠道</h4>
+              <h4 className="text-xs uppercase tracking-wider mb-4 text-gray-800 font-semibold">
+                社交渠道
+              </h4>
               <div className="flex gap-4">
-                <a href="#" className="text-gray-600 hover:text-black transition">微信</a>
-                <a href="#" className="text-gray-600 hover:text-black transition">微博</a>
-                <a href="#" className="text-gray-600 hover:text-black transition">GitHub</a>
+                <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">微信</a>
+                <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">微博</a>
+                <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">GitHub</a>
               </div>
             </div>
           </div>
 
           <div className="border-t border-gray-200 pt-8 text-center text-sm text-gray-500">
-            <p>© 2026 柴火创客空间 Chaihuo Maker Space. 保留所有权利.</p>
+            <p>&copy; 2026 柴火创客空间 Chaihuo Maker Space. 保留所有权利.</p>
             <p className="mt-2">本项目遵循开源协议 MIT License</p>
           </div>
         </div>
