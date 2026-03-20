@@ -1,24 +1,153 @@
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router';
+import { motion, AnimatePresence } from 'motion/react';
+import logoHorizontal from '@/assets/logo-horizontal.png';
+
+const NAV_LINKS = [
+  { to: '/', label: '首页' },
+  { to: '/deconstruct', label: '解构基地车' },
+  { to: '/documentation', label: '完整纪实' },
+  { to: '/guide', label: '上车指南' },
+  { to: '/about', label: '关于柴火' },
+];
 
 export function Navigation() {
   const location = useLocation();
   const isHome = location.pathname === '/';
-  
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  useEffect(() => { closeMenu(); }, [location.pathname, closeMenu]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeMenu(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [closeMenu]);
+
+  // Dark text mode: scrolled on home, or any non-home page
+  const isLight = !isHome || scrolled;
+
+  const linkClass = (path: string, mobile = false) => {
+    const isActive = location.pathname === path;
+    if (mobile) {
+      return `block py-3 px-4 text-lg transition-colors duration-200 ${
+        isActive
+          ? 'text-brand border-l-2 border-brand font-medium'
+          : 'text-neutral-700 hover:text-neutral-900'
+      }`;
+    }
+    if (isLight) {
+      return `relative transition-colors duration-200 ${
+        isActive ? 'text-brand font-medium' : 'text-neutral-500 hover:text-neutral-900'
+      }`;
+    }
+    return `relative transition-colors duration-200 ${
+      isActive ? 'text-brand' : 'text-white/80 hover:text-white'
+    }`;
+  };
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 ${isHome ? 'bg-black/80 backdrop-blur-sm' : 'bg-white border-b border-gray-200'}`}>
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className={`px-3 py-1.5 font-bold text-lg ${isHome ? 'bg-white text-black' : 'bg-black text-white'}`}>CH</div>
-          {!isHome && null}
-        </Link>
-        <div className="hidden md:flex items-center gap-8 text-sm">
-          <Link to="/" className={`transition ${isHome ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-600 hover:text-black'}`}>首页</Link>
-          <Link to="/deconstruct" className={`transition ${isHome ? 'text-white hover:text-gray-300' : 'text-gray-600 hover:text-black'}`}>解构基地车</Link>
-          <Link to="/documentation" className={`transition ${isHome ? 'text-white hover:text-gray-300' : 'text-gray-600 hover:text-black'}`}>完整纪实</Link>
-          <Link to="/guide" className={`transition ${isHome ? 'text-white hover:text-gray-300' : 'text-gray-600 hover:text-black'}`}>上车指南</Link>
-          <Link to="#" className={`transition ${isHome ? 'text-white hover:text-gray-300' : 'text-gray-600 hover:text-black'}`}>关于柴火</Link>
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isLight
+          ? 'bg-white/95 backdrop-blur-md border-b border-neutral-300/50 shadow-sm'
+          : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center">
+            <img
+              src={logoHorizontal}
+              alt="柴火创客"
+              className={`h-8 transition-all duration-500 ${isLight ? '' : 'brightness-0 invert'}`}
+            />
+          </Link>
+
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-8 text-sm">
+            {NAV_LINKS.map((link) => (
+              <Link key={link.to} to={link.to} className={linkClass(link.to)}>
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden relative w-8 h-8 flex items-center justify-center cursor-pointer"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? '关闭菜单' : '打开菜单'}
+          >
+            <span className={`absolute h-0.5 w-5 rounded transition-all duration-300 ${isLight ? 'bg-neutral-900' : 'bg-white'} ${menuOpen ? 'rotate-45' : '-translate-y-1.5'}`} />
+            <span className={`absolute h-0.5 w-5 rounded transition-all duration-300 ${isLight ? 'bg-neutral-900' : 'bg-white'} ${menuOpen ? 'opacity-0' : 'opacity-100'}`} />
+            <span className={`absolute h-0.5 w-5 rounded transition-all duration-300 ${isLight ? 'bg-neutral-900' : 'bg-white'} ${menuOpen ? '-rotate-45' : 'translate-y-1.5'}`} />
+          </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-[60] bg-black/50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={closeMenu}
+            />
+            <motion.div
+              className="fixed top-0 right-0 bottom-0 z-[70] w-72 bg-white shadow-2xl flex flex-col"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+            >
+              <div className="flex justify-end p-6 pb-2">
+                <button
+                  onClick={closeMenu}
+                  className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+                  aria-label="关闭菜单"
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="4" y1="4" x2="16" y2="16" />
+                    <line x1="16" y1="4" x2="4" y2="16" />
+                  </svg>
+                </button>
+              </div>
+              <nav className="flex-1 px-4 py-4">
+                {NAV_LINKS.map((link, i) => (
+                  <motion.div
+                    key={link.to}
+                    initial={{ opacity: 0, x: 24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05, type: 'spring', damping: 25, stiffness: 200 }}
+                  >
+                    <Link to={link.to} className={linkClass(link.to, true)} onClick={closeMenu}>
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ))}
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

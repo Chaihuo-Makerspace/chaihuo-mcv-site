@@ -161,9 +161,9 @@ function PartMesh({ part, exploded, hovered, onHover, onClick, selected }: PartM
           distanceFactor={8}
           style={{ pointerEvents: 'none' }}
         >
-          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg border border-gray-200 whitespace-nowrap">
-            <div className="text-sm font-semibold text-gray-900">{part.name}</div>
-            <div className="text-xs text-gray-500 mt-0.5">{part.description}</div>
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg border border-neutral-300 whitespace-nowrap">
+            <div className="text-sm font-semibold text-neutral-900">{part.name}</div>
+            <div className="text-xs text-neutral-500 mt-0.5">{part.description}</div>
           </div>
         </Html>
       )}
@@ -257,21 +257,21 @@ export function VehicleExplodedView() {
             setExploded((v) => !v);
             setSelected(null);
           }}
-          className="bg-white/90 backdrop-blur-sm rounded-lg px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-white transition-colors duration-200 cursor-pointer flex items-center gap-2"
+          className="bg-white/90 backdrop-blur-sm rounded-lg px-5 py-2.5 text-sm font-medium text-neutral-700 shadow-sm hover:bg-white transition-colors duration-200 cursor-pointer flex items-center gap-2"
         >
-          <span className={`inline-block w-2 h-2 rounded-full ${exploded ? 'bg-[#f3d230]' : 'bg-gray-400'}`} />
+          <span className={`inline-block w-2 h-2 rounded-full ${exploded ? 'bg-brand' : 'bg-neutral-500'}`} />
           {exploded ? '组装复原' : '爆炸拆解'}
         </button>
 
         {/* Hover 提示 */}
         {hoveredPart && (
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-gray-700 shadow-sm">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 text-sm text-neutral-700 shadow-sm">
             {hoveredPart.name}
           </div>
         )}
 
         {/* 操作提示 */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 text-xs text-gray-400 shadow-sm hidden md:block">
+        <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 text-xs text-neutral-500 shadow-sm hidden md:block">
           拖拽旋转 · 滚轮缩放 · 点击查看
         </div>
       </div>
