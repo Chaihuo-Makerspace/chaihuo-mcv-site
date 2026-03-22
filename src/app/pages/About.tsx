@@ -74,12 +74,6 @@ const PHASES = [
 
 const PARTNERS = ['Seeed Studio', 'NVIDIA', 'Starlink', 'Maker Media', 'UNESCO', 'DJI'];
 
-const TEAM = [
-  { name: '潘昊 (Eric Pan)', role: '创始人', desc: '柴火创客空间发起人，Seeed Studio 创始人', image: 'https://images.unsplash.com/photo-1632910121591-29e2484c0259?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80' },
-  { name: '廖巍 (James Liao)', role: '项目总监', desc: '负责基地车项目整体规划与执行', image: 'https://images.unsplash.com/photo-1737574107736-9e02ca5d5387?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80' },
-  { name: '王猛 (Meng Wang)', role: '技术负责人', desc: '边缘计算与 AI 系统架构', image: 'https://images.unsplash.com/photo-1646326477577-3c56e29dccbf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80' },
-  { name: '柯飞 (Fei)', role: '媒体负责人', desc: '纪实内容策划与品牌传播', image: 'https://images.unsplash.com/photo-1768400730810-5c4398d58ae7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80' },
-];
 
 export default function About() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -172,51 +166,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* ═══ 主理团队 ═══ */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={springTransition}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">
-              主理团队 <span className="text-neutral-500 font-normal">/ TEAM</span>
-            </h2>
-          </motion.div>
 
-          <motion.div
-            variants={stagger(0.1)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="grid md:grid-cols-4 gap-8"
-          >
-            {TEAM.map((member) => (
-              <motion.div
-                key={member.name}
-                variants={fadeUp}
-                transition={springTransition}
-                className="text-center"
-              >
-                <div className="relative overflow-hidden rounded-xl aspect-[3/4] mb-5 bg-neutral-100 group">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <h3 className="font-semibold text-lg mb-1">{member.name}</h3>
-                <p className="text-brand-dark text-sm font-medium mb-2">{member.role}</p>
-                <p className="text-neutral-500 text-sm">{member.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
       {/* ═══ 柴火历程 — 大字年份 + 上下交错事件 ═══ */}
       <section className="py-24 bg-white overflow-hidden">
