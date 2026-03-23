@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "everything-claude-code@everything-claude-code": false,
+    "ralph-loop@claude-plugins-official": false,
+    "security-guidance@claude-plugins-official": false
+  }
+}

@@ -29,6 +29,7 @@ npm run dev
 | `/deconstruct` | 解构基地车 | 普罗米修斯号 3D 爆炸图（R3F）、改装手记、装备清单 |
 | `/documentation` | 完整纪实 | 时间轴纪实（开发中） |
 | `/guide` | 上车指南 | 参与指南（开发中） |
+| `/about` | 关于柴火 | 柴火历程时间轴 |
 
 ## Architecture
 
@@ -38,7 +39,6 @@ src/
 │   ├── pages/          # 页面组件
 │   ├── components/
 │   │   ├── ui/         # shadcn/ui 组件库
-│   │   ├── figma/      # Figma 生成的辅助组件
 │   │   ├── Navigation.tsx
 │   │   └── VehicleExplodedView.tsx  # R3F 3D 爆炸图
 │   └── routes.ts       # React Router 路由配置

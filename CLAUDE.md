@@ -8,10 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- `npm run dev` — start Vite 8 dev server
-- `npm run build` — production build (Rolldown)
+- `pnpm dev` — start Vite 8 dev server
+- `pnpm build` — production build (Rolldown)
+- `pnpm install` — install dependencies (**always use pnpm, never npm/yarn**)
 
 No test framework or linter is configured.
+
+## Package Manager
+
+**pnpm only.** Do not use `npm` or `yarn`. The project has `pnpm.overrides` in `package.json` to pin Vite 8 across all sub-dependencies. `.npmrc` sets `legacy-peer-deps=true` for React 19 compatibility.
 
 ## Architecture
 
@@ -22,6 +27,7 @@ No test framework or linter is configured.
 - `/deconstruct` → Deconstruct (R3F 3D exploded vehicle view, modification logs, equipment list)
 - `/documentation` → Documentation (timeline, category filters)
 - `/guide` → Guide (participation guide, FAQ accordion, team)
+- `/about` → About (Chaihuo history timeline)
 
 **Key directories:**
 - `src/app/pages/` — page components (monolithic, self-contained with inline content)
@@ -53,7 +59,7 @@ const Slider = ('default' in ReactSlick ? (ReactSlick as any).default : ReactSli
 ```
 Apply this pattern to any CJS library with a default export that breaks at runtime.
 
-**Figma asset references:** Some pages (Documentation.tsx) still import `figma:asset/...` which won't resolve. Replace with Unsplash URLs or local assets in `src/assets/`.
+**Asset references:** Use Unsplash URLs or local assets in `src/assets/`.
 
 **3D lazy loading:** `VehicleExplodedView` is loaded via `React.lazy()` in Deconstruct.tsx to keep the main bundle under 500KB. Three.js chunk is ~950KB — always lazy-load R3F components.
 
