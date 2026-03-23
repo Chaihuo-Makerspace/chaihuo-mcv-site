@@ -1,0 +1,25 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import DeconstructContent from '@/app/components/DeconstructContent';
+import { getCollection } from 'astro:content';
+import equipmentData from '@/data/equipment.json';
+
+const notesCollection = await getCollection('notes');
+const notes = notesCollection.map(note => ({
+  date: note.data.date,
+  title: note.data.title,
+  description: note.data.description,
+  image: note.data.image,
+  tags: note.data.tags,
+}));
+
+const equipment = equipmentData.map(cat => ({
+  icon: cat.icon,
+  title: cat.title,
+  items: cat.items,
+}));
+---
+
+<BaseLayout title="解构基地车">
+  <DeconstructContent client:load notes={notes} equipment={equipment} />
+</BaseLayout>
