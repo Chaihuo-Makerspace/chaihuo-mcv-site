@@ -1,0 +1,22 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import DocumentationContent from '@/app/components/DocumentationContent';
+import { getCollection } from 'astro:content';
+
+const docsCollection = await getCollection('docs');
+const docs = docsCollection.map(doc => ({
+  id: doc.id,
+  date: doc.data.date,
+  category: doc.data.category,
+  title: doc.data.title,
+  description: doc.data.description,
+  readTime: doc.data.readTime,
+  coverImage: doc.data.coverImage,
+  videoLinks: doc.data.videoLinks,
+  pdfName: doc.data.pdfName,
+}));
+---
+
+<BaseLayout title="完整纪实">
+  <DocumentationContent client:load docs={docs} />
+</BaseLayout>
