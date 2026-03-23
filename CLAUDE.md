@@ -4,25 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-柴火基地车官网 (Chaihuo MCV Site) — a marketing/showcase website for Chaihuo's mobile AI laboratory vehicle "普罗米修斯号". React SPA with four pages, 3D interactive vehicle viewer, and static content (future Yuque sync planned).
+柴火基地车官网 (Chaihuo MCV Site) — a marketing/showcase website for Chaihuo's mobile AI laboratory vehicle "普罗米修斯号". Astro SSR site with five pages, 3D interactive vehicle viewer (React Island), Content Collections for structured data, deployed on Cloudflare Workers.
 
 ## Commands
 
-- `pnpm dev` — start Vite 8 dev server
-- `pnpm build` — production build (Rolldown)
+- `pnpm dev` — start Astro dev server
+- `pnpm build` — production build (Astro + Cloudflare adapter)
+- `pnpm preview` — preview production build locally
 - `pnpm install` — install dependencies (**always use pnpm, never npm/yarn**)
 
 No test framework or linter is configured.
 
 ## Package Manager
 
-**pnpm only.** Do not use `npm` or `yarn`. The project has `pnpm.overrides` in `package.json` to pin Vite 8 across all sub-dependencies. `.npmrc` sets `legacy-peer-deps=true` for React 19 compatibility.
+**pnpm only.** Do not use `npm` or `yarn`. `.npmrc` sets `legacy-peer-deps=true` for React 19 compatibility.
 
 ## Architecture
 
-**Stack:** React 19 + TypeScript + Vite 8 (Rolldown) + Tailwind CSS 4 + shadcn/ui (Radix) + React Three Fiber 9 + Three.js 0.183
+**Stack:** Astro 6 + React 19 (Islands) + TypeScript + Tailwind CSS 4 + shadcn/ui (Radix) + Framer Motion + React Three Fiber 9 + Three.js 0.183
 
-**Routing:** React Router v7 with `createBrowserRouter` in `src/app/routes.ts`:
+**Deployment:** Cloudflare Workers via `@astrojs/cloudflare` adapter. GitHub push triggers auto-deploy. Config in `wrangler.jsonc`.
+
+**Routing:** Astro file-based routing in `src/pages/`:
 - `/` → Home (hero carousel, video modal, China route map SVG, mobile lab cards)
 - `/deconstruct` → Deconstruct (R3F 3D exploded vehicle view, modification logs, equipment list)
 - `/documentation` → Documentation (timeline, category filters)
@@ -30,13 +33,27 @@ No test framework or linter is configured.
 - `/about` → About (Chaihuo history timeline)
 
 **Key directories:**
-- `src/app/pages/` — page components (monolithic, self-contained with inline content)
+- `src/pages/` — Astro page files (`.astro`), each wraps a React Island in `BaseLayout`
+- `src/layouts/BaseLayout.astro` — HTML shell, `<head>`, Navigation, Footer
+- `src/app/components/` — React Island components (`*Content.tsx` for each page)
 - `src/app/components/ui/` — shadcn/ui component library (**do not modify manually**)
-- `src/app/components/VehicleExplodedView.tsx` — R3F 3D exploded view (lazy-loaded, ~950KB chunk)
-- `src/app/components/Navigation.tsx` — route-aware nav (dark on Home `/`, white elsewhere via `useLocation()`)
+- `src/app/components/VehicleExplodedView.tsx` — R3F 3D exploded view (lazy-loaded via React.lazy)
+- `src/app/components/Navigation.tsx` — route-aware nav (accepts `pathname` prop from Astro)
+- `src/content/` — Astro Content Collections (Markdown files)
+- `src/data/` — Structured JSON data files
 - `src/styles/` — CSS chain: `index.css` → `fonts.css` + `tailwind.css` + `theme.css` + slick styles
 
-**Path alias:** `@` maps to `src/` (in `vite.config.ts`)
+**Content Layer:**
+- `src/content.config.ts` — Collection schemas (Zod). Collections: `notes`, `docs`, `equipment`, `team`, `faq`, `partners`, `heroes`
+- `src/content/notes/*.md` — 改装手记 (modification logs) — Markdown with frontmatter
+- `src/content/docs/*.md` — 时间线文档 (documentation timeline) — Markdown with frontmatter
+- `src/data/*.json` — Structured data: equipment, team, faq, partners, heroes, timeline
+
+**To add/edit content:** Edit Markdown files in `src/content/` or JSON files in `src/data/`. Schema validation runs at build time — type errors will fail the build.
+
+**React Islands pattern:** Each Astro page renders a `*Content.tsx` React component with `client:load` or `client:visible`. Data is fetched in the `.astro` frontmatter (via `getCollection()` or JSON import) and passed as props.
+
+**Path alias:** `@` maps to `src/` (in `astro.config.mjs`)
 
 ## Styling
 
@@ -52,23 +69,24 @@ No test framework or linter is configured.
 
 ## Gotchas
 
-**Vite 8 CJS interop:** `react-slick` is a CJS module. Vite 8's ESM wrapping nests the default export. Required workaround:
+**CJS interop:** `react-slick` is a CJS module. Vite's ESM wrapping nests the default export. Required workaround in `HomeContent.tsx`:
 ```typescript
 import ReactSlick from 'react-slick';
 const Slider = ('default' in ReactSlick ? (ReactSlick as any).default : ReactSlick) as typeof ReactSlick;
 ```
-Apply this pattern to any CJS library with a default export that breaks at runtime.
 
 **Asset references:** Use Unsplash URLs or local assets in `src/assets/`.
 
-**3D lazy loading:** `VehicleExplodedView` is loaded via `React.lazy()` in Deconstruct.tsx to keep the main bundle under 500KB. Three.js chunk is ~950KB — always lazy-load R3F components.
+**3D lazy loading:** `VehicleExplodedView` is loaded via `React.lazy()` in `DeconstructContent.tsx`. Three.js chunk is ~950KB — always lazy-load R3F components.
 
-**Content is static:** All page data (logs, equipment, docs, FAQs) lives as arrays inside page components. Future plan: sync from Yuque (语雀) to local Markdown via `scripts/sync-yuque.ts` (not yet implemented).
+**Content Collections (Astro 6):** Config file must be at `src/content.config.ts` (NOT `src/content/config.ts`). Import `z` from `astro/zod`, loaders from `astro/loaders`.
+
+**改装手记 "查看全部":** Links to external Yuque page: `https://www.yuque.com/chaihuo-mcv/home`. Future plan: sync from Yuque to local Markdown via `scripts/sync-yuque.ts` (not yet implemented).
 
 ## Conventions
 
 - Content is in Simplified Chinese
-- Pages are monolithic components with all sections inline
+- Each Astro page wraps a React Island `*Content.tsx` component
 - Icons: Lucide React SVGs only — no emoji icons in UI
 - Interactive elements must have `cursor-pointer` and `transition-colors duration-200`
-- `postcss.config.mjs` is intentionally empty (Tailwind v4 handles PostCSS internally)
+- Navigation receives `pathname` from `Astro.url.pathname` (no React Router)
