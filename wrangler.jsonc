@@ -1,0 +1,13 @@
+{
+  "main": "dist/_worker.js/index.js",
+  "name": "chaihuo-mcv-site",
+  "compatibility_date": "2026-03-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
