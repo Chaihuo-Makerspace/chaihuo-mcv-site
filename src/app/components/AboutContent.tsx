@@ -113,14 +113,7 @@ export default function AboutContent({ timelineData, phases, partners }: AboutCo
       {/* Timeline */}
       <section className="py-24 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 mb-10">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={springTransition}
-            className="flex items-end justify-between"
-          >
+          <div className="flex items-end justify-between">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-2">柴火历程</h2>
               <p className="text-neutral-500">2011 — 2024，从一间房到一辆车</p>
@@ -139,7 +132,7 @@ export default function AboutContent({ timelineData, phases, partners }: AboutCo
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Horizontal scrolling timeline */}
