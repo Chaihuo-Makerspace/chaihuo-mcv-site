@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 
@@ -11,15 +10,16 @@ const NAV_LINKS = [
   { to: '/about', label: '关于柴火' },
 ];
 
-export function Navigation() {
-  const location = useLocation();
-  const isHome = location.pathname === '/';
+interface NavigationProps {
+  pathname: string;
+}
+
+export default function Navigation({ pathname }: NavigationProps) {
+  const isHome = pathname === '/';
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-
-  useEffect(() => { closeMenu(); }, [location.pathname, closeMenu]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -43,7 +43,7 @@ export function Navigation() {
   const isLight = !isHome || scrolled;
 
   const linkClass = (path: string, mobile = false) => {
-    const isActive = location.pathname === path;
+    const isActive = pathname === path;
     if (mobile) {
       return `block py-3 px-4 text-lg transition-colors duration-200 ${
         isActive
@@ -69,20 +69,20 @@ export function Navigation() {
           : 'bg-transparent'
       }`}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
+          <a href="/" className="flex items-center">
             <img
               src={logoHorizontal}
               alt="柴火创客"
               className={`h-8 transition-all duration-500 ${isLight ? '' : 'brightness-0 invert'}`}
             />
-          </Link>
+          </a>
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8 text-sm">
             {NAV_LINKS.map((link) => (
-              <Link key={link.to} to={link.to} className={linkClass(link.to)}>
+              <a key={link.to} href={link.to} className={linkClass(link.to)}>
                 {link.label}
-              </Link>
+              </a>
             ))}
           </div>
 
@@ -138,9 +138,9 @@ export function Navigation() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, type: 'spring', damping: 25, stiffness: 200 }}
                   >
-                    <Link to={link.to} className={linkClass(link.to, true)} onClick={closeMenu}>
+                    <a href={link.to} className={linkClass(link.to, true)} onClick={closeMenu}>
                       {link.label}
-                    </Link>
+                    </a>
                   </motion.div>
                 ))}
               </nav>
@@ -151,3 +151,6 @@ export function Navigation() {
     </>
   );
 }
+
+// Backwards-compatible named export for old SPA pages (remove in Task 4.1)
+export { Navigation };

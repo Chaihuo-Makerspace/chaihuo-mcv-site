@@ -1,10 +1,12 @@
-import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import { MapPin, Mail, Phone } from 'lucide-react';
 import { fadeUp, springTransition, defaultViewport } from './motion';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 
-export function Footer() {
+// Backwards-compatible named export for old SPA pages (remove in Task 4.1)
+export { Footer };
+
+export default function Footer() {
   return (
     <motion.footer
       className="py-12 px-6 bg-white border-t border-neutral-300"
@@ -53,10 +55,10 @@ export function Footer() {
           <div>
             <h4 className="text-xs uppercase tracking-wider mb-4 text-neutral-700 font-semibold">项目入口</h4>
             <div className="space-y-2 text-sm">
-              <Link to="/" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">首页</Link>
-              <Link to="/deconstruct" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">解构基地车</Link>
-              <Link to="/documentation" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">完整纪实</Link>
-              <Link to="/guide" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">上车指南</Link>
+              <a href="/" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">首页</a>
+              <a href="/deconstruct" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">解构基地车</a>
+              <a href="/documentation" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">完整纪实</a>
+              <a href="/guide" className="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">上车指南</a>
             </div>
           </div>
 

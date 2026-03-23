@@ -1,0 +1,31 @@
+---
+import Navigation from '@/app/components/Navigation';
+import Footer from '@/app/components/Footer';
+import '@/styles/index.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = '柴火基地车 — 移动 AI 实验室' } = Astro.props;
+const pathname = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title} | 柴火基地车</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="min-h-screen bg-surface text-neutral-900">
+    <Navigation client:load pathname={pathname} />
+    <main>
+      <slot />
+    </main>
+    <Footer client:visible />
+  </body>
+</html>
