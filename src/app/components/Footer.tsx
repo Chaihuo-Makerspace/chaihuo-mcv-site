@@ -1,7 +1,10 @@
 import { motion } from 'motion/react';
 import { MapPin, Mail, Phone } from 'lucide-react';
 import { fadeUp, springTransition, defaultViewport } from './motion';
-import logoHorizontal from '@/assets/logo-horizontal.png';
+import logoHorizontalImport from '@/assets/logo-horizontal.png';
+const logoHorizontal = typeof logoHorizontalImport === 'object' && logoHorizontalImport !== null && 'src' in logoHorizontalImport
+  ? (logoHorizontalImport as { src: string }).src
+  : logoHorizontalImport as string;
 
 // Backwards-compatible named export for old SPA pages (remove in Task 4.1)
 export { Footer };

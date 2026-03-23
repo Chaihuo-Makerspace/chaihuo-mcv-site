@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import logoHorizontal from '@/assets/logo-horizontal.png';
+import logoHorizontalImport from '@/assets/logo-horizontal.png';
+const logoHorizontal = typeof logoHorizontalImport === 'object' && logoHorizontalImport !== null && 'src' in logoHorizontalImport
+  ? (logoHorizontalImport as { src: string }).src
+  : logoHorizontalImport as string;
 
 const NAV_LINKS = [
   { to: '/', label: '首页' },
