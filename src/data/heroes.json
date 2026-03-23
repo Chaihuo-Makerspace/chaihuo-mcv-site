@@ -1,0 +1,22 @@
+[
+  {
+    "id": "snow-mountain",
+    "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "中国西部雪山与草原壮阔风光"
+  },
+  {
+    "id": "desert-road",
+    "image": "https://images.unsplash.com/photo-1540390769625-2fc3f8b1d50c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "沙漠戈壁越野公路"
+  },
+  {
+    "id": "canyon-road",
+    "image": "https://images.unsplash.com/photo-1494783367193-149034c05e8f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "山间蜿蜒公路与峡谷"
+  },
+  {
+    "id": "plateau-lake",
+    "image": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "高原湖泊与远山"
+  }
+]

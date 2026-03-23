@@ -1,0 +1,26 @@
+[
+  {
+    "id": "feng",
+    "name": "冯工",
+    "role": "领队",
+    "image": "https://images.unsplash.com/photo-1632910121591-29e2484c0259?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMG1hbGUlMjBlbmdpbmVlciUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzczODg2ODg0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+  },
+  {
+    "id": "zhipeng",
+    "name": "志鹏",
+    "role": "技术担当",
+    "image": "https://images.unsplash.com/photo-1737574107736-9e02ca5d5387?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMG1hbGUlMjBkZXZlbG9wZXIlMjB3b3Jrc3BhY2V8ZW58MXx8fHwxNzczODg2ODg0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+  },
+  {
+    "id": "pipi",
+    "name": "pipi",
+    "role": "媒体担当",
+    "image": "https://images.unsplash.com/photo-1646326477577-3c56e29dccbf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMGZlbWFsZSUyMHBob3RvZ3JhcGhlciUyMGNhbWVyYXxlbnwxfHx8fDE3NzM4ODY4ODR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+  },
+  {
+    "id": "reachy",
+    "name": "Reachy Mini",
+    "role": "具身智能",
+    "image": "https://images.unsplash.com/photo-1768400730810-5c4398d58ae7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMGZlbWFsZSUyMHBob3RvZ3JhcGhlciUyMGNhbWVyYXxlbnwxfHx8fDE3NzM4ODY4ODR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+  }
+]

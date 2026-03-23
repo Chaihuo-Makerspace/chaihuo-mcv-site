@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ai-compute",
+    "icon": "Cpu",
+    "title": "AI & 计算系统",
+    "items": [
+      { "name": "AI 推理服务器", "spec": "4×NVIDIA L40 · 80GB VRAM" },
+      { "name": "边缘工作站", "spec": "NVIDIA Jetson Orin · 64GB" },
+      { "name": "卫星通信", "spec": "Starlink Gen 3 · 低轨卫星" },
+      { "name": "散热系统", "spec": "液冷循环 · 45°C 环境运行" }
+    ]
+  },
+  {
+    "id": "digital-fab",
+    "icon": "Factory",
+    "title": "数字加工中心",
+    "items": [
+      { "name": "3D 打印机", "spec": "Bambu Lab X1C · 多色打印" },
+      { "name": "激光切割机", "spec": "xTool D1 Pro · 20W 模组" },
+      { "name": "数控铣床", "spec": "CNC 3018 Pro · 铝材加工" },
+      { "name": "电子工作台", "spec": "示波器 · 焊台 · 万用表" }
+    ]
+  },
+  {
+    "id": "power-life",
+    "icon": "BatteryCharging",
+    "title": "能源与生活",
+    "items": [
+      { "name": "太阳能板", "spec": "2×800W 可折叠 · JA Solar" },
+      { "name": "储能电池", "spec": "LiFePO₄ 2000Ah · 磷酸铁锂" },
+      { "name": "逆变器", "spec": "5kW 纯正弦波 · 离网/并网" },
+      { "name": "净水系统", "spec": "RO反渗透 · 200L水箱" }
+    ]
+  }
+]

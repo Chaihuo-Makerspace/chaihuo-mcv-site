@@ -1,0 +1,8 @@
+[
+  { "id": "seeed", "name": "Seeed Studio" },
+  { "id": "nvidia", "name": "NVIDIA" },
+  { "id": "starlink", "name": "Starlink" },
+  { "id": "maker-media", "name": "Maker Media" },
+  { "id": "unesco", "name": "UNESCO" },
+  { "id": "dji", "name": "DJI" }
+]
