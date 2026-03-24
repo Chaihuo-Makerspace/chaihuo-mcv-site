@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import GuideContent from '@/app/components/GuideContent';
 import teamData from '@/data/team.json';
@@ -7,7 +9,7 @@ import faqData from '@/data/faq.json';
 
 <BaseLayout title="上车指南">
   <GuideContent
-    client:load
+    client:only="react"
     teamMembers={teamData.map(t => ({ name: t.name, role: t.role, image: t.image }))}
     faqGroups={faqData.map(g => ({ label: g.label, items: g.items }))}
   />

@@ -19,8 +19,9 @@ const docs = defineCollection({
   schema: z.object({
     title: z.string(),
     date: z.string(),
-    category: z.enum(['人物访谈', '纪录片', 'Vlog', '文章']),
+    category: z.enum(['人物访谈', '路上VLOG', '公益合作纪录片']),
     description: z.string(),
+    author: z.string().optional(),
     readTime: z.string().optional(),
     coverImage: z.string().url().optional(),
     videoLinks: z.array(z.object({
@@ -28,6 +29,7 @@ const docs = defineCollection({
       url: z.string(),
     })).default([]),
     pdfName: z.string().optional(),
+    tags: z.array(z.string()).default([]),
   }),
 });
 

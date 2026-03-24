@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { fadeUp, scaleIn, stagger, springTransition, defaultViewport } from './motion';
-import { ChevronDown, Mail, Send, Truck, Sprout, Zap } from 'lucide-react';
+import { fadeUp, stagger, springTransition, defaultViewport } from './motion';
+import { ChevronDown, Mail, Truck, Sprout, Zap } from 'lucide-react';
+import qrCoCreationImport from '@/assets/qr-co-creation.png';
+import qrEmpowermentImport from '@/assets/qr-empowerment.png';
+
+const qrCoCreation = typeof qrCoCreationImport === 'object' && qrCoCreationImport !== null && 'src' in qrCoCreationImport
+  ? (qrCoCreationImport as { src: string }).src : qrCoCreationImport as string;
+const qrEmpowerment = typeof qrEmpowermentImport === 'object' && qrEmpowermentImport !== null && 'src' in qrEmpowermentImport
+  ? (qrEmpowermentImport as { src: string }).src : qrEmpowermentImport as string;
 
 interface TeamMember {
   name: string;
@@ -25,35 +32,36 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
   return (
     <div className="min-h-screen bg-white">
 
-      {/* Hero Section — 团队/协作风格图片背景 */}
-      <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80)' }}
-        />
-        <div className="absolute inset-0 bg-black/50" />
-
-        <div className="relative h-full flex flex-col justify-center items-center text-center px-6">
-          <motion.h1
-            variants={scaleIn}
+      {/* 标题区 */}
+      <section className="pt-24 pb-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            variants={stagger(0.2)}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={springTransition}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6"
+            animate="visible"
           >
-            加入行动
-          </motion.h1>
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={{ ...springTransition, delay: 0.2 }}
-            className="text-xl md:text-2xl text-white/80"
-          >
-            你不是看客，是答案的一部分
-          </motion.p>
+            <motion.p
+              className="text-sm tracking-[0.3em] text-neutral-400 uppercase mb-3"
+              variants={fadeUp}
+              transition={springTransition}
+            >
+              Get Involved
+            </motion.p>
+            <motion.h1
+              className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4"
+              variants={fadeUp}
+              transition={springTransition}
+            >
+              加入行动
+            </motion.h1>
+            <motion.p
+              className="text-base text-neutral-500"
+              variants={fadeUp}
+              transition={springTransition}
+            >
+              你不是看客，是答案的一部分
+            </motion.p>
+          </motion.div>
         </div>
       </section>
 
@@ -176,13 +184,10 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
                   </div>
                 </div>
 
-                <a
-                  href="#"
-                  className="inline-flex items-center gap-2 w-full justify-center py-3 rounded-lg border-2 border-neutral-900 text-neutral-900 font-medium hover:bg-neutral-900 hover:text-white transition-colors cursor-pointer text-sm"
-                >
-                  <Send className="w-4 h-4" />
-                  扫码填写意向
-                </a>
+                <div className="flex flex-col items-center gap-2">
+                  <img src={qrCoCreation} alt="在地共创意向二维码" className="w-28 h-28 rounded-lg" />
+                  <span className="text-xs text-neutral-500">扫码填写意向</span>
+                </div>
               </div>
             </motion.div>
 
@@ -214,13 +219,10 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
                   </div>
                 </div>
 
-                <a
-                  href="#"
-                  className="inline-flex items-center gap-2 w-full justify-center py-3 rounded-lg border-2 border-neutral-900 text-neutral-900 font-medium hover:bg-neutral-900 hover:text-white transition-colors cursor-pointer text-sm"
-                >
-                  <Send className="w-4 h-4" />
-                  扫码填写需求
-                </a>
+                <div className="flex flex-col items-center gap-2">
+                  <img src={qrEmpowerment} alt="在地赋能需求二维码" className="w-28 h-28 rounded-lg" />
+                  <span className="text-xs text-neutral-500">扫码填写需求</span>
+                </div>
               </div>
             </motion.div>
           </motion.div>

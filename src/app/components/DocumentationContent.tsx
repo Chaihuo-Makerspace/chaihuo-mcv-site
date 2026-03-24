@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { fadeUp, scaleIn, stagger, springTransition, defaultViewport } from './motion';
+import { fadeUp, stagger, springTransition, defaultViewport } from './motion';
 import { Clock, Play, FileText, ExternalLink } from 'lucide-react';
 
-type Category = '全部' | '人物访谈' | '纪录片' | 'Vlog' | '文章';
+type Category = '全部' | '人物访谈' | '路上VLOG' | '公益合作纪录片';
 
 interface VideoLink {
   platform: string;
@@ -12,6 +12,7 @@ interface VideoLink {
 
 interface DocEntry {
   id: string | number;
+  slug?: string;
   date: string;
   category: string;
   title: string;
@@ -26,13 +27,12 @@ interface Props {
   docs: DocEntry[];
 }
 
-const CATEGORIES: Category[] = ['全部', '人物访谈', '纪录片', 'Vlog', '文章'];
+const CATEGORIES: Category[] = ['全部', '人物访谈', '路上VLOG', '公益合作纪录片'];
 
 const CATEGORY_COLORS: Record<string, string> = {
   '人物访谈': 'bg-blue-100 text-blue-700',
-  '纪录片': 'bg-purple-100 text-purple-700',
-  'Vlog': 'bg-brand/15 text-brand-dark',
-  '文章': 'bg-neutral-100 text-neutral-700',
+  '路上VLOG': 'bg-brand/15 text-brand-dark',
+  '公益合作纪录片': 'bg-purple-100 text-purple-700',
 };
 
 export default function DocumentationContent({ docs }: Props) {
@@ -45,35 +45,36 @@ export default function DocumentationContent({ docs }: Props) {
   return (
     <div className="min-h-screen bg-surface">
 
-      {/* Hero Section — 纪实风格图片背景 */}
-      <section className="relative h-[60vh] min-h-[500px] overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80)' }}
-        />
-        <div className="absolute inset-0 bg-black/50" />
-
-        <div className="relative h-full flex flex-col justify-center items-center text-center px-6">
-          <motion.h1
-            variants={scaleIn}
+      {/* 标题区 */}
+      <section className="pt-24 pb-12 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            variants={stagger(0.2)}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={springTransition}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6"
+            animate="visible"
           >
-            循迹中国
-          </motion.h1>
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={{ ...springTransition, delay: 0.2 }}
-            className="text-lg md:text-xl text-white/80 max-w-2xl"
-          >
-            人物访谈 · 纪录片 · Vlog — 记录路上的每一个真实瞬间
-          </motion.p>
+            <motion.p
+              className="text-sm tracking-[0.3em] text-neutral-400 uppercase mb-3"
+              variants={fadeUp}
+              transition={springTransition}
+            >
+              Documentary
+            </motion.p>
+            <motion.h1
+              className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4"
+              variants={fadeUp}
+              transition={springTransition}
+            >
+              循迹中国
+            </motion.h1>
+            <motion.p
+              className="text-base text-neutral-500 max-w-xl"
+              variants={fadeUp}
+              transition={springTransition}
+            >
+              人物访谈 · 纪录片 · Vlog — 记录路上的每一个真实瞬间
+            </motion.p>
+          </motion.div>
         </div>
       </section>
 
@@ -114,10 +115,10 @@ export default function DocumentationContent({ docs }: Props) {
           <div className="md:hidden absolute left-6 top-0 bottom-0 w-px bg-neutral-300" />
 
           <motion.div
+            key={activeCategory}
             variants={stagger(0.15)}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="space-y-16 md:space-y-20"
           >
             {filteredItems.map((entry, index) => {
@@ -207,13 +208,15 @@ export default function DocumentationContent({ docs }: Props) {
                               {entry.pdfName}
                             </a>
                           )}
-                          <a
-                            href="#"
-                            className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
-                          >
-                            阅读全文
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+                          {entry.slug && (
+                            <a
+                              href={`/documentation/${entry.slug}`}
+                              className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+                            >
+                              阅读全文
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     </div>

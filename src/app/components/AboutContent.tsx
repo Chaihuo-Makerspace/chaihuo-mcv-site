@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { fadeUp, scaleIn, stagger, springTransition, defaultViewport } from './motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Mouse } from 'lucide-react';
 
 interface YearEntry {
   year: string;
@@ -22,6 +22,12 @@ interface AboutContentProps {
 export default function AboutContent({ timelineData, phases, partners }: AboutContentProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, []);
+
   const scrollTimeline = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
     const amount = 360;
@@ -34,28 +40,26 @@ export default function AboutContent({ timelineData, phases, partners }: AboutCo
   return (
     <div className="min-h-screen bg-white">
 
-      {/* Hero */}
-      <section className="relative min-h-[70vh] flex items-center bg-white overflow-hidden">
-        {/* decorative image (right side, translucent) */}
-        <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden md:block">
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1504384308090-c894fdcc538d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1200&q=80)' }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent" />
-        </div>
-
-        <div className="relative max-w-6xl mx-auto px-6 py-32 md:py-40">
+      {/* 标题区 */}
+      <section className="pt-24 pb-12 px-6">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             variants={stagger(0.2)}
             initial="hidden"
             animate="visible"
             className="max-w-2xl"
           >
+            <motion.p
+              className="text-sm tracking-[0.3em] text-neutral-400 uppercase mb-3"
+              variants={fadeUp}
+              transition={springTransition}
+            >
+              About Chaihuo
+            </motion.p>
             <motion.h1
               variants={fadeUp}
               transition={springTransition}
-              className="text-5xl md:text-7xl lg:text-8xl font-bold text-neutral-900 mb-8 leading-tight"
+              className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4 leading-tight"
             >
               柴火 15 年，
               <br />
@@ -64,7 +68,7 @@ export default function AboutContent({ timelineData, phases, partners }: AboutCo
             <motion.p
               variants={fadeUp}
               transition={springTransition}
-              className="text-lg md:text-xl text-neutral-500 leading-relaxed"
+              className="text-base text-neutral-500 leading-relaxed"
             >
               自 2011 年成立以来，柴火创客空间（Chaihuo Maker Space）始终是连接创意与制造的桥梁。十五年来，我们见证了无数想法在这里萌芽、原型化、量产直至走向全球。
             </motion.p>
@@ -111,23 +115,27 @@ export default function AboutContent({ timelineData, phases, partners }: AboutCo
       </section>
 
       {/* Timeline */}
-      <section className="py-24 bg-white overflow-hidden">
+      <section className="relative py-24 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 mb-10">
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-2">柴火历程</h2>
               <p className="text-neutral-500">2011 — 2024，从一间房到一辆车</p>
             </div>
-            <div className="hidden md:flex gap-2">
+
+            {/* Brand-colored nav buttons */}
+            <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => scrollTimeline('left')}
-                className="w-10 h-10 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-900 hover:text-white hover:border-neutral-900 transition-colors cursor-pointer"
+                className="w-11 h-11 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer shadow-sm"
+                aria-label="向左滚动"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={() => scrollTimeline('right')}
-                className="w-10 h-10 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-900 hover:text-white hover:border-neutral-900 transition-colors cursor-pointer"
+                className="w-11 h-11 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer shadow-sm"
+                aria-label="向右滚动"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -261,6 +269,17 @@ export default function AboutContent({ timelineData, phases, partners }: AboutCo
               </div>
             );
           })()}
+        </div>
+
+        {/* Sticky bottom hint bar — scroll tip always visible */}
+        <div className="hidden md:flex sticky bottom-6 z-40 justify-center pointer-events-none">
+          <div className="pointer-events-auto inline-flex items-center gap-3 bg-neutral-900 text-white rounded-full px-4 py-2 shadow-lg">
+            <Mouse className="w-3.5 h-3.5 text-neutral-400" />
+            <span className="text-[11px] text-neutral-400 select-none">
+              <kbd className="px-1.5 py-0.5 bg-neutral-700 rounded font-mono text-neutral-300">Shift</kbd>
+              {' + 滚轮 横向滚动 · 触控板双指横滑'}
+            </span>
+          </div>
         </div>
       </section>
 

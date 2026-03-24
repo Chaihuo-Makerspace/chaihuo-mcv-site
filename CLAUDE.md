@@ -75,6 +75,13 @@ import ReactSlick from 'react-slick';
 const Slider = ('default' in ReactSlick ? (ReactSlick as any).default : ReactSlick) as typeof ReactSlick;
 ```
 
+**Astro image imports in React Islands:** `import img from '@/assets/foo.png'` returns `{ src, width, height }` in Astro (not a string). In React components, extract `.src`:
+```typescript
+import logoImport from '@/assets/logo.png';
+const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in logoImport
+  ? (logoImport as { src: string }).src : logoImport as string;
+```
+
 **Asset references:** Use Unsplash URLs or local assets in `src/assets/`.
 
 **3D lazy loading:** `VehicleExplodedView` is loaded via `React.lazy()` in `DeconstructContent.tsx`. Three.js chunk is ~950KB — always lazy-load R3F components.

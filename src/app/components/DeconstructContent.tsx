@@ -97,11 +97,11 @@ export default function DeconstructContent({ notes, equipment }: Props) {
         </div>
       </section>
 
-      {/* ═══════ 改装日志 ═══════ */}
+      {/* ═══════ 改装手记 ═══════ */}
       <section className="px-6 pb-20">
         <div className="max-w-6xl mx-auto">
           <motion.div
-            className="flex items-end justify-between mb-10"
+            className="flex items-end justify-between mb-8"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
@@ -116,61 +116,60 @@ export default function DeconstructContent({ notes, equipment }: Props) {
               href="https://www.yuque.com/chaihuo-mcv/home"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors duration-200 flex items-center gap-1 cursor-pointer"
+              className="hidden md:flex text-sm text-neutral-500 hover:text-neutral-900 transition-colors duration-200 items-center gap-1 cursor-pointer"
             >
-              查看全部
+              前往语雀查看全部
               <ChevronRight className="w-4 h-4" />
             </a>
           </motion.div>
 
           <motion.div
-            className="space-y-6"
-            variants={stagger(0.15)}
+            className="grid grid-cols-1 md:grid-cols-3 gap-5"
+            variants={stagger(0.1)}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
           >
-            {notes.map((log, index) => (
-              <motion.article
+            {notes.map((note, index) => (
+              <motion.div
                 key={index}
-                className="group grid md:grid-cols-[1fr_280px] gap-0 bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                className="bg-white rounded-xl overflow-hidden shadow-sm"
                 variants={fadeUp}
                 transition={springTransition}
-                whileHover={{ y: -4 }}
               >
-                {/* 文字区 */}
-                <div className="p-6 flex flex-col justify-center">
-                  <div className="flex items-center gap-3 mb-3">
-                    <time className="text-xs text-neutral-500 font-mono">{log.date}</time>
-                    <div className="flex gap-2">
-                      {log.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs px-2 py-0.5 bg-brand/10 text-brand-dark rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-semibold text-neutral-900 mb-3 group-hover:text-brand-dark transition-colors duration-200">
-                    {log.title}
-                  </h3>
-                  <p className="text-sm text-neutral-500 leading-relaxed line-clamp-3">
-                    {log.description}
-                  </p>
-                </div>
-
-                {/* 图片区 */}
-                <div className="h-48 md:h-auto overflow-hidden">
+                <div className="aspect-[16/10] overflow-hidden">
                   <img
-                    src={log.image}
-                    alt={log.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    src={note.image}
+                    alt={note.title}
+                    className="w-full h-full object-cover"
                   />
                 </div>
-              </motion.article>
+                <div className="p-4">
+                  <h3 className="text-sm font-semibold text-neutral-900 mb-1 line-clamp-1">{note.title}</h3>
+                  <time className="text-xs text-neutral-400 font-mono">{note.date}</time>
+                </div>
+              </motion.div>
             ))}
+          </motion.div>
+
+          {/* 移动端 CTA */}
+          <motion.div
+            className="mt-6 text-center md:hidden"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            transition={springTransition}
+          >
+            <a
+              href="https://www.yuque.com/chaihuo-mcv/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors duration-200 cursor-pointer"
+            >
+              前往语雀查看全部手记
+              <ChevronRight className="w-4 h-4" />
+            </a>
           </motion.div>
         </div>
       </section>

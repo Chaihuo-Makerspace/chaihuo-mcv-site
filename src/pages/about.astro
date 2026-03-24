@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import AboutContent from '@/app/components/AboutContent';
 import timelineData from '@/data/timeline.json';
@@ -7,7 +9,7 @@ import partnersData from '@/data/partners.json';
 
 <BaseLayout title="关于柴火">
   <AboutContent
-    client:load
+    client:only="react"
     timelineData={timelineData.years}
     phases={timelineData.phases}
     partners={partnersData.map(p => p.name)}

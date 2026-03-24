@@ -1,9 +1,11 @@
 ---
+export const prerender = true;
+
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import HomeContent from '@/app/components/HomeContent';
 import heroesData from '@/data/heroes.json';
 ---
 
 <BaseLayout title="首页">
-  <HomeContent client:load heroImages={heroesData} />
+  <HomeContent client:only="react" heroImages={heroesData} />
 </BaseLayout>

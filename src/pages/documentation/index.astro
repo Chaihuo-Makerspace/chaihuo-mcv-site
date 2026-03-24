@@ -1,11 +1,15 @@
 ---
+export const prerender = true;
+
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import DocumentationContent from '@/app/components/DocumentationContent';
 import { getCollection } from 'astro:content';
 
 const docsCollection = await getCollection('docs');
+
 const docs = docsCollection.map(doc => ({
   id: doc.id,
+  slug: doc.id,
   date: doc.data.date,
   category: doc.data.category,
   title: doc.data.title,
@@ -14,9 +18,9 @@ const docs = docsCollection.map(doc => ({
   coverImage: doc.data.coverImage,
   videoLinks: doc.data.videoLinks,
   pdfName: doc.data.pdfName,
-}));
+})).sort((a, b) => b.date.localeCompare(a.date));
 ---
 
 <BaseLayout title="完整纪实">
-  <DocumentationContent client:load docs={docs} />
+  <DocumentationContent client:only="react" docs={docs} />
 </BaseLayout>

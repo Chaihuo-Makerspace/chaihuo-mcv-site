@@ -22,10 +22,10 @@ const pathname = Astro.url.pathname;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="min-h-screen bg-surface text-neutral-900">
-    <Navigation client:load pathname={pathname} />
+    <Navigation client:only="react" pathname={pathname} />
     <main>
       <slot />
     </main>
-    <Footer client:visible />
+    <Footer client:only="react" />
   </body>
 </html>

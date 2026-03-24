@@ -12,12 +12,14 @@
       "type": "string",
       "enum": [
         "人物访谈",
-        "纪录片",
-        "Vlog",
-        "文章"
+        "路上VLOG",
+        "公益合作纪录片"
       ]
     },
     "description": {
+      "type": "string"
+    },
+    "author": {
       "type": "string"
     },
     "readTime": {
@@ -48,6 +50,13 @@
     },
     "pdfName": {
       "type": "string"
+    },
+    "tags": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "$schema": {
       "type": "string"
