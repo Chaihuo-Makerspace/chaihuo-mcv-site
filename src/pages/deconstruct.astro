@@ -23,5 +23,5 @@ const equipment = equipmentData.map(cat => ({
 ---
 
 <BaseLayout title="解构基地车">
-  <DeconstructContent client:only="react" notes={notes} equipment={equipment} />
+  <DeconstructContent client:load notes={notes} equipment={equipment} />
 </BaseLayout>

@@ -87,18 +87,35 @@ const projection = geoMercator()
 
 const pathGenerator = geoPath().projection(projection);
 
-// 中国路线图 — 真实省份轮廓 + 马形路线动态绘制
+// 城市连线路径 — 按 order 排序，依次连接
+function buildCityLines(cities: typeof routeCities) {
+  const sorted = [...cities].sort((a, b) => a.order - b.order);
+  const segments: { from: typeof cities[0]; to: typeof cities[0]; visited: boolean }[] = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    segments.push({
+      from: sorted[i],
+      to: sorted[i + 1],
+      // A segment is visited only if BOTH endpoints are visited
+      visited: sorted[i].visited && sorted[i + 1].visited,
+    });
+  }
+  return segments;
+}
+
+// 中国路线图 — 双层：马形背景 + 城市进度前景
 function ChinaRouteMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(mapRef, { once: true, amount: 0.3 });
+  const segments = buildCityLines(routeCities);
 
-  const visitedCount = routeCities.filter((c) => c.visited).length;
-  const plannedCount = routeCities.filter((c) => !c.visited).length;
+  // Find the last visited city (progress head)
+  const sortedCities = [...routeCities].sort((a, b) => a.order - b.order);
+  const lastVisited = [...sortedCities].reverse().find(c => c.visited);
 
   return (
     <div
       ref={mapRef}
-      className="relative w-full h-full bg-[#faf8f3] rounded-lg overflow-hidden"
+      className="relative w-full h-full bg-[#faf8f3] overflow-hidden"
     >
       <svg
         viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
@@ -111,10 +128,8 @@ function ChinaRouteMap() {
           {geoData.features.map((feature) => {
             const raw = pathGenerator(feature);
             if (!raw) return null;
-            // d3-geo Mercator 会添加反子午线裁剪矩形作为第二个子路径，剥掉它
             const parts = raw.split(/(?=M)/);
             const d = parts.filter((p) => {
-              // 只保留坐标在 viewBox 范围内的子路径
               const firstCoord = p.match(/^M([-\d.]+),([-\d.]+)/);
               if (!firstCoord) return false;
               const x = parseFloat(firstCoord[1]);
@@ -134,47 +149,86 @@ function ChinaRouteMap() {
           })}
         </g>
 
-        {/* 马形路线 — 设计师 DXF 仿射变换适配 d3-geo 投影 */}
+        {/* 层一：马形路线 — 背景层，可辨识但不抢前景 */}
         <motion.path
           d={horseRouteD}
-          stroke="#8db87c"
-          strokeWidth="3.5"
+          stroke="#f3d230"
+          strokeWidth="6"
           strokeLinecap="round"
           strokeLinejoin="round"
-          fill="none"
+          fill="rgba(243,210,48,0.06)"
+          opacity={0.35}
           initial={{ pathLength: 0, opacity: 0 }}
-          animate={isInView ? { pathLength: 1, opacity: 1 } : {}}
-          transition={{ pathLength: { duration: 4, ease: 'easeInOut', delay: 0.3 }, opacity: { duration: 0.3, delay: 0.3 } }}
+          animate={isInView ? { pathLength: 1, opacity: 0.35 } : {}}
+          transition={{ pathLength: { duration: 2.5, ease: 'easeInOut', delay: 0.2 }, opacity: { duration: 0.3, delay: 0.2 } }}
         />
 
+        {/* 层二：城市间连线 */}
+        {segments.map((seg, i) => {
+          const fromPt = projection([seg.from.lng, seg.from.lat]);
+          const toPt = projection([seg.to.lng, seg.to.lat]);
+          if (!fromPt || !toPt) return null;
+
+          // Slight curve via quadratic bezier
+          const midX = (fromPt[0] + toPt[0]) / 2;
+          const midY = (fromPt[1] + toPt[1]) / 2;
+          const dx = toPt[0] - fromPt[0];
+          const dy = toPt[1] - fromPt[1];
+          // Perpendicular offset for curve
+          const offset = Math.min(Math.sqrt(dx * dx + dy * dy) * 0.15, 20);
+          const cpX = midX + (dy > 0 ? -offset : offset) * 0.5;
+          const cpY = midY + (dx > 0 ? offset : -offset) * 0.5;
+
+          const d = `M ${fromPt[0]} ${fromPt[1]} Q ${cpX} ${cpY} ${toPt[0]} ${toPt[1]}`;
+
+          return (
+            <motion.path
+              key={`seg-${i}`}
+              d={d}
+              stroke={seg.visited ? '#f3d230' : '#c4b89c'}
+              strokeWidth={seg.visited ? 2.5 : 1.5}
+              strokeLinecap="round"
+              strokeDasharray={seg.visited ? 'none' : '4 4'}
+              fill="none"
+              opacity={seg.visited ? 1 : 0.4}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={isInView ? { pathLength: 1, opacity: seg.visited ? 1 : 0.4 } : {}}
+              transition={{
+                pathLength: { duration: 0.6, ease: 'easeOut', delay: 2.8 + i * 0.12 },
+                opacity: { duration: 0.2, delay: 2.8 + i * 0.12 },
+              }}
+            />
+          );
+        })}
+
         {/* 城市节点 */}
-        {routeCities.map((city, index) => {
+        {sortedCities.map((city) => {
           const projected = projection([city.lng, city.lat]);
           if (!projected) return null;
           const [cx, cy] = projected;
-          const delay = city.visited ? 0.4 + index * 0.12 : 1.2 + index * 0.08;
-          const dotColor = city.visited ? "#f3a230" : "#8db87c";
-          const textColor = city.visited ? "#333" : "#666";
-          const r = city.isOrigin ? 6 : city.visited ? 4.5 : 3.5;
+          const delay = 3.0 + city.order * 0.1;
+          const r = city.isOrigin ? 6 : city.visited ? 5 : 3.5;
+          const [labelDx, labelDy] = city.labelOffset ?? [10, -8];
 
           return (
             <g key={city.label}>
-              {/* 已走过城市的光晕 */}
-              {city.visited && (
+              {/* Progress head pulse — only on last visited city */}
+              {lastVisited && city.label === lastVisited.label && (
                 <motion.circle
                   cx={cx}
                   cy={cy}
-                  r={r + 6}
-                  fill="#f3a230"
+                  r={10}
+                  fill="#f3d230"
                   opacity={0}
                   initial={{ opacity: 0 }}
-                  animate={isInView ? { opacity: [0, 0.2, 0] } : {}}
+                  animate={isInView ? { opacity: [0, 0.3, 0], scale: [1, 1.5, 1] } : {}}
                   transition={{
                     duration: 2,
-                    delay: delay + 0.3,
+                    delay: delay + 0.5,
                     repeat: Infinity,
-                    repeatDelay: 1,
+                    repeatDelay: 0.5,
                   }}
+                  style={{ transformOrigin: `${cx}px ${cy}px` }}
                 />
               )}
 
@@ -185,12 +239,11 @@ function ChinaRouteMap() {
                   cy={cy}
                   r={12}
                   fill="none"
-                  stroke="#f3a230"
+                  stroke="#f3d230"
                   strokeWidth="1.5"
-                  opacity={0}
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={isInView ? { opacity: 0.4, scale: 1 } : {}}
-                  transition={{ type: "spring", damping: 15, delay: delay }}
+                  transition={{ type: "spring", damping: 15, delay }}
                   style={{ transformOrigin: `${cx}px ${cy}px` }}
                 />
               )}
@@ -200,9 +253,9 @@ function ChinaRouteMap() {
                 cx={cx}
                 cy={cy}
                 r={r}
-                fill={dotColor}
-                stroke="white"
-                strokeWidth="2"
+                fill={city.visited ? '#f3d230' : 'white'}
+                stroke={city.visited ? 'white' : '#c4b89c'}
+                strokeWidth={city.visited ? 2 : 1.5}
                 initial={{ scale: 0 }}
                 animate={isInView ? { scale: 1 } : { scale: 0 }}
                 transition={{
@@ -216,38 +269,46 @@ function ChinaRouteMap() {
 
               {/* 城市名称 */}
               <motion.text
-                x={cx + (city.label.length > 3 ? -30 : 10)}
-                y={cy - 10}
-                fill={textColor}
-                fontSize="10"
-                fontWeight={city.visited ? "bold" : "normal"}
+                x={cx + labelDx}
+                y={cy + labelDy}
+                fill={city.visited ? '#333' : '#999'}
+                fontSize={city.visited ? '11' : '9'}
+                fontWeight={city.visited ? 'bold' : 'normal'}
                 initial={{ opacity: 0 }}
                 animate={isInView ? { opacity: 1 } : { opacity: 0 }}
                 transition={{ duration: 0.3, delay: delay + 0.15 }}
               >
                 {city.label}
               </motion.text>
+
+              {/* 出发标签 */}
+              {city.isOrigin && (
+                <motion.text
+                  x={cx + labelDx}
+                  y={cy + labelDy + 13}
+                  fill="#f3d230"
+                  fontSize="8"
+                  fontWeight="bold"
+                  initial={{ opacity: 0 }}
+                  animate={isInView ? { opacity: 1 } : {}}
+                  transition={{ duration: 0.3, delay: delay + 0.3 }}
+                >
+                  出发点
+                </motion.text>
+              )}
             </g>
           );
         })}
       </svg>
 
-      {/* 图例 */}
+      {/* 图例 — 精简 */}
       <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-md text-xs text-neutral-500 flex items-center gap-4">
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-[#8db87c]/20 border border-[#8db87c]/60" />
-          马年路线
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-5 border-t-[3px] border-[#f3a230]" />
-          已走路线
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#f3a230]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-brand" />
           已到达
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#8db87c]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-white border border-neutral-400" />
           计划中
         </span>
       </div>
@@ -282,12 +343,12 @@ export default function HomeContent({ heroImages }: Props) {
   return (
     <div className="min-h-screen">
       {/* Hero Banner */}
-      <section className="relative h-[80vh] min-h-[500px] bg-black text-white">
+      <section className="relative h-screen min-h-[600px] bg-black text-white">
         <Slider {...sliderSettings} className="h-full">
           {heroImages.map((image, index) => (
-            <div key={index} className="h-[80vh] min-h-[500px] relative">
+            <div key={index} className="h-screen min-h-[600px] relative">
               <div
-                className="h-[80vh] min-h-[500px] bg-cover bg-center"
+                className="h-screen min-h-[600px] bg-cover bg-center"
                 style={{ backgroundImage: `url(${image.image})` }}
               >
                 <div className="absolute inset-0 bg-black/40" />
@@ -297,9 +358,9 @@ export default function HomeContent({ heroImages }: Props) {
         </Slider>
 
         {/* Hero 内容 */}
-        <div className="absolute inset-0 flex flex-col justify-center items-start px-6 md:px-16 pointer-events-none">
+        <div className="absolute inset-0 flex flex-col justify-center pointer-events-none px-6 md:px-[12%] lg:px-[16%]">
           <motion.div
-            className="max-w-4xl"
+            className="max-w-2xl"
             variants={stagger(0.2)}
             initial="hidden"
             animate="visible"
@@ -310,24 +371,21 @@ export default function HomeContent({ heroImages }: Props) {
               transition={springTransition}
             >
               <div className="text-white font-bold">柴火基地车</div>
-              <div className="text-brand font-bold text-4xl md:text-6xl">
+              <div className="text-brand font-bold text-4xl md:text-6xl mt-2">
                 生而荒野 行向未来
               </div>
             </motion.h1>
             <motion.p
-              className="text-lg md:text-xl text-neutral-300 mb-8 max-w-2xl leading-relaxed"
+              className="text-base md:text-lg text-neutral-300 mb-10 max-w-lg leading-relaxed"
               variants={fadeLeft}
               transition={springTransition}
             >
-              AI
-              重塑世界，数字鸿沟仍在。我们以柴火数字基地车为移动载体，深入山野、草原与乡土，把
-              AI 带到真实场景中。用 200
-              天行走中国，在极限环境里检验技术，与在地居民共创解决方案，让科技扎根旷野，以可复制、可开源的行动，推动科技向善。
+              以柴火数字基地车为移动载体，深入山野、草原与乡土，把 AI 带到真实场景中。用 200 天行走中国，在极限环境里检验技术，与在地居民共创解决方案，推动科技向善。
             </motion.p>
             <motion.div variants={fadeLeft} transition={springTransition}>
               <motion.button
                 onClick={() => setVideoOpen(true)}
-                className="pointer-events-auto bg-brand text-brand-foreground px-8 py-4 flex items-center gap-3 hover:bg-brand-hover transition-colors duration-200 cursor-pointer"
+                className="pointer-events-auto bg-brand text-brand-foreground px-8 py-4 rounded-full flex items-center gap-3 hover:bg-brand-hover transition-colors duration-200 cursor-pointer"
                 {...buttonPress}
               >
                 <Play className="w-5 h-5" />
@@ -338,7 +396,7 @@ export default function HomeContent({ heroImages }: Props) {
         </div>
 
         {/* 滚动提示 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce text-white/60">
           <ChevronDown className="w-5 h-5" />
         </div>
       </section>
@@ -361,20 +419,19 @@ export default function HomeContent({ heroImages }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Hero → Stats 渐变过渡 */}
-      <div className="h-16 bg-gradient-to-b from-black to-white" />
+      {/* Hero → Stats 过渡 */}
 
       {/* 项目核心展示 - 路线规划 */}
       <motion.section
-        className="bg-white text-black py-20 px-6"
+        className="bg-neutral-50 text-black py-20 px-6"
         initial="hidden"
         whileInView="visible"
         viewport={defaultViewport}
         variants={stagger(0.2)}
       >
         <div className="max-w-6xl mx-auto">
-          {/* 标题 + 统计数据 */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-10">
+          {/* 标题 + 统计数据 — 移动端在地图上方 */}
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-8 md:mb-0">
             <motion.div variants={fadeUp}>
               <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
                 连接技术的
@@ -395,9 +452,9 @@ export default function HomeContent({ heroImages }: Props) {
             </motion.div>
           </div>
 
-          {/* 中国路线地图 — 全宽 */}
+          {/* 中国路线地图 — 全宽无圆角 */}
           <motion.div
-            className="w-full aspect-[4/3] md:aspect-[16/9] rounded-lg overflow-hidden"
+            className="w-full aspect-[4/3] md:aspect-[16/10] overflow-hidden"
             variants={fadeIn}
           >
             <ChinaRouteMap />

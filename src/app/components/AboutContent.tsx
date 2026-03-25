@@ -1,7 +1,11 @@
-import { useRef, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { fadeUp, scaleIn, stagger, springTransition, defaultViewport } from './motion';
-import { ChevronLeft, ChevronRight, Mouse } from 'lucide-react';
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { fadeUp, stagger, springTransition, defaultViewport } from './motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 interface YearEntry {
   year: string;
@@ -17,40 +21,407 @@ interface AboutContentProps {
   timelineData: YearEntry[];
   phases: Phase[];
   partners: string[];
+  heroImage: string;
 }
 
-export default function AboutContent({ timelineData, phases, partners }: AboutContentProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+const HIGHLIGHT_YEARS = new Set(['2011', '2012', '2015', '2016']);
+
+/* ── Enrich year entries with phase info ── */
+interface EnrichedYear {
+  year: string;
+  events: { month: string; text: string; en?: string }[];
+  phase: string;
+  isPhaseStart: boolean;
+  isHighlight: boolean;
+}
+
+function enrichYears(data: YearEntry[], phases: Phase[]): EnrichedYear[] {
+  return data.map((entry, idx) => {
+    const phase = phases.find(p => idx >= p.range[0] && idx < p.range[1]);
+    const isPhaseStart = phases.some(p => p.range[0] === idx);
+    return {
+      ...entry,
+      phase: phase?.label ?? '',
+      isPhaseStart,
+      isHighlight: HIGHLIGHT_YEARS.has(entry.year),
+    };
+  });
+}
+
+/* ── Panorama Grid View ── */
+function PanoramaView({ items, onClose }: { items: EnrichedYear[]; onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 z-50 bg-white overflow-y-auto"
+    >
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-neutral-200 px-6 md:px-[8%] pt-6 pb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-neutral-900">柴火历程 · 全景</h2>
+          <p className="text-xs text-neutral-400 mt-0.5">2011 — 2024，14 年关键事件一览</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 hover:bg-neutral-200 text-sm text-neutral-600 transition-colors duration-200 cursor-pointer"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          关闭
+        </button>
+      </div>
+
+      {/* Grid */}
+      <div className="px-6 md:px-[8%] py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {items.map((item) => (
+            <motion.div
+              key={item.year}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.03 * items.indexOf(item) }}
+              className={`p-5 rounded-xl border transition-colors duration-200 ${
+                item.isHighlight
+                  ? 'border-brand/30 bg-brand-light'
+                  : 'border-neutral-200 bg-white hover:border-neutral-300'
+              }`}
+            >
+              {/* Phase tag */}
+              {item.isPhaseStart && (
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-brand mb-2 block">
+                  {item.phase}
+                </span>
+              )}
+
+              {/* Year */}
+              <div className={`text-3xl font-black leading-none mb-3 ${
+                item.isHighlight ? 'text-brand' : 'text-neutral-200'
+              }`}>
+                {item.year}
+              </div>
+
+              {/* Events */}
+              <div className="space-y-2">
+                {item.events.map((ev, j) => (
+                  <div key={j}>
+                    <p className="text-sm text-neutral-700 leading-snug">
+                      <span className="text-brand-dark font-medium mr-1">{ev.month}</span>
+                      {ev.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Year Spotlight Timeline ── */
+function YearSpotlight({ items }: { items: EnrichedYear[] }) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const yearRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const phaseRef = useRef<HTMLDivElement>(null);
+  const stRef = useRef<ScrollTrigger | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [showPanorama, setShowPanorama] = useState(false);
+
+  const scrollPerYear = 350;
+  const totalScroll = items.length * scrollPerYear;
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-    }
-  }, []);
+    if (!sectionRef.current) return;
 
-  const scrollTimeline = (direction: 'left' | 'right') => {
-    if (!scrollRef.current) return;
-    const amount = 360;
-    scrollRef.current.scrollBy({
-      left: direction === 'left' ? -amount : amount,
-      behavior: 'smooth',
+    const ctx = gsap.context(() => {
+      stRef.current = ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: 'top top',
+        end: () => `+=${totalScroll}`,
+        pin: true,
+        scrub: 0.3,
+        anticipatePin: 1,
+        onUpdate: (self) => {
+          const rawIndex = self.progress * items.length;
+          const idx = Math.min(Math.floor(rawIndex), items.length - 1);
+          setActiveIndex(idx);
+        },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [items, totalScroll]);
+
+  // Jump to a specific year index via scroll position
+  const jumpToYear = useCallback((idx: number) => {
+    if (!stRef.current) return;
+    const st = stRef.current;
+    const targetProgress = (idx + 0.5) / items.length;
+    const targetScroll = st.start + targetProgress * (st.end - st.start);
+    gsap.to(window, {
+      scrollTo: { y: targetScroll },
+      duration: 0.6,
+      ease: 'power2.inOut',
     });
-  };
+  }, [items.length]);
+
+  // Arrow key navigation
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (showPanorama) return;
+      if (!stRef.current) return;
+      // Only respond when timeline is pinned (active in viewport)
+      const st = stRef.current;
+      if (st.progress <= 0 || st.progress >= 1) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        jumpToYear(Math.min(activeIndex + 1, items.length - 1));
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        jumpToYear(Math.max(activeIndex - 1, 0));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [activeIndex, items.length, jumpToYear, showPanorama]);
+
+  const active = items[activeIndex];
+
+  // Animate year number change
+  useEffect(() => {
+    if (!yearRef.current) return;
+    gsap.fromTo(yearRef.current,
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out', overwrite: true }
+    );
+  }, [activeIndex]);
+
+  // Animate content change
+  useEffect(() => {
+    if (!contentRef.current) return;
+    gsap.fromTo(contentRef.current,
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out', delay: 0.05, overwrite: true }
+    );
+  }, [activeIndex]);
+
+  // Animate phase label change
+  useEffect(() => {
+    if (!phaseRef.current) return;
+    if (active.isPhaseStart) {
+      gsap.fromTo(phaseRef.current,
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.3, ease: 'power2.out', overwrite: true }
+      );
+    }
+  }, [activeIndex, active.isPhaseStart]);
+
+  const progressFraction = useMemo(() => {
+    return (activeIndex + 0.5) / items.length;
+  }, [activeIndex, items.length]);
+
+  // Lock body scroll when panorama is open
+  useEffect(() => {
+    document.body.style.overflow = showPanorama ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showPanorama]);
+
+  return (
+    <>
+      <div ref={sectionRef} className="relative h-screen overflow-hidden bg-neutral-50 border-y border-neutral-200">
+
+        {/* Panorama toggle button — top right */}
+        <button
+          onClick={() => setShowPanorama(true)}
+          className="absolute top-20 right-6 md:right-[10%] lg:right-[12%] z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-neutral-200 hover:border-brand hover:bg-brand-light text-sm text-neutral-600 hover:text-neutral-900 transition-all duration-200 cursor-pointer shadow-sm"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
+            <rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
+            <rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
+            <rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
+          </svg>
+          全景
+        </button>
+
+        {/* Main content area */}
+        <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-[10%] lg:px-[12%]">
+
+          {/* Phase label */}
+          <div ref={phaseRef} className="mb-6 h-6">
+            {active.isPhaseStart && (
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                {active.phase}
+              </span>
+            )}
+          </div>
+
+          {/* Two-column: Year | Events */}
+          <div className="flex items-start gap-8 md:gap-16 lg:gap-24">
+            {/* Left: Giant year */}
+            <div className="shrink-0">
+              <div
+                ref={yearRef}
+                className={`text-[120px] md:text-[160px] lg:text-[200px] font-black leading-none tracking-tight select-none transition-colors duration-300 ${
+                  active.isHighlight
+                    ? 'text-brand'
+                    : 'text-neutral-200'
+                }`}
+              >
+                {active.year}
+              </div>
+            </div>
+
+            {/* Right: Events */}
+            <div ref={contentRef} className="flex-1 max-w-lg pt-4 md:pt-8">
+              <div className="space-y-5">
+                {active.events.map((ev, j) => (
+                  <div key={`${active.year}-${j}`}>
+                    <p className="text-neutral-800 text-base md:text-lg leading-relaxed">
+                      <span className="text-brand-dark font-medium mr-2">{ev.month}</span>
+                      {ev.text}
+                    </p>
+                    {ev.en && (
+                      <p className="text-neutral-400 text-sm mt-1 leading-relaxed">{ev.en}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom progress bar — clickable */}
+        <div className="absolute bottom-10 left-8 right-8 md:left-[10%] md:right-[10%] lg:left-[12%] lg:right-[12%]">
+          {/* Track line */}
+          <div className="relative h-[2px] bg-neutral-200 rounded-full">
+            <div
+              className="absolute top-0 left-0 h-full bg-brand rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progressFraction * 100}%` }}
+            />
+          </div>
+
+          {/* Year dots — clickable */}
+          <div className="relative flex justify-between mt-[-5px]">
+            {items.map((item, i) => {
+              const isActive = i === activeIndex;
+              const isPast = i < activeIndex;
+
+              return (
+                <button
+                  key={item.year}
+                  onClick={() => jumpToYear(i)}
+                  className="flex flex-col items-center cursor-pointer group py-1"
+                  title={`${item.year}`}
+                >
+                  {/* Dot */}
+                  <div
+                    className={`rounded-full transition-all duration-300 group-hover:scale-150 ${
+                      isActive
+                        ? 'w-3 h-3 bg-brand shadow-[0_0_12px_rgba(243,210,48,0.4)]'
+                        : isPast
+                          ? 'w-2 h-2 bg-brand/60 group-hover:bg-brand'
+                          : 'w-2 h-2 bg-neutral-300 group-hover:bg-brand/40'
+                    }`}
+                  />
+                  {/* Year label — show for milestones, active, or hover */}
+                  <span
+                    className={`text-[10px] mt-2 font-medium transition-all duration-300 ${
+                      isActive
+                        ? 'text-neutral-700 opacity-100'
+                        : item.isHighlight
+                          ? 'text-neutral-400 opacity-100 group-hover:text-neutral-700'
+                          : 'text-neutral-400 opacity-0 group-hover:opacity-100'
+                    }`}
+                  >
+                    {item.year}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Scroll hint — fade out after first scroll */}
+        <div
+          className="absolute bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-2 text-neutral-400 text-xs select-none transition-opacity duration-500"
+          style={{ opacity: activeIndex === 0 ? 1 : 0 }}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="animate-bounce">
+            <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          向下滚动浏览历程
+        </div>
+      </div>
+
+      {/* Panorama overlay */}
+      <AnimatePresence>
+        {showPanorama && (
+          <PanoramaView items={items} onClose={() => setShowPanorama(false)} />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+/* ── Stats Counter ── */
+const STATS = [
+  { value: 14, suffix: '年', label: '持续深耕' },
+  { value: 30, suffix: '+', label: '关键事件' },
+  { value: 3, suffix: '', label: '发展阶段' },
+  { value: 6, suffix: '+', label: '全球伙伴' },
+];
+
+function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (!ref.current || hasAnimated.current) return;
+    const el = ref.current;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !hasAnimated.current) {
+        hasAnimated.current = true;
+        gsap.fromTo(el, { innerText: 0 }, {
+          innerText: value,
+          duration: 1.5,
+          ease: 'power2.out',
+          snap: { innerText: 1 },
+          onUpdate() {
+            el.textContent = Math.round(Number(el.textContent || '0')) + suffix;
+          },
+        });
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value, suffix]);
+
+  return <span ref={ref}>0{suffix}</span>;
+}
+
+/* ── Main Component ── */
+export default function AboutContent({ timelineData, phases, partners, heroImage }: AboutContentProps) {
+  const enrichedYears = enrichYears(timelineData, phases);
 
   return (
     <div className="min-h-screen bg-white">
 
-      {/* 标题区 */}
-      <section className="pt-24 pb-12 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            variants={stagger(0.2)}
-            initial="hidden"
-            animate="visible"
-            className="max-w-2xl"
-          >
+      {/* Hero — 左右分栏：信息 | 图片 */}
+      <section className="relative min-h-[480px] md:min-h-[560px] flex flex-col md:flex-row">
+        {/* Left — 信息区 */}
+        <div className="flex-1 flex flex-col justify-center pt-28 md:pt-32 pb-10 md:pb-12 px-6 md:pl-[12%] md:pr-12">
+          <motion.div variants={stagger(0.12)} initial="hidden" animate="visible">
             <motion.p
-              className="text-sm tracking-[0.3em] text-neutral-400 uppercase mb-3"
+              className="text-xs tracking-[0.3em] text-neutral-400 uppercase mb-3"
               variants={fadeUp}
               transition={springTransition}
             >
@@ -59,262 +430,102 @@ export default function AboutContent({ timelineData, phases, partners }: AboutCo
             <motion.h1
               variants={fadeUp}
               transition={springTransition}
-              className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4 leading-tight"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-900 mb-4 leading-tight"
             >
-              柴火 15 年，
-              <br />
-              从创客空间到基地车。
+              柴火 15 年，从创客空间到基地车。
             </motion.h1>
             <motion.p
               variants={fadeUp}
               transition={springTransition}
-              className="text-base text-neutral-500 leading-relaxed"
+              className="text-sm md:text-base text-neutral-500 leading-relaxed mb-8 max-w-md"
             >
-              自 2011 年成立以来，柴火创客空间（Chaihuo Maker Space）始终是连接创意与制造的桥梁。十五年来，我们见证了无数想法在这里萌芽、原型化、量产直至走向全球。
+              自 2011 年成立以来，柴火创客空间始终是连接创意与制造的桥梁。十五年来，无数想法在这里萌芽、原型化、量产直至走向全球。
             </motion.p>
           </motion.div>
-        </div>
-      </section>
 
-      {/* Vision */}
-      <section className="py-24 px-6 bg-neutral-950 text-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={springTransition}
-            className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-8"
-          >
-            我们的愿景
-          </motion.p>
-          <motion.h2
-            variants={scaleIn}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={springTransition}
-            className="text-3xl md:text-5xl font-bold mb-10 leading-tight"
-          >
-            让 AI 走出云端，
-            <br />
-            连接数字与现实。
-          </motion.h2>
-          <motion.blockquote
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={{ ...springTransition, delay: 0.2 }}
-            className="text-neutral-400 text-lg md:text-xl leading-relaxed max-w-3xl mx-auto"
-          >
-            "我们坚信，科技平权意味着每个人无论身处大都市还是偏远荒野，都有权享受数字化发展的红利。柴火基地车是我们对此最激进、最浪漫的实践。"
-          </motion.blockquote>
-        </div>
-      </section>
-
-      {/* Timeline */}
-      <section className="relative py-24 bg-white overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 mb-10">
-          <div className="flex items-end justify-between">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">柴火历程</h2>
-              <p className="text-neutral-500">2011 — 2024，从一间房到一辆车</p>
-            </div>
-
-            {/* Brand-colored nav buttons */}
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={() => scrollTimeline('left')}
-                className="w-11 h-11 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer shadow-sm"
-                aria-label="向左滚动"
+          {/* 数据条 */}
+          <div className="flex gap-8">
+            {STATS.map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                transition={{ ...springTransition, delay: 0.3 + i * 0.08 }}
               >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => scrollTimeline('right')}
-                className="w-11 h-11 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer shadow-sm"
-                aria-label="向右滚动"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
+                <div className="text-2xl md:text-3xl font-black text-brand leading-none">
+                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                </div>
+                <p className="text-[11px] text-neutral-400 mt-1">{stat.label}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
 
-        {/* Horizontal scrolling timeline */}
-        <div
-          ref={scrollRef}
-          className="overflow-x-auto"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {(() => {
-            const colW = 260;
-            const totalW = timelineData.length * colW + 120;
-            const centerY = 280;
-            const amplitude = 40;
-
-            const getYOffset = (i: number) => Math.sin((i / (timelineData.length - 1)) * Math.PI * 2.5) * amplitude;
-
-            const points = timelineData.map((_, i) => ({
-              x: i * colW + 60 + colW / 2,
-              y: centerY + getYOffset(i),
-            }));
-
-            const curvePath = points.reduce((path, pt, i) => {
-              if (i === 0) return `M ${pt.x - colW} ${centerY} Q ${pt.x - colW / 2} ${pt.y} ${pt.x} ${pt.y}`;
-              const prev = points[i - 1];
-              const cpX = (prev.x + pt.x) / 2;
-              return `${path} S ${cpX} ${pt.y} ${pt.x} ${pt.y}`;
-            }, '');
-
-            return (
-              <div className="relative min-w-max" style={{ width: totalW, height: 560 }}>
-                {/* SVG curve */}
-                <svg
-                  className="absolute inset-0 pointer-events-none"
-                  width={totalW}
-                  height={560}
-                  fill="none"
-                >
-                  <path
-                    d={curvePath}
-                    stroke="#f3d230"
-                    strokeWidth="2.5"
-                    strokeDasharray="10 8"
-                    opacity="0.35"
-                  />
-                  {points.map((pt, i) => (
-                    <circle key={i} cx={pt.x} cy={pt.y} r="5" fill="#f3d230" stroke="white" strokeWidth="3" />
-                  ))}
-                </svg>
-
-                {/* Year + events */}
-                {timelineData.map((entry, i) => {
-                  const isAbove = i % 2 === 0;
-                  const x = i * colW + 60;
-                  const yOffset = getYOffset(i);
-                  const phase = phases.find(p => i >= p.range[0] && i < p.range[1]);
-                  const showPhaseLabel = phase && i === phase.range[0];
-
-                  return (
-                    <div
-                      key={entry.year}
-                      className="absolute"
-                      style={{
-                        left: x,
-                        top: 0,
-                        width: colW,
-                        height: 560,
-                      }}
-                    >
-                      {/* Events above */}
-                      <div
-                        className="absolute left-0 right-8 flex flex-col justify-end"
-                        style={{
-                          bottom: 560 - centerY - yOffset + 50,
-                          height: 180,
-                        }}
-                      >
-                        {isAbove && entry.events.map((ev, j) => (
-                          <div key={j} className="mb-3 last:mb-0">
-                            <p className="text-[13px] font-bold text-neutral-900 leading-snug">
-                              {ev.month}：{ev.text}
-                            </p>
-                            {ev.en && (
-                              <p className="text-[11px] text-neutral-400 mt-1 leading-snug">{ev.en}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Year number along curve */}
-                      <div
-                        className="absolute left-0"
-                        style={{ top: centerY + yOffset - 50 }}
-                      >
-                        <span className="text-[72px] md:text-[90px] font-black leading-none select-none tracking-tighter text-neutral-200 hover:text-brand/40 transition-colors duration-500">
-                          {entry.year}
-                        </span>
-                        {showPhaseLabel && (
-                          <span className="block mt-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-neutral-300 whitespace-nowrap select-none">
-                            {phase.label}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Events below */}
-                      <div
-                        className="absolute left-0 right-8 flex flex-col justify-start"
-                        style={{
-                          top: centerY + yOffset + 50,
-                          height: 180,
-                        }}
-                      >
-                        {!isAbove && entry.events.map((ev, j) => (
-                          <div key={j} className="mb-3 last:mb-0">
-                            <p className="text-[13px] font-bold text-neutral-900 leading-snug">
-                              {ev.month}：{ev.text}
-                            </p>
-                            {ev.en && (
-                              <p className="text-[11px] text-neutral-400 mt-1 leading-snug">{ev.en}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Sticky bottom hint bar — scroll tip always visible */}
-        <div className="hidden md:flex sticky bottom-6 z-40 justify-center pointer-events-none">
-          <div className="pointer-events-auto inline-flex items-center gap-3 bg-neutral-900 text-white rounded-full px-4 py-2 shadow-lg">
-            <Mouse className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="text-[11px] text-neutral-400 select-none">
-              <kbd className="px-1.5 py-0.5 bg-neutral-700 rounded font-mono text-neutral-300">Shift</kbd>
-              {' + 滚轮 横向滚动 · 触控板双指横滑'}
-            </span>
-          </div>
+        {/* Right — 图片区（桌面端右侧，移动端底部条形） */}
+        <div className="h-48 md:h-auto md:w-[45%] relative">
+          <img
+            src={heroImage}
+            alt="基地车旅途风光"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/40 to-transparent w-24" />
         </div>
       </section>
+
+      {/* 年份聚光灯时间轴 */}
+      <YearSpotlight items={enrichedYears} />
 
       {/* Partners */}
-      <section className="py-16 px-6 bg-white border-t border-neutral-300">
-        <div className="max-w-6xl mx-auto">
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            transition={springTransition}
-            className="text-xs uppercase tracking-[0.2em] text-neutral-500 text-center mb-10"
-          >
-            共建伙伴 / Partners
-          </motion.p>
-          <motion.div
-            variants={stagger(0.08)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="flex items-center justify-center gap-10 md:gap-16 flex-wrap"
-          >
-            {partners.map((name) => (
-              <motion.span
-                key={name}
-                variants={fadeUp}
-                transition={springTransition}
-                className="text-xl md:text-2xl font-bold text-neutral-300 hover:text-neutral-900 transition-colors duration-300 cursor-default"
-              >
+      <section className="py-20 px-6 md:px-[12%] bg-neutral-50">
+        <motion.p
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+          transition={springTransition}
+          className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-12 text-center"
+        >
+          共建伙伴 / Partners
+        </motion.p>
+        <motion.div
+          variants={stagger(0.08)}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6"
+        >
+          {partners.map((name) => (
+            <motion.div
+              key={name}
+              variants={fadeUp}
+              transition={springTransition}
+              className="flex items-center justify-center py-6 px-4 rounded-xl border border-neutral-200 bg-white hover:border-brand/30 hover:shadow-sm transition-all duration-200"
+            >
+              <span className="text-lg font-bold text-neutral-400 hover:text-neutral-900 transition-colors duration-200 cursor-default">
                 {name}
-              </motion.span>
-            ))}
-          </motion.div>
-        </div>
+              </span>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* 愿景收尾 */}
+      <section className="py-20 px-6 md:px-[12%] bg-white">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+          transition={springTransition}
+          className="max-w-2xl mx-auto text-center"
+        >
+          <div className="w-8 h-[2px] bg-brand mx-auto mb-8" />
+          <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed font-light italic">
+            "我们坚信，科技平权意味着每个人都有权享受数字化发展的红利。柴火基地车是我们对此最激进、最浪漫的实践。"
+          </p>
+          <p className="mt-6 text-sm text-neutral-400">— 柴火创客空间</p>
+        </motion.div>
       </section>
     </div>
   );

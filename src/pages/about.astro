@@ -5,13 +5,15 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import AboutContent from '@/app/components/AboutContent';
 import timelineData from '@/data/timeline.json';
 import partnersData from '@/data/partners.json';
+import heroesData from '@/data/heroes.json';
 ---
 
 <BaseLayout title="关于柴火">
   <AboutContent
-    client:only="react"
+    client:load
     timelineData={timelineData.years}
     phases={timelineData.phases}
     partners={partnersData.map(p => p.name)}
+    heroImage={heroesData[0].image}
   />
 </BaseLayout>
