@@ -441,7 +441,7 @@ export default function HomeContent({ heroImages }: Props) {
           <span className="text-neutral-500">·</span>
           <span className="text-neutral-400">预计出发：4 月中旬</span>
           <span className="text-neutral-500">·</span>
-          <span className="text-neutral-400">计划途经 17 城</span>
+          <span className="text-neutral-400">计划途经 21 城</span>
         </div>
       </div>
 
@@ -470,7 +470,7 @@ export default function HomeContent({ heroImages }: Props) {
               variants={fadeUp}
               className="grid grid-cols-3 gap-8 md:gap-12"
             >
-              <CountUp end="17" label="计划途经城市" />
+              <CountUp end="21" label="计划途经城市" />
               <CountUp end="1.9W" label="预计行驶公里" />
               <CountUp end="200+" label="路程天数" />
             </motion.div>

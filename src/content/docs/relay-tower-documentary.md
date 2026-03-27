@@ -1,8 +1,8 @@
 ---
-title: "17城路线背后的故事"
+title: "21城路线背后的故事"
 date: "2026.01.20"
 category: "公益合作纪录片"
-description: "从深圳出发，途经17座城市，行驶约19000公里。为什么是这条路？每一站选择背后的地理、社区与技术考量。"
+description: "从深圳出发，途经21座城市，行驶约19000公里。为什么是这条路？每一站选择背后的地理、社区与技术考量。"
 author: "冯磊"
 coverImage: "https://images.unsplash.com/photo-1524661135-423995f22d0b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800&q=80"
 readTime: "7 分钟"

@@ -268,13 +268,13 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
             )}
           </div>
 
-          {/* Two-column: Year | Events */}
-          <div className="flex items-start gap-8 md:gap-16 lg:gap-24">
-            {/* Left: Giant year */}
+          {/* Year + Events — 移动端上下堆叠，桌面端左右双栏 */}
+          <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-16 lg:gap-24">
+            {/* Year number */}
             <div className="shrink-0">
               <div
                 ref={yearRef}
-                className={`text-[120px] md:text-[160px] lg:text-[200px] font-black leading-none tracking-tight select-none transition-colors duration-300 ${
+                className={`text-[72px] md:text-[160px] lg:text-[200px] font-black leading-none tracking-tight select-none transition-colors duration-300 ${
                   active.isHighlight
                     ? 'text-brand'
                     : 'text-neutral-200'
@@ -284,17 +284,17 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
               </div>
             </div>
 
-            {/* Right: Events */}
-            <div ref={contentRef} className="flex-1 max-w-lg pt-4 md:pt-8">
-              <div className="space-y-5">
+            {/* Events */}
+            <div ref={contentRef} className="flex-1 max-w-lg md:pt-8">
+              <div className="space-y-4 md:space-y-5">
                 {active.events.map((ev, j) => (
                   <div key={`${active.year}-${j}`}>
-                    <p className="text-neutral-800 text-base md:text-lg leading-relaxed">
+                    <p className="text-neutral-800 text-sm md:text-lg leading-relaxed">
                       <span className="text-brand-dark font-medium mr-2">{ev.month}</span>
                       {ev.text}
                     </p>
                     {ev.en && (
-                      <p className="text-neutral-400 text-sm mt-1 leading-relaxed">{ev.en}</p>
+                      <p className="text-neutral-400 text-xs md:text-sm mt-1 leading-relaxed">{ev.en}</p>
                     )}
                   </div>
                 ))}
@@ -304,7 +304,7 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
         </div>
 
         {/* Bottom progress bar — clickable */}
-        <div className="absolute bottom-10 left-8 right-8 md:left-[10%] md:right-[10%] lg:left-[12%] lg:right-[12%]">
+        <div className="absolute bottom-6 md:bottom-10 left-4 right-4 md:left-[10%] md:right-[10%] lg:left-[12%] lg:right-[12%]">
           {/* Track line */}
           <div className="relative h-[2px] bg-neutral-200 rounded-full">
             <div
@@ -313,8 +313,8 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
             />
           </div>
 
-          {/* Year dots — clickable */}
-          <div className="relative flex justify-between mt-[-5px]">
+          {/* Year dots — clickable, mobile: horizontally scrollable */}
+          <div className="relative flex justify-between mt-[-5px] overflow-x-auto scrollbar-none">
             {items.map((item, i) => {
               const isActive = i === activeIndex;
               const isPast = i < activeIndex;
@@ -323,7 +323,7 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
                 <button
                   key={item.year}
                   onClick={() => jumpToYear(i)}
-                  className="flex flex-col items-center cursor-pointer group py-1"
+                  className="flex flex-col items-center cursor-pointer group py-1 min-w-[20px] md:min-w-0"
                   title={`${item.year}`}
                 >
                   {/* Dot */}
@@ -336,14 +336,14 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
                           : 'w-2 h-2 bg-neutral-300 group-hover:bg-brand/40'
                     }`}
                   />
-                  {/* Year label — show for milestones, active, or hover */}
+                  {/* Year label — mobile: only show active; desktop: show active + highlights + hover */}
                   <span
-                    className={`text-[10px] mt-2 font-medium transition-all duration-300 ${
+                    className={`text-[9px] md:text-[10px] mt-1.5 md:mt-2 font-medium transition-all duration-300 ${
                       isActive
                         ? 'text-neutral-700 opacity-100'
                         : item.isHighlight
-                          ? 'text-neutral-400 opacity-100 group-hover:text-neutral-700'
-                          : 'text-neutral-400 opacity-0 group-hover:opacity-100'
+                          ? 'text-neutral-400 hidden md:block opacity-100 group-hover:text-neutral-700'
+                          : 'text-neutral-400 opacity-0 hidden md:block group-hover:opacity-100'
                     }`}
                   >
                     {item.year}
@@ -356,7 +356,7 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
 
         {/* Scroll hint — fade out after first scroll */}
         <div
-          className="absolute bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-2 text-neutral-400 text-xs select-none transition-opacity duration-500"
+          className="absolute bottom-16 md:bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-2 text-neutral-400 text-xs select-none transition-opacity duration-500"
           style={{ opacity: activeIndex === 0 ? 1 : 0 }}
         >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="animate-bounce">

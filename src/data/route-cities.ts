@@ -30,4 +30,8 @@ export const routeCities: RouteCity[] = [
   { label: '南京',    lng: 118.797, lat: 32.060, visited: false, order: 14, labelOffset: [10, -5] },
   { label: '杭州',    lng: 120.154, lat: 30.288, visited: false, order: 15, labelOffset: [10, 12] },
   { label: '长沙',    lng: 112.938, lat: 28.228, visited: false, order: 16, labelOffset: [-35, 5] },
+  { label: '武汉',    lng: 114.305, lat: 30.593, visited: false, order: 17, labelOffset: [10, -5] },
+  { label: '西安',    lng: 108.940, lat: 34.341, visited: false, order: 18, labelOffset: [-35, -5] },
+  { label: '昆明',    lng: 102.833, lat: 24.880, visited: false, order: 19, labelOffset: [-35, 5] },
+  { label: '福州',    lng: 119.296, lat: 26.074, visited: false, order: 20, labelOffset: [10, -5] },
 ];
