@@ -1,11 +1,12 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import cloudflare from '@astrojs/cloudflare';
+import node from '@astrojs/node';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   output: 'server',
-  adapter: cloudflare(),
+  adapter: node({ mode: 'standalone' }),
+  site: 'https://mcv.chaihuo.org',
   integrations: [react()],
   vite: {
     plugins: [tailwindcss()],
