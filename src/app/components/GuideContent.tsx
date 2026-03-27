@@ -14,6 +14,8 @@ interface TeamMember {
   name: string;
   role: string;
   image: string;
+  bio?: string;
+  isRobot?: boolean;
 }
 
 interface FaqGroup {
@@ -27,7 +29,7 @@ interface GuideContentProps {
 }
 
 export default function GuideContent({ teamMembers, faqGroups }: GuideContentProps) {
-  const [openFAQ, setOpenFAQ] = useState<string | null>(null);
+  const [openFAQs, setOpenFAQs] = useState<Set<string>>(new Set());
 
   return (
     <div className="min-h-screen bg-white">
@@ -61,36 +63,6 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
             >
               你不是看客，是答案的一部分
             </motion.p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Team Members */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">基地车成员</h2>
-          <motion.div
-            variants={stagger(0.1)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {teamMembers.map((member, index) => (
-              <motion.div key={index} variants={fadeUp} transition={springTransition} className="group">
-                <div className="relative overflow-hidden rounded-lg aspect-[3/4] mb-4 bg-neutral-100">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                    <h3 className="text-xl font-bold text-white">{member.name}</h3>
-                    <p className="text-brand text-sm">{member.role}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
           </motion.div>
         </div>
       </section>
@@ -186,7 +158,7 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
 
                 <div className="flex flex-col items-center gap-2">
                   <img src={qrCoCreation} alt="在地共创意向二维码" className="w-28 h-28 rounded-lg" />
-                  <span className="text-xs text-neutral-500">扫码填写意向</span>
+                  <span className="text-xs text-neutral-500">扫码打开微信问卷</span>
                 </div>
               </div>
             </motion.div>
@@ -221,7 +193,7 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
 
                 <div className="flex flex-col items-center gap-2">
                   <img src={qrEmpowerment} alt="在地赋能需求二维码" className="w-28 h-28 rounded-lg" />
-                  <span className="text-xs text-neutral-500">扫码填写需求</span>
+                  <span className="text-xs text-neutral-500">扫码打开微信问卷</span>
                 </div>
               </div>
             </motion.div>
@@ -244,6 +216,39 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
             <p className="mt-2">
               <strong className="text-neutral-900">在地合作：</strong>扫描卡片中的二维码填写合作意向，我们会第一时间对接沟通
             </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Team Members */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">基地车成员</h2>
+          <motion.div
+            variants={stagger(0.1)}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+          >
+            {teamMembers.map((member, index) => (
+              <motion.div key={index} variants={fadeUp} transition={springTransition} className="group">
+                <div className={`relative overflow-hidden rounded-lg aspect-[3/4] mb-4 ${member.isRobot ? 'bg-neutral-900' : 'bg-neutral-100'}`}>
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${member.isRobot ? 'object-contain p-8' : ''}`}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    <h3 className="text-xl font-bold text-white">{member.name}</h3>
+                    <p className="text-brand text-sm">{member.role}</p>
+                  </div>
+                </div>
+                {member.bio && (
+                  <p className="text-sm text-neutral-500 leading-relaxed">{member.bio}</p>
+                )}
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -278,11 +283,16 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
                 <div className="space-y-2">
                   {group.items.map((faq) => {
                     const key = `${group.label}-${faq.question}`;
-                    const isOpen = openFAQ === key;
+                    const isOpen = openFAQs.has(key);
                     return (
                       <div key={key} className="border border-neutral-300 rounded-lg overflow-hidden">
                         <button
-                          onClick={() => setOpenFAQ(isOpen ? null : key)}
+                          onClick={() => setOpenFAQs(prev => {
+                            const next = new Set(prev);
+                            if (next.has(key)) next.delete(key);
+                            else next.add(key);
+                            return next;
+                          })}
                           className="w-full px-5 py-4 text-left flex items-center justify-between bg-white hover:bg-neutral-50 transition cursor-pointer"
                         >
                           <span className="font-semibold pr-4">{faq.question}</span>

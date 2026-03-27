@@ -7,10 +7,10 @@ import teamData from '@/data/team.json';
 import faqData from '@/data/faq.json';
 ---
 
-<BaseLayout title="上车指南">
+<BaseLayout title="上车指南" description="加入柴火基地车的行动——跟车同行、在地共创、在地赋能，多种参与方式等你选择。">
   <GuideContent
     client:load
-    teamMembers={teamData.map(t => ({ name: t.name, role: t.role, image: t.image }))}
+    teamMembers={teamData.map(t => ({ name: t.name, role: t.role, image: t.image, bio: t.bio, isRobot: t.isRobot }))}
     faqGroups={faqData.map(g => ({ label: g.label, items: g.items }))}
   />
 </BaseLayout>

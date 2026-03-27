@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { fadeUp, stagger, springTransition, defaultViewport } from './motion';
-import { Clock, Play, FileText, ExternalLink } from 'lucide-react';
+import { Clock, Play, FileText, ArrowRight } from 'lucide-react';
 
 type Category = '全部' | '人物访谈' | '路上VLOG' | '公益合作纪录片';
 
@@ -100,6 +100,11 @@ export default function DocumentationContent({ docs }: Props) {
               }`}
             >
               {category}
+              {category !== '全部' && (
+                <span className="ml-1.5 text-xs opacity-60">
+                  ({docs.filter(d => d.category === category).length})
+                </span>
+              )}
             </motion.button>
           ))}
         </motion.div>
@@ -214,7 +219,7 @@ export default function DocumentationContent({ docs }: Props) {
                               className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
                             >
                               阅读全文
-                              <ExternalLink className="w-3.5 h-3.5" />
+                              <ArrowRight className="w-3.5 h-3.5" />
                             </a>
                           )}
                         </div>
@@ -229,10 +234,25 @@ export default function DocumentationContent({ docs }: Props) {
             })}
           </motion.div>
 
+          {filteredItems.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-neutral-400 text-lg">该分类暂无内容</p>
+              <p className="text-neutral-300 text-sm mt-2">更多内容随旅程持续更新中</p>
+            </div>
+          )}
+
           {/* 时间线终点 */}
           <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 bottom-0 flex-col items-center">
             <div className="w-3 h-3 rounded-full bg-neutral-300" />
           </div>
+        </div>
+      </section>
+
+      {/* 更多内容提示 */}
+      <section className="py-12 px-6">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="w-8 h-[2px] bg-neutral-200 mx-auto mb-4" />
+          <p className="text-neutral-400 text-sm">更多内容随旅程持续更新中</p>
         </div>
       </section>
     </div>

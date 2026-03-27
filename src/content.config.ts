@@ -52,7 +52,9 @@ const team = defineCollection({
     id: z.string(),
     name: z.string(),
     role: z.string(),
-    image: z.string().url(),
+    image: z.string(),
+    bio: z.string().optional(),
+    isRobot: z.boolean().optional(),
   }),
 });
 

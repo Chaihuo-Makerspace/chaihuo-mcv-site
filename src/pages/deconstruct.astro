@@ -22,6 +22,7 @@ const equipment = equipmentData.map(cat => ({
 }));
 ---
 
-<BaseLayout title="解构基地车">
-  <DeconstructContent client:load notes={notes} equipment={equipment} />
+<BaseLayout title="解构基地车" description="深入了解普罗米修斯号——基于吉利远程超级VAN打造的移动 AI 实验室，改装手记、装备清单与 3D 爆炸视图。">
+  {/* client:only 跳过 SSR，避免 Three.js 在服务端解析导致 ~1.8s 延迟 */}
+  <DeconstructContent client:only="react" notes={notes} equipment={equipment} />
 </BaseLayout>

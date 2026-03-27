@@ -21,6 +21,6 @@ const docs = docsCollection.map(doc => ({
 })).sort((a, b) => b.date.localeCompare(a.date));
 ---
 
-<BaseLayout title="完整纪实">
+<BaseLayout title="完整纪实" description="柴火基地车纪实——人物访谈、路上 Vlog、公益合作纪录片，记录每一个真实瞬间。">
   <DocumentationContent client:load docs={docs} />
 </BaseLayout>

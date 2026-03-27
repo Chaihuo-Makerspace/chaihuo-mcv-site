@@ -2,8 +2,11 @@ import { Suspense, lazy } from 'react';
 import { motion } from 'motion/react';
 import { fadeUp, fadeIn, stagger, springTransition, defaultViewport } from './motion';
 
+// SSR 阶段跳过 Three.js 解析 — 返回永不 resolve 的 Promise，Suspense 渲染 fallback
 const VehicleExplodedView = lazy(() =>
-  import('./VehicleExplodedView').then((m) => ({ default: m.VehicleExplodedView })),
+  typeof window === 'undefined'
+    ? new Promise<{ default: React.ComponentType }>(() => {})
+    : import('./VehicleExplodedView').then((m) => ({ default: m.VehicleExplodedView })),
 );
 import { Cpu, Factory, BatteryCharging, ChevronRight } from 'lucide-react';
 
@@ -74,6 +77,32 @@ export default function DeconstructContent({ notes, equipment }: Props) {
             >
               一台为荒野而生的移动AI实验室，从底盘到算力，每一处都为极限场景而设计。
             </motion.p>
+          </motion.div>
+
+          {/* 车辆速览 */}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-3xl mx-auto"
+            variants={stagger(0.1)}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+          >
+            {[
+              { label: '纯电续航', value: '430 km' },
+              { label: '车内净高', value: '2.5 m' },
+              { label: '外放电', value: 'V2L 220V' },
+              { label: '安全认证', value: 'NCAP 铂金' },
+            ].map((spec) => (
+              <motion.div
+                key={spec.label}
+                variants={fadeUp}
+                transition={springTransition}
+                className="bg-white rounded-lg p-4 text-center shadow-sm"
+              >
+                <div className="text-xl font-bold text-neutral-900">{spec.value}</div>
+                <div className="text-xs text-neutral-500 mt-1">{spec.label}</div>
+              </motion.div>
+            ))}
           </motion.div>
 
           {/* 车辆 3D 爆炸图 — R3F + Drei */}
@@ -230,6 +259,21 @@ export default function DeconstructContent({ notes, equipment }: Props) {
               );
             })}
           </motion.div>
+        </div>
+      </section>
+
+      {/* 底部 CTA */}
+      <section className="py-16 px-6 bg-white border-t border-neutral-200">
+        <div className="max-w-2xl mx-auto text-center">
+          <h3 className="text-2xl font-bold text-neutral-900 mb-3">想亲身体验普罗米修斯号？</h3>
+          <p className="text-neutral-500 mb-6">从跟车同行到在地合作，多种方式等你参与</p>
+          <a
+            href="/guide"
+            className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
+          >
+            查看上车指南
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
         </div>
       </section>
     </div>

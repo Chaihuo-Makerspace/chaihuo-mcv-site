@@ -8,12 +8,12 @@ import partnersData from '@/data/partners.json';
 import heroesData from '@/data/heroes.json';
 ---
 
-<BaseLayout title="关于柴火">
+<BaseLayout title="关于柴火" description="从 2011 年创客空间到 2026 年移动 AI 实验室——柴火创客空间 15 年历程与愿景。">
   <AboutContent
     client:load
     timelineData={timelineData.years}
     phases={timelineData.phases}
-    partners={partnersData.map(p => p.name)}
+    partners={partnersData.map(p => ({ name: p.name, description: p.description }))}
     heroImage={heroesData[0].image}
   />
 </BaseLayout>

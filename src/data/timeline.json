@@ -52,11 +52,20 @@
     { "year": "2024", "events": [
       { "month": "1月", "text": "携手矽递科技启动 Maker Camp in Shenzhen 项目", "en": "Launched Maker Camp in Shenzhen with Seeed Studio." },
       { "month": "12月", "text": "成都柴火创客空间暨 Fab Lab Chengdu 正式开幕", "en": "Official Opening of Chengdu Chaihuo Makerspace and Fab Lab Chengdu." }
+    ]},
+    { "year": "2025", "events": [
+      { "month": "6月", "text": "柴火基地车「普罗米修斯号」项目正式立项", "en": "Chaihuo MCV \"Prometheus\" project officially approved." },
+      { "month": "12月", "text": "完成车辆选型与核心装备采购，启动改装", "en": "Vehicle selection and core equipment procurement completed, modification started." }
+    ]},
+    { "year": "2026", "events": [
+      { "month": "2月", "text": "车载边缘计算系统与数字加工中心安装完成", "en": "On-board edge computing system and digital fabrication center installed." },
+      { "month": "3月", "text": "基地车官网上线，开放在线报名通道", "en": "MCV official website launched, online registration opened." },
+      { "month": "4月", "text": "「普罗米修斯号」计划从深圳正式启程", "en": "Prometheus planned to officially depart from Shenzhen." }
     ]}
   ],
   "phases": [
     { "label": "社区 Community", "range": [0, 3] },
     { "label": "文化 Culture", "range": [3, 7] },
-    { "label": "产业 Industry", "range": [7, 14] }
+    { "label": "产业 Industry", "range": [7, 16] }
   ]
 }

@@ -115,7 +115,7 @@ function ChinaRouteMap() {
   return (
     <div
       ref={mapRef}
-      className="relative w-full h-full bg-[#faf8f3] overflow-hidden"
+      className="relative w-full h-full bg-surface overflow-hidden"
     >
       <svg
         viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
@@ -374,6 +374,7 @@ export default function HomeContent({ heroImages }: Props) {
               <div className="text-brand font-bold text-4xl md:text-6xl mt-2">
                 生而荒野 行向未来
               </div>
+              <div className="text-base md:text-lg text-neutral-300 mt-3 font-normal">一台即将穿越中国的移动 AI 实验室</div>
             </motion.h1>
             <motion.p
               className="text-base md:text-lg text-neutral-300 mb-10 max-w-lg leading-relaxed"
@@ -382,7 +383,7 @@ export default function HomeContent({ heroImages }: Props) {
             >
               以柴火数字基地车为移动载体，深入山野、草原与乡土，把 AI 带到真实场景中。用 200 天行走中国，在极限环境里检验技术，与在地居民共创解决方案，推动科技向善。
             </motion.p>
-            <motion.div variants={fadeLeft} transition={springTransition}>
+            <motion.div variants={fadeLeft} transition={springTransition} className="flex flex-wrap gap-4">
               <motion.button
                 onClick={() => setVideoOpen(true)}
                 className="pointer-events-auto bg-brand text-brand-foreground px-8 py-4 rounded-full flex items-center gap-3 hover:bg-brand-hover transition-colors duration-200 cursor-pointer"
@@ -391,6 +392,14 @@ export default function HomeContent({ heroImages }: Props) {
                 <Play className="w-5 h-5" />
                 <span>观看基地车介绍短片</span>
               </motion.button>
+              <motion.a
+                href="/guide"
+                className="pointer-events-auto border-2 border-white/60 text-white px-8 py-4 rounded-full flex items-center gap-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                {...buttonPress}
+              >
+                <span>加入行动</span>
+                <ChevronDown className="w-4 h-4 -rotate-90" />
+              </motion.a>
             </motion.div>
           </motion.div>
         </div>
@@ -406,10 +415,11 @@ export default function HomeContent({ heroImages }: Props) {
         <DialogContent className="sm:max-w-4xl p-0 bg-black border-none overflow-hidden">
           <DialogTitle className="sr-only">基地车介绍短片</DialogTitle>
           <div className="relative w-full aspect-video">
+            {/* TODO: Replace BV1placeholder with real Bilibili BV ID */}
             {videoOpen && (
               <iframe
                 className="w-full h-full"
-                src="https://player.bilibili.com/player.html?isOutside=true&autoplay=1"
+                src="https://player.bilibili.com/player.html?isOutside=true&autoplay=1&bvid=BV1placeholder"
                 title="柴火基地车介绍短片"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -420,6 +430,20 @@ export default function HomeContent({ heroImages }: Props) {
       </Dialog>
 
       {/* Hero → Stats 过渡 */}
+
+      {/* 实时状态条 */}
+      <div className="bg-neutral-900 text-white py-3 px-6">
+        <div className="max-w-6xl mx-auto flex items-center justify-center gap-6 text-sm">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+            当前状态：深圳改造中
+          </span>
+          <span className="text-neutral-500">·</span>
+          <span className="text-neutral-400">预计出发：4 月中旬</span>
+          <span className="text-neutral-500">·</span>
+          <span className="text-neutral-400">计划途经 17 城</span>
+        </div>
+      </div>
 
       {/* 项目核心展示 - 路线规划 */}
       <motion.section
@@ -446,8 +470,8 @@ export default function HomeContent({ heroImages }: Props) {
               variants={fadeUp}
               className="grid grid-cols-3 gap-8 md:gap-12"
             >
-              <CountUp end="21" label="途径省市" />
-              <CountUp end="1.9W" label="行驶公里" />
+              <CountUp end="17" label="计划途经城市" />
+              <CountUp end="1.9W" label="预计行驶公里" />
               <CountUp end="200+" label="路程天数" />
             </motion.div>
           </div>
@@ -572,15 +596,24 @@ export default function HomeContent({ heroImages }: Props) {
               沿途每一次难忘的瞬间，每一张技术点亮现实的面孔。
             </p>
           </motion.div>
-          <motion.a
-            href="/documentation"
-            className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-sm hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap"
-            variants={fadeUp}
-            {...buttonPress}
-          >
-            进入时间轴记录
-            <ChevronDown className="w-4 h-4 -rotate-90" />
-          </motion.a>
+          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
+            <motion.a
+              href="/documentation"
+              className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-sm hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap"
+              {...buttonPress}
+            >
+              探索纪实
+              <ChevronDown className="w-4 h-4 -rotate-90" />
+            </motion.a>
+            <motion.a
+              href="/guide"
+              className="inline-flex items-center gap-2 border border-neutral-300 text-neutral-700 px-6 py-3 rounded-sm hover:border-brand hover:text-brand transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap"
+              {...buttonPress}
+            >
+              加入行动
+              <ChevronDown className="w-4 h-4 -rotate-90" />
+            </motion.a>
+          </motion.div>
         </motion.div>
       </section>
     </div>

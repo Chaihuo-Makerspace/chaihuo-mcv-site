@@ -17,10 +17,15 @@ interface Phase {
   range: number[];
 }
 
+interface Partner {
+  name: string;
+  description?: string;
+}
+
 interface AboutContentProps {
   timelineData: YearEntry[];
   phases: Phase[];
-  partners: string[];
+  partners: Partner[];
   heroImage: string;
 }
 
@@ -62,7 +67,7 @@ function PanoramaView({ items, onClose }: { items: EnrichedYear[]; onClose: () =
       <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-neutral-200 px-6 md:px-[8%] pt-6 pb-4 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-neutral-900">柴火历程 · 全景</h2>
-          <p className="text-xs text-neutral-400 mt-0.5">2011 — 2024，14 年关键事件一览</p>
+          <p className="text-xs text-neutral-400 mt-0.5">2011 — 2026，15 年关键事件一览</p>
         </div>
         <button
           onClick={onClose}
@@ -373,7 +378,7 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
 
 /* ── Stats Counter ── */
 const STATS = [
-  { value: 14, suffix: '年', label: '持续深耕' },
+  { value: 15, suffix: '年', label: '持续深耕' },
   { value: 30, suffix: '+', label: '关键事件' },
   { value: 3, suffix: '', label: '发展阶段' },
   { value: 6, suffix: '+', label: '全球伙伴' },
@@ -495,16 +500,19 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
           viewport={defaultViewport}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6"
         >
-          {partners.map((name) => (
+          {partners.map((partner) => (
             <motion.div
-              key={name}
+              key={partner.name}
               variants={fadeUp}
               transition={springTransition}
-              className="flex items-center justify-center py-6 px-4 rounded-xl border border-neutral-200 bg-white hover:border-brand/30 hover:shadow-sm transition-all duration-200"
+              className="flex flex-col items-center justify-center py-6 px-4 rounded-xl border border-neutral-200 bg-white hover:border-brand/30 hover:shadow-sm transition-all duration-200"
             >
               <span className="text-lg font-bold text-neutral-400 hover:text-neutral-900 transition-colors duration-200 cursor-default">
-                {name}
+                {partner.name}
               </span>
+              {partner.description && (
+                <span className="text-xs text-neutral-400 mt-1.5 text-center">{partner.description}</span>
+              )}
             </motion.div>
           ))}
         </motion.div>
@@ -524,8 +532,23 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
           <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed font-light italic">
             "我们坚信，科技平权意味着每个人都有权享受数字化发展的红利。柴火基地车是我们对此最激进、最浪漫的实践。"
           </p>
-          <p className="mt-6 text-sm text-neutral-400">— 柴火创客空间</p>
+          <p className="mt-6 text-sm text-neutral-400">— 潘昊，柴火创客空间创始人</p>
         </motion.div>
+      </section>
+
+      {/* 底部 CTA */}
+      <section className="py-16 px-6 md:px-[12%] bg-neutral-50 border-t border-neutral-200">
+        <div className="max-w-2xl mx-auto text-center">
+          <h3 className="text-2xl font-bold text-neutral-900 mb-3">想加入这段旅程？</h3>
+          <p className="text-neutral-500 mb-6">从跟车同行到在地共创，找到属于你的参与方式</p>
+          <a
+            href="/guide"
+            className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
+          >
+            了解如何参与
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
+        </div>
       </section>
     </div>
   );

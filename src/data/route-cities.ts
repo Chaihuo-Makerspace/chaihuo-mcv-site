@@ -11,12 +11,12 @@ export interface RouteCity {
 // Google Maps 精确经纬度 — 增删节点只改这个数组
 // order 字段表示行程顺序，visited 控制进度
 export const routeCities: RouteCity[] = [
-  // ── 已走过 ──
+  // ── 出发点（尚未出发，预计 2026.04 中旬启程）──
   { label: '深圳',    lng: 114.057, lat: 22.543, visited: true, isOrigin: true, order: 0, labelOffset: [10, -8] },
-  { label: '南宁',    lng: 108.320, lat: 22.816, visited: true, order: 1, labelOffset: [-35, 12] },
-  { label: '贵阳',    lng: 106.713, lat: 26.647, visited: true, order: 2, labelOffset: [-35, -5] },
-  { label: '重庆',    lng: 106.551, lat: 29.563, visited: true, order: 3, labelOffset: [-35, -5] },
   // ── 计划中 ──
+  { label: '南宁',    lng: 108.320, lat: 22.816, visited: false, order: 1, labelOffset: [-35, 12] },
+  { label: '贵阳',    lng: 106.713, lat: 26.647, visited: false, order: 2, labelOffset: [-35, -5] },
+  { label: '重庆',    lng: 106.551, lat: 29.563, visited: false, order: 3, labelOffset: [-35, -5] },
   { label: '成都',    lng: 104.066, lat: 30.572, visited: false, order: 4, labelOffset: [-35, -5] },
   { label: '拉萨',    lng: 91.111,  lat: 29.645, visited: false, order: 5, labelOffset: [-30, -8] },
   { label: '乌鲁木齐', lng: 87.617,  lat: 43.825, visited: false, order: 6, labelOffset: [-45, -8] },
