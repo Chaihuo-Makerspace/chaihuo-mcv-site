@@ -498,14 +498,14 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
           initial="hidden"
           whileInView="visible"
           viewport={defaultViewport}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6"
+          className="flex flex-wrap justify-center gap-6"
         >
           {partners.map((partner) => (
             <motion.div
               key={partner.name}
               variants={fadeUp}
               transition={springTransition}
-              className="flex flex-col items-center justify-center py-6 px-4 rounded-xl border border-neutral-200 bg-white hover:border-brand/30 hover:shadow-sm transition-all duration-200"
+              className="flex flex-col items-center justify-center py-6 px-4 w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(16.666%-20px)] rounded-xl border border-neutral-200 bg-white hover:border-brand/30 hover:shadow-sm transition-all duration-200"
             >
               <span className="text-lg font-bold text-neutral-400 hover:text-neutral-900 transition-colors duration-200 cursor-default">
                 {partner.name}

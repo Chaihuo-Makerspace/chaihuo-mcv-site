@@ -415,13 +415,13 @@ export default function HomeContent({ heroImages }: Props) {
         <DialogContent className="sm:max-w-4xl p-0 bg-black border-none overflow-hidden">
           <DialogTitle className="sr-only">基地车介绍短片</DialogTitle>
           <div className="relative w-full aspect-video">
-            {/* TODO: Replace BV1placeholder with real Bilibili BV ID */}
             {videoOpen && (
               <iframe
                 className="w-full h-full"
-                src="https://player.bilibili.com/player.html?isOutside=true&autoplay=1&bvid=BV1placeholder"
+                src="//player.bilibili.com/player.html?isOutside=true&aid=115653335845192&bvid=BV1BASaB5ErL&cid=34463351989&p=1&autoplay=1"
                 title="柴火基地车介绍短片"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                scrolling="no"
+                frameBorder="0"
                 allowFullScreen
               />
             )}
