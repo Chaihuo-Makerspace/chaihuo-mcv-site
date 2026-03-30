@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { fadeUp, stagger, springTransition, defaultViewport } from './motion';
 import { Clock, Play, FileText, ArrowRight } from 'lucide-react';
+import type { Locale } from '@/i18n/index';
+import { localePath } from '@/i18n/index';
 
-type Category = '全部' | '人物访谈' | '路上VLOG' | '公益合作纪录片';
+type Category = string;
 
 interface VideoLink {
   platform: string;
@@ -15,6 +17,7 @@ interface DocEntry {
   slug?: string;
   date: string;
   category: string;
+  categoryDisplay?: string;
   title: string;
   description: string;
   readTime?: string;
@@ -25,9 +28,10 @@ interface DocEntry {
 
 interface Props {
   docs: DocEntry[];
+  locale?: Locale;
+  t: Record<string, string>;
+  categories: { key: string; label: string }[];
 }
-
-const CATEGORIES: Category[] = ['全部', '人物访谈', '路上VLOG', '公益合作纪录片'];
 
 const CATEGORY_COLORS: Record<string, string> = {
   '人物访谈': 'bg-blue-100 text-blue-700',
@@ -35,10 +39,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   '公益合作纪录片': 'bg-purple-100 text-purple-700',
 };
 
-export default function DocumentationContent({ docs }: Props) {
-  const [activeCategory, setActiveCategory] = useState<Category>('全部');
+export default function DocumentationContent({ docs, locale = 'zh', t, categories }: Props) {
+  const allKey = categories[0]?.key ?? '全部';
+  const [activeCategory, setActiveCategory] = useState<string>(allKey);
 
-  const filteredItems = activeCategory === '全部'
+  const filteredItems = activeCategory === allKey
     ? docs
     : docs.filter(item => item.category === activeCategory);
 
@@ -58,21 +63,21 @@ export default function DocumentationContent({ docs }: Props) {
               variants={fadeUp}
               transition={springTransition}
             >
-              Documentary
+              {t['hero.subtitle']}
             </motion.p>
             <motion.h1
               className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4"
               variants={fadeUp}
               transition={springTransition}
             >
-              循迹中国
+              {t['hero.title']}
             </motion.h1>
             <motion.p
               className="text-base text-neutral-500 max-w-xl"
               variants={fadeUp}
               transition={springTransition}
             >
-              人物访谈 · 纪录片 · Vlog — 记录路上的每一个真实瞬间
+              {t['hero.body']}
             </motion.p>
           </motion.div>
         </div>
@@ -88,21 +93,21 @@ export default function DocumentationContent({ docs }: Props) {
           transition={springTransition}
           className="max-w-4xl mx-auto flex justify-center gap-3 flex-wrap"
         >
-          {CATEGORIES.map((category) => (
+          {categories.map((cat) => (
             <motion.button
-              key={category}
+              key={cat.key}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setActiveCategory(category)}
+              onClick={() => setActiveCategory(cat.key)}
               className={`px-5 py-2 rounded-full text-sm transition-all cursor-pointer ${
-                activeCategory === category
+                activeCategory === cat.key
                   ? 'bg-neutral-900 text-white'
                   : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
               }`}
             >
-              {category}
-              {category !== '全部' && (
+              {cat.label}
+              {cat.key !== allKey && (
                 <span className="ml-1.5 text-xs opacity-60">
-                  ({docs.filter(d => d.category === category).length})
+                  ({docs.filter(d => d.category === cat.key).length})
                 </span>
               )}
             </motion.button>
@@ -161,7 +166,7 @@ export default function DocumentationContent({ docs }: Props) {
                         {/* 分类标签 + 内容类型 */}
                         <div className={`flex items-center gap-2 mb-3 flex-wrap ${!isLeft ? 'md:justify-end' : ''}`}>
                           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${CATEGORY_COLORS[entry.category] ?? ''}`}>
-                            {entry.category}
+                            {entry.categoryDisplay ?? entry.category}
                           </span>
                           {entry.readTime && (
                             <span className="flex items-center gap-1 text-xs text-neutral-500">
@@ -215,10 +220,10 @@ export default function DocumentationContent({ docs }: Props) {
                           )}
                           {entry.slug && (
                             <a
-                              href={`/documentation/${entry.slug}`}
+                              href={localePath(`/documentation/${entry.slug}`, locale)}
                               className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
                             >
-                              阅读全文
+                              {t['readFull']}
                               <ArrowRight className="w-3.5 h-3.5" />
                             </a>
                           )}
@@ -236,8 +241,8 @@ export default function DocumentationContent({ docs }: Props) {
 
           {filteredItems.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-neutral-400 text-lg">该分类暂无内容</p>
-              <p className="text-neutral-300 text-sm mt-2">更多内容随旅程持续更新中</p>
+              <p className="text-neutral-400 text-lg">{t['empty.title']}</p>
+              <p className="text-neutral-300 text-sm mt-2">{t['empty.subtitle']}</p>
             </div>
           )}
 
@@ -252,7 +257,7 @@ export default function DocumentationContent({ docs }: Props) {
       <section className="py-12 px-6">
         <div className="max-w-5xl mx-auto text-center">
           <div className="w-8 h-[2px] bg-neutral-200 mx-auto mb-4" />
-          <p className="text-neutral-400 text-sm">更多内容随旅程持续更新中</p>
+          <p className="text-neutral-400 text-sm">{t['more']}</p>
         </div>
       </section>
     </div>

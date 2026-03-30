@@ -1,6 +1,8 @@
 import { Suspense, lazy } from 'react';
 import { motion } from 'motion/react';
 import { fadeUp, fadeIn, stagger, springTransition, defaultViewport } from './motion';
+import type { Locale } from '@/i18n/index';
+import { localePath } from '@/i18n/index';
 
 // SSR 阶段跳过 Three.js 解析 — 返回永不 resolve 的 Promise，Suspense 渲染 fallback
 const VehicleExplodedView = lazy(() =>
@@ -29,6 +31,8 @@ interface EquipmentCategory {
 interface Props {
   notes: NoteEntry[];
   equipment: EquipmentCategory[];
+  locale?: Locale;
+  t: Record<string, string>;
 }
 
 // ─── Icon map ───
@@ -41,7 +45,7 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
 
 // ─── Component ───
 
-export default function DeconstructContent({ notes, equipment }: Props) {
+export default function DeconstructContent({ notes, equipment, locale = 'zh', t }: Props) {
   return (
     <div className="min-h-screen bg-surface">
 
@@ -61,21 +65,21 @@ export default function DeconstructContent({ notes, equipment }: Props) {
               variants={fadeUp}
               transition={springTransition}
             >
-              Chaihuo Base Vehicle
+              {t['hero.subtitle']}
             </motion.p>
             <motion.h1
               className="text-5xl md:text-6xl font-bold text-neutral-900 mb-4"
               variants={fadeUp}
               transition={springTransition}
             >
-              普罗米修斯号
+              {t['hero.title']}
             </motion.h1>
             <motion.p
               className="text-lg text-neutral-500 max-w-xl mx-auto"
               variants={fadeUp}
               transition={springTransition}
             >
-              一台为荒野而生的移动AI实验室，从底盘到算力，每一处都为极限场景而设计。
+              {t['hero.body']}
             </motion.p>
           </motion.div>
 
@@ -88,10 +92,10 @@ export default function DeconstructContent({ notes, equipment }: Props) {
             viewport={defaultViewport}
           >
             {[
-              { label: '纯电续航', value: '430 km' },
-              { label: '车内净高', value: '2.5 m' },
-              { label: '外放电', value: 'V2L 220V' },
-              { label: '安全认证', value: 'NCAP 铂金' },
+              { label: t['specs.range'], value: '430 km' },
+              { label: t['specs.height'], value: '2.5 m' },
+              { label: t['specs.v2l'], value: 'V2L 220V' },
+              { label: t['specs.safety'], value: 'NCAP Platinum' },
             ].map((spec) => (
               <motion.div
                 key={spec.label}
@@ -116,7 +120,7 @@ export default function DeconstructContent({ notes, equipment }: Props) {
             <Suspense
               fallback={
                 <div className="w-full h-[500px] md:h-[600px] rounded-xl bg-gradient-to-b from-neutral-100 to-neutral-300 flex items-center justify-center">
-                  <div className="text-neutral-500 text-sm animate-pulse">加载 3D 模型中...</div>
+                  <div className="text-neutral-500 text-sm animate-pulse">{t['loading3d']}</div>
                 </div>
               }
             >
@@ -138,8 +142,8 @@ export default function DeconstructContent({ notes, equipment }: Props) {
             transition={springTransition}
           >
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-neutral-900">改装手记</h2>
-              <p className="text-neutral-500 mt-2">从图纸到荒野的每一步</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-neutral-900">{t['notes.title']}</h2>
+              <p className="text-neutral-500 mt-2">{t['notes.subtitle']}</p>
             </div>
             <a
               href="https://www.yuque.com/chaihuo-mcv/home"
@@ -147,7 +151,7 @@ export default function DeconstructContent({ notes, equipment }: Props) {
               rel="noopener noreferrer"
               className="hidden md:flex text-sm text-neutral-500 hover:text-neutral-900 transition-colors duration-200 items-center gap-1 cursor-pointer"
             >
-              前往语雀查看全部
+              {t['notes.viewAll']}
               <ChevronRight className="w-4 h-4" />
             </a>
           </motion.div>
@@ -196,7 +200,7 @@ export default function DeconstructContent({ notes, equipment }: Props) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors duration-200 cursor-pointer"
             >
-              前往语雀查看全部手记
+              {t['notes.viewAllMobile']}
               <ChevronRight className="w-4 h-4" />
             </a>
           </motion.div>
@@ -214,8 +218,8 @@ export default function DeconstructContent({ notes, equipment }: Props) {
             viewport={defaultViewport}
             transition={springTransition}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900">装备清单</h2>
-            <p className="text-neutral-500 mt-2">荒野生存的全部家当</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900">{t['equipment.title']}</h2>
+            <p className="text-neutral-500 mt-2">{t['equipment.subtitle']}</p>
           </motion.div>
 
           <motion.div
@@ -265,13 +269,13 @@ export default function DeconstructContent({ notes, equipment }: Props) {
       {/* 底部 CTA */}
       <section className="py-16 px-6 bg-white border-t border-neutral-200">
         <div className="max-w-2xl mx-auto text-center">
-          <h3 className="text-2xl font-bold text-neutral-900 mb-3">想亲身体验普罗米修斯号？</h3>
-          <p className="text-neutral-500 mb-6">从跟车同行到在地合作，多种方式等你参与</p>
+          <h3 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h3>
+          <p className="text-neutral-500 mb-6">{t['cta.body']}</p>
           <a
-            href="/guide"
+            href={localePath('/guide', locale)}
             className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
           >
-            查看上车指南
+            {t['cta.button']}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </a>
         </div>

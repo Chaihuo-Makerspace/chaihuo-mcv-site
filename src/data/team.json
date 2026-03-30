@@ -2,29 +2,39 @@
   {
     "id": "feng",
     "name": "冯磊",
+    "name_en": "Feng Lei",
     "role": "领队",
+    "role_en": "Team Lead",
     "bio": "柴火创客空间资深成员，负责基地车整体资源协调与团队支持。",
+    "bio_en": "Senior member of Chaihuo Makerspace, responsible for overall resource coordination and team support.",
     "image": "/people/teacher-feng.jpg"
   },
   {
     "id": "zhipeng",
     "name": "颜志鹏",
+    "name_en": "Spencer Yan",
     "role": "技术担当",
+    "role_en": "Tech Lead",
     "bio": "全栈工程师，负责边缘计算系统规划与部署。",
+    "bio_en": "Full-stack engineer, responsible for edge computing system design and deployment.",
     "image": "/people/spencer.jpg"
   },
   {
     "id": "ray",
     "name": "Ray",
     "role": "媒体担当",
+    "role_en": "Media Lead",
     "bio": "摄影师与内容创作者，用镜头记录基地车沿途的故事与人文。",
+    "bio_en": "Photographer and content creator, documenting stories and culture along the journey.",
     "image": "/people/ray-pipi.jpg"
   },
   {
     "id": "reachy",
     "name": "Reachy Mini",
     "role": "具身智能",
+    "role_en": "Embodied AI",
     "bio": "由 Pollen Robotics 打造的开源机器人，基地车的 AI 具身智能伙伴。",
+    "bio_en": "An open-source robot by Pollen Robotics — the MCV's embodied AI companion.",
     "isRobot": true,
     "image": "/people/reachy.svg"
   }

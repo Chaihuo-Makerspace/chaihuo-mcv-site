@@ -18,6 +18,9 @@
       "title": {
         "type": "string"
       },
+      "title_en": {
+        "type": "string"
+      },
       "items": {
         "type": "array",
         "items": {
@@ -26,7 +29,13 @@
             "name": {
               "type": "string"
             },
+            "name_en": {
+              "type": "string"
+            },
             "spec": {
+              "type": "string"
+            },
+            "spec_en": {
               "type": "string"
             }
           },

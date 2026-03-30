@@ -15,12 +15,26 @@
       "name": {
         "type": "string"
       },
+      "name_en": {
+        "type": "string"
+      },
       "role": {
         "type": "string"
       },
+      "role_en": {
+        "type": "string"
+      },
       "image": {
-        "type": "string",
-        "format": "uri"
+        "type": "string"
+      },
+      "bio": {
+        "type": "string"
+      },
+      "bio_en": {
+        "type": "string"
+      },
+      "isRobot": {
+        "type": "boolean"
       }
     },
     "required": [

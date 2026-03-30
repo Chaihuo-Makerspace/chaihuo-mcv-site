@@ -29,6 +29,8 @@ import {
   defaultViewport,
   buttonPress,
 } from "../components/motion";
+import type { Locale } from '@/i18n/index';
+import { localePath } from '@/i18n/index';
 
 // ─── Types ───
 
@@ -39,6 +41,8 @@ interface HeroImage {
 
 interface Props {
   heroImages: HeroImage[];
+  locale?: Locale;
+  t: Record<string, string>;
 }
 
 // ─── CountUp Component ───
@@ -103,7 +107,7 @@ function buildCityLines(cities: typeof routeCities) {
 }
 
 // 中国路线图 — 双层：马形背景 + 城市进度前景
-function ChinaRouteMap() {
+function ChinaRouteMap({ t }: { t: Record<string, string> }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(mapRef, { once: true, amount: 0.3 });
   const segments = buildCityLines(routeCities);
@@ -293,7 +297,7 @@ function ChinaRouteMap() {
                   animate={isInView ? { opacity: 1 } : {}}
                   transition={{ duration: 0.3, delay: delay + 0.3 }}
                 >
-                  出发点
+                  {t['map.origin']}
                 </motion.text>
               )}
             </g>
@@ -305,22 +309,22 @@ function ChinaRouteMap() {
       <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-md text-xs text-neutral-500 flex items-center gap-4">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-brand" />
-          已到达
+          {t['map.visited']}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-white border border-neutral-400" />
-          计划中
+          {t['map.planned']}
         </span>
       </div>
       {/* 马年标注 */}
       <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-md text-xs text-neutral-400 select-none">
-        2026 · 马年路线
+        {t['map.horseYear']}
       </div>
     </div>
   );
 }
 
-export default function HomeContent({ heroImages }: Props) {
+export default function HomeContent({ heroImages, locale = 'zh', t }: Props) {
   const [videoOpen, setVideoOpen] = useState(false);
 
   const sliderSettings = {
@@ -370,18 +374,18 @@ export default function HomeContent({ heroImages }: Props) {
               variants={fadeLeft}
               transition={springTransition}
             >
-              <div className="text-white font-bold">柴火基地车</div>
+              <div className="text-white font-bold">{t['hero.title']}</div>
               <div className="text-brand font-bold text-4xl md:text-6xl mt-2">
-                生而荒野 行向未来
+                {t['hero.slogan']}
               </div>
-              <div className="text-base md:text-lg text-neutral-300 mt-3 font-normal">一台即将穿越中国的移动 AI 实验室</div>
+              <div className="text-base md:text-lg text-neutral-300 mt-3 font-normal">{t['hero.subtitle']}</div>
             </motion.h1>
             <motion.p
               className="text-base md:text-lg text-neutral-300 mb-10 max-w-lg leading-relaxed"
               variants={fadeLeft}
               transition={springTransition}
             >
-              以柴火数字基地车为移动载体，深入山野、草原与乡土，把 AI 带到真实场景中。用 200 天行走中国，在极限环境里检验技术，与在地居民共创解决方案，推动科技向善。
+              {t['hero.body']}
             </motion.p>
             <motion.div variants={fadeLeft} transition={springTransition} className="flex flex-wrap gap-4">
               <motion.button
@@ -390,14 +394,14 @@ export default function HomeContent({ heroImages }: Props) {
                 {...buttonPress}
               >
                 <Play className="w-5 h-5" />
-                <span>观看基地车介绍短片</span>
+                <span>{t['hero.watchVideo']}</span>
               </motion.button>
               <motion.a
-                href="/guide"
+                href={localePath('/guide', locale)}
                 className="pointer-events-auto border-2 border-white/60 text-white px-8 py-4 rounded-full flex items-center gap-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
                 {...buttonPress}
               >
-                <span>加入行动</span>
+                <span>{t['hero.joinAction']}</span>
                 <ChevronDown className="w-4 h-4 -rotate-90" />
               </motion.a>
             </motion.div>
@@ -413,13 +417,13 @@ export default function HomeContent({ heroImages }: Props) {
       {/* 视频弹窗 */}
       <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
         <DialogContent className="sm:max-w-4xl p-0 bg-black border-none overflow-hidden">
-          <DialogTitle className="sr-only">基地车介绍短片</DialogTitle>
+          <DialogTitle className="sr-only">{t['hero.videoTitle']}</DialogTitle>
           <div className="relative w-full aspect-video">
             {videoOpen && (
               <iframe
                 className="w-full h-full"
                 src="//player.bilibili.com/player.html?isOutside=true&aid=115653335845192&bvid=BV1BASaB5ErL&cid=34463351989&p=1&autoplay=1"
-                title="柴火基地车介绍短片"
+                title={t['hero.videoTitle']}
                 scrolling="no"
                 frameBorder="0"
                 allowFullScreen
@@ -436,12 +440,12 @@ export default function HomeContent({ heroImages }: Props) {
         <div className="max-w-6xl mx-auto flex items-center justify-center gap-6 text-sm">
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-            当前状态：深圳改造中
+            {t['status.current']}
           </span>
           <span className="text-neutral-500">·</span>
-          <span className="text-neutral-400">预计出发：4 月中旬</span>
+          <span className="text-neutral-400">{t['status.departure']}</span>
           <span className="text-neutral-500">·</span>
-          <span className="text-neutral-400">途经 21 省 23 城</span>
+          <span className="text-neutral-400">{t['status.route']}</span>
         </div>
       </div>
 
@@ -458,21 +462,21 @@ export default function HomeContent({ heroImages }: Props) {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-8 md:mb-0">
             <motion.div variants={fadeUp}>
               <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
-                连接技术的
+                {t['route.title1']}
                 <br />
-                <span>每一个经纬度</span>
+                <span>{t['route.title2']}</span>
               </h2>
               <p className="text-neutral-500 leading-relaxed max-w-xl">
-                我们将跨越中国三大地形阶梯、六种气候类型和十余种地貌单元。这不仅是一条中国自然与人文地理的横截面，也是一场在现实环境中的技术实验。
+                {t['route.body']}
               </p>
             </motion.div>
             <motion.div
               variants={fadeUp}
               className="grid grid-cols-3 gap-8 md:gap-12"
             >
-              <CountUp end="21" label="途经省份" />
-              <CountUp end="1.9W" label="预计行驶公里" />
-              <CountUp end="200+" label="路程天数" />
+              <CountUp end="21" label={t['route.provinces']} />
+              <CountUp end="1.9W" label={t['route.distance']} />
+              <CountUp end="200+" label={t['route.days']} />
             </motion.div>
           </div>
 
@@ -481,7 +485,7 @@ export default function HomeContent({ heroImages }: Props) {
             className="w-full aspect-[4/3] md:aspect-[16/10] overflow-hidden"
             variants={fadeIn}
           >
-            <ChinaRouteMap />
+            <ChinaRouteMap t={t} />
           </motion.div>
         </div>
       </motion.section>
@@ -490,10 +494,10 @@ export default function HomeContent({ heroImages }: Props) {
       <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-black">
-            移动的AI实验室
+            {t['lab.title']}
           </h2>
           <p className="text-center text-neutral-500 mb-16 max-w-2xl mx-auto">
-            一个可移动的AI实验室，集成边缘算力、数字加工与实验场景能力
+            {t['lab.subtitle']}
           </p>
 
           <motion.div
@@ -518,10 +522,10 @@ export default function HomeContent({ heroImages }: Props) {
               ></div>
               <div className="p-6">
                 <h3 className="text-xl md:text-2xl font-semibold mb-3 text-black">
-                  AI 边缘算力
+                  {t['lab.aiTitle']}
                 </h3>
                 <p className="text-neutral-500 mb-4">
-                  搭载高性能边缘计算设备，在离线环境下运行AI模型，实时处理数据和提供智能服务。
+                  {t['lab.aiDesc']}
                 </p>
               </div>
             </motion.div>
@@ -541,10 +545,10 @@ export default function HomeContent({ heroImages }: Props) {
               ></div>
               <div className="p-6">
                 <h3 className="text-xl md:text-2xl font-semibold mb-3 text-black">
-                  数字加工中心
+                  {t['lab.fabTitle']}
                 </h3>
                 <p className="text-neutral-500 mb-4">
-                  配备3D打印机、激光切割、CNC等数字制造工具，快速将创意转化为实物原型。
+                  {t['lab.fabDesc']}
                 </p>
               </div>
             </motion.div>
@@ -564,10 +568,10 @@ export default function HomeContent({ heroImages }: Props) {
               ></div>
               <div className="p-6">
                 <h3 className="text-xl md:text-2xl font-semibold mb-3 text-black">
-                  开放实验空间
+                  {t['lab.spaceTitle']}
                 </h3>
                 <p className="text-neutral-500 mb-4">
-                  提供协作工作区域，支持当地社区参与，共同探索技术与生活的结合点。
+                  {t['lab.spaceDesc']}
                 </p>
               </div>
             </motion.div>
@@ -586,31 +590,30 @@ export default function HomeContent({ heroImages }: Props) {
         >
           <motion.div variants={fadeUp}>
             <p className="text-xs uppercase tracking-[0.15em] text-neutral-400 mb-2">
-              完整纪实
+              {t['cta.label']}
             </p>
             <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-2">
-              循迹中国，记录每一个真实瞬间
+              {t['cta.title']}
             </h2>
             <p className="text-neutral-500 text-sm max-w-lg">
-              人物访谈 · 纪录片 · Vlog —
-              沿途每一次难忘的瞬间，每一张技术点亮现实的面孔。
+              {t['cta.body']}
             </p>
           </motion.div>
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
             <motion.a
-              href="/documentation"
+              href={localePath('/documentation', locale)}
               className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-sm hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap"
               {...buttonPress}
             >
-              探索纪实
+              {t['cta.explore']}
               <ChevronDown className="w-4 h-4 -rotate-90" />
             </motion.a>
             <motion.a
-              href="/guide"
+              href={localePath('/guide', locale)}
               className="inline-flex items-center gap-2 border border-neutral-300 text-neutral-700 px-6 py-3 rounded-sm hover:border-brand hover:text-brand transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap"
               {...buttonPress}
             >
-              加入行动
+              {t['cta.join']}
               <ChevronDown className="w-4 h-4 -rotate-90" />
             </motion.a>
           </motion.div>

@@ -1,8 +1,19 @@
 ---
 import logoHorizontalImport from '@/assets/logo-horizontal.png';
+import type { Locale } from '@/i18n/index';
+import ui from '@/i18n/ui';
+import { localePath, t } from '@/i18n/index';
+
 const logoSrc = typeof logoHorizontalImport === 'object' && logoHorizontalImport !== null && 'src' in logoHorizontalImport
   ? (logoHorizontalImport as { src: string }).src
   : logoHorizontalImport as string;
+
+interface Props {
+  locale?: Locale;
+}
+
+const locale = Astro.props.locale ?? 'zh';
+const d = ui[locale];
 ---
 
 <footer class="py-12 px-6 bg-white border-t border-neutral-300">
@@ -11,38 +22,38 @@ const logoSrc = typeof logoHorizontalImport === 'object' && logoHorizontalImport
       <!-- Logo + 描述 -->
       <div class="md:col-span-1">
         <div class="flex items-center mb-4">
-          <img src={logoSrc} alt="柴火创客" class="h-10" />
+          <img src={logoSrc} alt={d['site.name']} class="h-10" />
         </div>
         <p class="text-sm text-neutral-500 leading-relaxed">
-          柴火基地车是一项连接数字与现实的开源创新项目，旨在通过移动平台将科技的人文关怀带向深处。
+          {d['footer.description']}
         </p>
         <div class="flex gap-4 mt-6 text-xs text-neutral-400">
-          关注我们的社交媒体，获取最新动态
+          {d['footer.followUs']}
         </div>
       </div>
 
       <!-- 项目入口 -->
       <div>
-        <h4 class="text-xs uppercase tracking-wider mb-4 text-neutral-700 font-semibold">项目入口</h4>
+        <h4 class="text-xs uppercase tracking-wider mb-4 text-neutral-700 font-semibold">{d['footer.projectLinks']}</h4>
         <div class="space-y-2 text-sm">
-          <a href="/" class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">首页</a>
-          <a href="/deconstruct" class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">解构基地车</a>
-          <a href="/documentation" class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">完整纪实</a>
-          <a href="/guide" class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">上车指南</a>
+          <a href={localePath('/', locale)} class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">{d['nav.home']}</a>
+          <a href={localePath('/deconstruct', locale)} class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">{d['nav.deconstruct']}</a>
+          <a href={localePath('/documentation', locale)} class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">{d['nav.documentation']}</a>
+          <a href={localePath('/guide', locale)} class="block text-neutral-500 hover:text-neutral-900 transition-colors duration-200">{d['nav.guide']}</a>
         </div>
       </div>
 
       <!-- 联系我们 -->
       <div>
-        <h4 class="text-xs uppercase tracking-wider mb-4 text-neutral-700 font-semibold">联系我们</h4>
+        <h4 class="text-xs uppercase tracking-wider mb-4 text-neutral-700 font-semibold">{d['footer.contact']}</h4>
         <div class="space-y-3 text-sm text-neutral-500">
           <p class="flex items-start gap-2">
             <svg class="w-4 h-4 text-brand shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>深圳市南山区打石二路万科云设计公社B622</span>
+            <span>{d['footer.addressSZ']}</span>
           </p>
           <p class="flex items-start gap-2">
             <svg class="w-4 h-4 text-brand shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>成都市青羊区狮马路92号</span>
+            <span>{d['footer.addressCD']}</span>
           </p>
           <p class="flex items-start gap-2">
             <svg class="w-4 h-4 text-brand shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
@@ -57,19 +68,19 @@ const logoSrc = typeof logoHorizontalImport === 'object' && logoHorizontalImport
 
       <!-- 社交渠道 -->
       <div>
-        <h4 class="text-xs uppercase tracking-wider mb-4 text-neutral-700 font-semibold">社交渠道</h4>
+        <h4 class="text-xs uppercase tracking-wider mb-4 text-neutral-700 font-semibold">{d['footer.social']}</h4>
         <div class="space-y-2 text-sm text-neutral-400">
-          <p>微信公众号（即将开放）</p>
-          <p>微博（即将开放）</p>
-          <p>X / Twitter（即将开放）</p>
-          <p>GitHub（即将开放）</p>
+          <p>{d['footer.wechat']}</p>
+          <p>{d['footer.weibo']}</p>
+          <p>{d['footer.twitter']}</p>
+          <p>{d['footer.github']}</p>
         </div>
       </div>
     </div>
 
     <div class="border-t border-neutral-300 pt-8 text-center text-sm text-neutral-500">
-      <p>&copy; 2026 柴火创客空间 Chaihuo Maker Space. 保留所有权利.</p>
-      <p class="mt-2">本项目遵循开源协议 MIT License</p>
+      <p>{d['footer.copyright']}</p>
+      <p class="mt-2">{d['footer.license']}</p>
     </div>
   </div>
 </footer>

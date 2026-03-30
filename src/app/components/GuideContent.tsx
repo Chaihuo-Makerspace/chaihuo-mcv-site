@@ -4,6 +4,7 @@ import { fadeUp, stagger, springTransition, defaultViewport } from './motion';
 import { ChevronDown, Mail, Truck, Sprout, Zap } from 'lucide-react';
 import qrCoCreationImport from '@/assets/qr-co-creation.png';
 import qrEmpowermentImport from '@/assets/qr-empowerment.png';
+import type { Locale } from '@/i18n/index';
 
 const qrCoCreation = typeof qrCoCreationImport === 'object' && qrCoCreationImport !== null && 'src' in qrCoCreationImport
   ? (qrCoCreationImport as { src: string }).src : qrCoCreationImport as string;
@@ -26,9 +27,11 @@ interface FaqGroup {
 interface GuideContentProps {
   teamMembers: TeamMember[];
   faqGroups: FaqGroup[];
+  locale?: Locale;
+  t: Record<string, string>;
 }
 
-export default function GuideContent({ teamMembers, faqGroups }: GuideContentProps) {
+export default function GuideContent({ teamMembers, faqGroups, locale = 'zh', t }: GuideContentProps) {
   const [openFAQs, setOpenFAQs] = useState<Set<string>>(new Set());
 
   return (
@@ -47,21 +50,21 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
               variants={fadeUp}
               transition={springTransition}
             >
-              Get Involved
+              {t['hero.subtitle']}
             </motion.p>
             <motion.h1
               className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4"
               variants={fadeUp}
               transition={springTransition}
             >
-              加入行动
+              {t['hero.title']}
             </motion.h1>
             <motion.p
               className="text-base text-neutral-500"
               variants={fadeUp}
               transition={springTransition}
             >
-              你不是看客，是答案的一部分
+              {t['hero.body']}
             </motion.p>
           </motion.div>
         </div>
@@ -78,8 +81,8 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
             transition={springTransition}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">参与方式</h2>
-            <p className="text-neutral-500">从跟车到落地，找到你的位置</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">{t['methods.title']}</h2>
+            <p className="text-neutral-500">{t['methods.subtitle']}</p>
           </motion.div>
 
           {/* 三卡并排 */}
@@ -102,19 +105,19 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
                 <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5">
                   <Truck className="w-6 h-6 text-brand-dark" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">上车同行</h3>
+                <h3 className="text-xl font-semibold mb-3">{t['ride.title']}</h3>
                 <p className="text-neutral-500 text-sm leading-relaxed mb-5">
-                  跟车出发，深度参与200天旅程。可选单段或全程，灵活加入。
+                  {t['ride.body']}
                 </p>
 
                 <div className="space-y-2 mb-6">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                    <span className="text-neutral-700">技术担当 1-2人</span>
+                    <span className="text-neutral-700">{t['ride.role1']}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                    <span className="text-neutral-700">媒体担当 1-2人</span>
+                    <span className="text-neutral-700">{t['ride.role2']}</span>
                   </div>
                 </div>
 
@@ -123,7 +126,7 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
                   className="inline-flex items-center gap-2 w-full justify-center py-3 rounded-lg bg-brand text-brand-foreground font-medium hover:bg-brand-hover transition-colors cursor-pointer text-sm"
                 >
                   <Mail className="w-4 h-4" />
-                  发送邮件报名
+                  {t['ride.apply']}
                 </a>
               </div>
             </motion.div>
@@ -140,25 +143,25 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
                 <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5">
                   <Sprout className="w-6 h-6 text-brand-dark" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">在地共创</h3>
+                <h3 className="text-xl font-semibold mb-3">{t['cocreate.title']}</h3>
                 <p className="text-neutral-500 text-sm leading-relaxed mb-5">
-                  与基地车在当地联合举办工作坊、主题分享会，共同推动可持续发展创新落地。
+                  {t['cocreate.body']}
                 </p>
 
                 <div className="space-y-2 mb-6">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                    <span className="text-neutral-700">设计师 · 研究者 · 教育者</span>
+                    <span className="text-neutral-700">{t['cocreate.role1']}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                    <span className="text-neutral-700">公益组织 · 社区中心</span>
+                    <span className="text-neutral-700">{t['cocreate.role2']}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-center gap-2">
-                  <img src={qrCoCreation} alt="在地共创意向二维码" className="w-28 h-28 rounded-lg" />
-                  <span className="text-xs text-neutral-500">扫码打开微信问卷</span>
+                  <img src={qrCoCreation} alt={t['cocreate.qrLabel']} className="w-28 h-28 rounded-lg" />
+                  <span className="text-xs text-neutral-500">{t['cocreate.qrLabel']}</span>
                 </div>
               </div>
             </motion.div>
@@ -175,25 +178,25 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
                 <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5">
                   <Zap className="w-6 h-6 text-brand-dark" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">在地赋能</h3>
+                <h3 className="text-xl font-semibold mb-3">{t['empower.title']}</h3>
                 <p className="text-neutral-500 text-sm leading-relaxed mb-5">
-                  获取技术培训、专业咨询和行业案例，助力你的项目实现科技升级与突破。
+                  {t['empower.body']}
                 </p>
 
                 <div className="space-y-2 mb-6">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                    <span className="text-neutral-700">创业者 · 中小企业主</span>
+                    <span className="text-neutral-700">{t['empower.role1']}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                    <span className="text-neutral-700">教育 · 农业 · 环保 · 建筑</span>
+                    <span className="text-neutral-700">{t['empower.role2']}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-center gap-2">
-                  <img src={qrEmpowerment} alt="在地赋能需求二维码" className="w-28 h-28 rounded-lg" />
-                  <span className="text-xs text-neutral-500">扫码打开微信问卷</span>
+                  <img src={qrEmpowerment} alt={t['empower.qrLabel']} className="w-28 h-28 rounded-lg" />
+                  <span className="text-xs text-neutral-500">{t['empower.qrLabel']}</span>
                 </div>
               </div>
             </motion.div>
@@ -209,12 +212,12 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
             className="bg-white rounded-xl p-6 md:p-8 text-center text-sm text-neutral-500 leading-relaxed"
           >
             <p>
-              <strong className="text-neutral-900">同行报名：</strong>发送简历/作品集 + 意向路段 + 意向角色至
+              <strong className="text-neutral-900">{t['apply.ride']}</strong>{t['apply.rideDetail']}
               <a href="mailto:business@chaihuo.org" className="text-brand hover:text-brand-hover transition mx-1">business@chaihuo.org</a>
-              ，邮件标题注明「柴火基地车同行申请」
+              {t['apply.rideSubject']}
             </p>
             <p className="mt-2">
-              <strong className="text-neutral-900">在地合作：</strong>扫描卡片中的二维码填写合作意向，我们会第一时间对接沟通
+              <strong className="text-neutral-900">{t['apply.local']}</strong>{t['apply.localDetail']}
             </p>
           </motion.div>
         </div>
@@ -223,7 +226,7 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
       {/* Team Members */}
       <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">基地车成员</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">{t['team.title']}</h2>
           <motion.div
             variants={stagger(0.1)}
             initial="hidden"
@@ -264,8 +267,8 @@ export default function GuideContent({ teamMembers, faqGroups }: GuideContentPro
             transition={springTransition}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">常见问题</h2>
-            <p className="text-neutral-500">7 个问题，3 分钟了解所有细节</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">{t['faq.title']}</h2>
+            <p className="text-neutral-500">{t['faq.subtitle']}</p>
           </motion.div>
 
           <motion.div

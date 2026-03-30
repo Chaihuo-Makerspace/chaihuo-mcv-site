@@ -2,46 +2,63 @@
   {
     "id": "basics",
     "label": "基本概念",
+    "label_en": "Basics",
     "items": [
       {
         "question": "什么是「在地」？",
-        "answer": "满足两个条件：① 你所在区域与基地车路线覆盖的省市县乡重合；② 你能完成项目的组织和落地。"
+        "question_en": "What does 'local' mean?",
+        "answer": "满足两个条件：① 你所在区域与基地车路线覆盖的省市县乡重合；② 你能完成项目的组织和落地。",
+        "answer_en": "Two conditions: ① your area overlaps with the MCV route; ② you can organize and execute a project on the ground."
       },
       {
         "question": "团队如何构成？",
-        "answer": "车上固定 3-4 人（领队、技术、媒体）。领队由柴火内部担任，其余通过招募开放。"
+        "question_en": "How is the team structured?",
+        "answer": "车上固定 3-4 人（领队、技术、媒体）。领队由柴火内部担任，其余通过招募开放。",
+        "answer_en": "3–4 permanent crew members (team lead, tech, media). The lead is from Chaihuo; other roles are open for recruitment."
       }
     ]
   },
   {
     "id": "process",
     "label": "申请流程",
+    "label_en": "Application Process",
     "items": [
       {
         "question": "招募何时截止？",
-        "answer": "持续招募，滚动录取，招满即止。建议尽早报名。"
+        "question_en": "When does recruitment close?",
+        "answer": "持续招募，滚动录取，招满即止。建议尽早报名。",
+        "answer_en": "Rolling admissions — we recruit until all spots are filled. Apply early."
       },
       {
         "question": "申请到录取要多久？",
-        "answer": "提交后 7 个工作日内回复 → 线上面试 → 通过后参加线上行前培训（项目背景、安全须知、共创原则）。"
+        "question_en": "How long from application to acceptance?",
+        "answer": "提交后 7 个工作日内回复 → 线上面试 → 通过后参加线上行前培训（项目背景、安全须知、共创原则）。",
+        "answer_en": "Response within 7 business days → online interview → pre-departure training (project background, safety, co-creation principles)."
       }
     ]
   },
   {
     "id": "costs",
     "label": "费用与回报",
+    "label_en": "Costs & Benefits",
     "items": [
       {
         "question": "费用怎么算？",
-        "answer": "不提供薪资。参与期间的路上交通、食宿由项目承担，并购买人身保险。到达路段起点的交通费需自理。"
+        "question_en": "What are the costs?",
+        "answer": "不提供薪资。参与期间的路上交通、食宿由项目承担，并购买人身保险。到达路段起点的交通费需自理。",
+        "answer_en": "No salary. On-road transportation, accommodation, and insurance are covered. Travel to the starting point of your segment is self-funded."
       },
       {
         "question": "个人能收获什么？",
-        "answer": "成为中国首台科技共创移动实验室的核心成员；亲历 AI、开源硬件与农业、环保、教育等领域的深度碰撞；结识科技、公益、学术、媒体等多元领域的同行者。"
+        "question_en": "What do individuals gain?",
+        "answer": "成为中国首台科技共创移动实验室的核心成员；亲历 AI、开源硬件与农业、环保、教育等领域的深度碰撞；结识科技、公益、学术、媒体等多元领域的同行者。",
+        "answer_en": "Be part of China's first tech co-creation mobile lab; experience hands-on collision of AI, open hardware with agriculture, environment, and education; connect with peers across tech, NGO, academia, and media."
       },
       {
         "question": "机构/企业能收获什么？",
-        "answer": "品牌共创与百万级曝光；与在地需求结合的技术验证与场景落地机会；深度参与 SDG 相关项目，践行科技向善。"
+        "question_en": "What do organizations gain?",
+        "answer": "品牌共创与百万级曝光；与在地需求结合的技术验证与场景落地机会；深度参与 SDG 相关项目，践行科技向善。",
+        "answer_en": "Brand co-creation with million-level exposure; real-world technology validation tied to local needs; deep involvement in SDG-related projects, advancing tech for good."
       }
     ]
   }

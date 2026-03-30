@@ -4,6 +4,8 @@ import { fadeUp, stagger, springTransition, defaultViewport } from './motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+import type { Locale } from '@/i18n/index';
+import { localePath } from '@/i18n/index';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -27,6 +29,8 @@ interface AboutContentProps {
   phases: Phase[];
   partners: Partner[];
   heroImage: string;
+  locale?: Locale;
+  t: Record<string, string>;
 }
 
 const HIGHLIGHT_YEARS = new Set(['2011', '2012', '2015', '2016']);
@@ -54,7 +58,7 @@ function enrichYears(data: YearEntry[], phases: Phase[]): EnrichedYear[] {
 }
 
 /* ── Panorama Grid View ── */
-function PanoramaView({ items, onClose }: { items: EnrichedYear[]; onClose: () => void }) {
+function PanoramaView({ items, onClose, locale = 'zh', t }: { items: EnrichedYear[]; onClose: () => void; locale?: Locale; t: Record<string, string> }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -66,8 +70,8 @@ function PanoramaView({ items, onClose }: { items: EnrichedYear[]; onClose: () =
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-neutral-200 px-6 md:px-[8%] pt-6 pb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-neutral-900">柴火历程 · 全景</h2>
-          <p className="text-xs text-neutral-400 mt-0.5">2011 — 2026，15 年关键事件一览</p>
+          <h2 className="text-xl font-bold text-neutral-900">{t['panorama.title']}</h2>
+          <p className="text-xs text-neutral-400 mt-0.5">{t['panorama.subtitle']}</p>
         </div>
         <button
           onClick={onClose}
@@ -76,7 +80,7 @@ function PanoramaView({ items, onClose }: { items: EnrichedYear[]; onClose: () =
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          关闭
+          {t['panorama.close']}
         </button>
       </div>
 
@@ -115,7 +119,7 @@ function PanoramaView({ items, onClose }: { items: EnrichedYear[]; onClose: () =
                   <div key={j}>
                     <p className="text-sm text-neutral-700 leading-snug">
                       <span className="text-brand-dark font-medium mr-1">{ev.month}</span>
-                      {ev.text}
+                      {locale === 'en' && ev.en ? ev.en : ev.text}
                     </p>
                   </div>
                 ))}
@@ -129,7 +133,7 @@ function PanoramaView({ items, onClose }: { items: EnrichedYear[]; onClose: () =
 }
 
 /* ── Year Spotlight Timeline ── */
-function YearSpotlight({ items }: { items: EnrichedYear[] }) {
+function YearSpotlight({ items, locale = 'zh', t }: { items: EnrichedYear[]; locale?: Locale; t: Record<string, string> }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const yearRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -253,7 +257,7 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
             <rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
             <rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
           </svg>
-          全景
+          {t['panorama.button']}
         </button>
 
         {/* Main content area */}
@@ -291,9 +295,9 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
                   <div key={`${active.year}-${j}`}>
                     <p className="text-neutral-800 text-sm md:text-lg leading-relaxed">
                       <span className="text-brand-dark font-medium mr-2">{ev.month}</span>
-                      {ev.text}
+                      {locale === 'en' && ev.en ? ev.en : ev.text}
                     </p>
-                    {ev.en && (
+                    {locale === 'zh' && ev.en && (
                       <p className="text-neutral-400 text-xs md:text-sm mt-1 leading-relaxed">{ev.en}</p>
                     )}
                   </div>
@@ -362,14 +366,14 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="animate-bounce">
             <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          向下滚动浏览历程
+          {t['scroll.hint']}
         </div>
       </div>
 
       {/* Panorama overlay */}
       <AnimatePresence>
         {showPanorama && (
-          <PanoramaView items={items} onClose={() => setShowPanorama(false)} />
+          <PanoramaView items={items} onClose={() => setShowPanorama(false)} locale={locale} t={t} />
         )}
       </AnimatePresence>
     </>
@@ -377,13 +381,6 @@ function YearSpotlight({ items }: { items: EnrichedYear[] }) {
 }
 
 /* ── Stats Counter ── */
-const STATS = [
-  { value: 15, suffix: '年', label: '持续深耕' },
-  { value: 30, suffix: '+', label: '关键事件' },
-  { value: 3, suffix: '', label: '发展阶段' },
-  { value: 6, suffix: '+', label: '全球伙伴' },
-];
-
 function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const hasAnimated = useRef(false);
@@ -414,8 +411,15 @@ function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
 }
 
 /* ── Main Component ── */
-export default function AboutContent({ timelineData, phases, partners, heroImage }: AboutContentProps) {
+export default function AboutContent({ timelineData, phases, partners, heroImage, locale = 'zh', t }: AboutContentProps) {
   const enrichedYears = enrichYears(timelineData, phases);
+
+  const STATS = [
+    { value: 15, suffix: locale === 'zh' ? '年' : 'yr', label: t['stats.years'] },
+    { value: 30, suffix: '+', label: t['stats.events'] },
+    { value: 3, suffix: '', label: t['stats.phases'] },
+    { value: 6, suffix: '+', label: t['stats.partners'] },
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -430,21 +434,21 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
               variants={fadeUp}
               transition={springTransition}
             >
-              About Chaihuo
+              {t['hero.subtitle']}
             </motion.p>
             <motion.h1
               variants={fadeUp}
               transition={springTransition}
               className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-900 mb-4 leading-tight"
             >
-              柴火 15 年，从创客空间到基地车。
+              {t['hero.title']}
             </motion.h1>
             <motion.p
               variants={fadeUp}
               transition={springTransition}
               className="text-sm md:text-base text-neutral-500 leading-relaxed mb-8 max-w-md"
             >
-              自 2011 年成立以来，柴火创客空间始终是连接创意与制造的桥梁。十五年来，无数想法在这里萌芽、原型化、量产直至走向全球。
+              {t['hero.body']}
             </motion.p>
           </motion.div>
 
@@ -471,7 +475,7 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
         <div className="h-48 md:h-auto md:w-[45%] relative">
           <img
             src={heroImage}
-            alt="基地车旅途风光"
+            alt={t['hero.image.alt']}
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-white via-white/40 to-transparent w-24" />
@@ -479,7 +483,7 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
       </section>
 
       {/* 年份聚光灯时间轴 */}
-      <YearSpotlight items={enrichedYears} />
+      <YearSpotlight items={enrichedYears} locale={locale} t={t} />
 
       {/* Partners */}
       <section className="py-20 px-6 md:px-[12%] bg-neutral-50">
@@ -491,7 +495,7 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
           transition={springTransition}
           className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-12 text-center"
         >
-          共建伙伴 / Partners
+          {t['partners.label']}
         </motion.p>
         <motion.div
           variants={stagger(0.08)}
@@ -530,22 +534,22 @@ export default function AboutContent({ timelineData, phases, partners, heroImage
         >
           <div className="w-8 h-[2px] bg-brand mx-auto mb-8" />
           <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed font-light italic">
-            "我们坚信，科技平权意味着每个人都有权享受数字化发展的红利。柴火基地车是我们对此最激进、最浪漫的实践。"
+            {t['vision.quote']}
           </p>
-          <p className="mt-6 text-sm text-neutral-400">— 潘昊，柴火创客空间创始人</p>
+          <p className="mt-6 text-sm text-neutral-400">{t['vision.author']}</p>
         </motion.div>
       </section>
 
       {/* 底部 CTA */}
       <section className="py-16 px-6 md:px-[12%] bg-neutral-50 border-t border-neutral-200">
         <div className="max-w-2xl mx-auto text-center">
-          <h3 className="text-2xl font-bold text-neutral-900 mb-3">想加入这段旅程？</h3>
-          <p className="text-neutral-500 mb-6">从跟车同行到在地共创，找到属于你的参与方式</p>
+          <h3 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h3>
+          <p className="text-neutral-500 mb-6">{t['cta.body']}</p>
           <a
-            href="/guide"
+            href={localePath('/guide', locale)}
             className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
           >
-            了解如何参与
+            {t['cta.button']}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </a>
         </div>

@@ -18,6 +18,9 @@
       },
       "alt": {
         "type": "string"
+      },
+      "alt_en": {
+        "type": "string"
       }
     },
     "required": [

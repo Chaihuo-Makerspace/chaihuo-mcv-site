@@ -2,6 +2,9 @@
 import Navigation from '@/app/components/Navigation';
 import Footer from '@/layouts/Footer.astro';
 import '@/styles/index.css';
+import type { Locale } from '@/i18n/index';
+import ui from '@/i18n/ui';
+import { localePath, getAlternateUrl } from '@/i18n/index';
 
 interface Props {
   title: string;
@@ -9,40 +12,56 @@ interface Props {
   ogImage?: string;
 }
 
-const { title, description = '柴火基地车 — 一台即将穿越中国的移动 AI 实验室，深入山野与乡土，用技术连接每一个角落。', ogImage = '/og-default.png' } = Astro.props;
+const locale = (Astro.currentLocale ?? 'zh') as Locale;
+const dict = ui[locale];
+
+const { title, description = dict['site.description'], ogImage = '/og-default.png' } = Astro.props;
 const pathname = Astro.url.pathname;
 const canonicalURL = new URL(pathname, Astro.site ?? 'https://mcv.chaihuo.org');
+
+const htmlLang = locale === 'zh' ? 'zh-CN' : 'en';
+const ogLocale = locale === 'zh' ? 'zh_CN' : 'en_US';
+const siteTitle = `${title} | ${dict['site.name']}`;
+
+const alternate = getAlternateUrl(pathname);
+const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.org');
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <title>{title} | 柴火基地车</title>
+    <title>{siteTitle}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL.href} />
 
+    {/* hreflang tags */}
+    <link rel="alternate" hreflang="zh" href={locale === 'zh' ? canonicalURL.href : alternateURL.href} />
+    <link rel="alternate" hreflang="en" href={locale === 'en' ? canonicalURL.href : alternateURL.href} />
+    <link rel="alternate" hreflang="x-default" href={locale === 'zh' ? canonicalURL.href : alternateURL.href} />
+
     {/* Open Graph */}
     <meta property="og:type" content="website" />
-    <meta property="og:title" content={`${title} | 柴火基地车`} />
+    <meta property="og:title" content={siteTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL.href} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:locale:alternate" content={locale === 'zh' ? 'en_US' : 'zh_CN'} />
 
     {/* Twitter Card */}
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={`${title} | 柴火基地车`} />
+    <meta name="twitter:title" content={siteTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
   </head>
   <body class="min-h-screen bg-surface text-neutral-900">
-    <Navigation client:load pathname={pathname} />
+    <Navigation client:load pathname={pathname} locale={locale} />
     <main>
       <slot />
     </main>
-    <Footer />
+    <Footer locale={locale} />
   </body>
 </html>

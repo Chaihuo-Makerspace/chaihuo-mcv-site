@@ -16,7 +16,7 @@ export async function getStaticPaths() {
   }));
 }
 
-const locale = (Astro.currentLocale ?? 'zh') as Locale;
+const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = docDict[locale];
 const catNames = categoryNames[locale];
 
@@ -38,7 +38,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 <BaseLayout title={title}>
   <article class="bg-surface min-h-screen">
 
-    {/* 返回导航 */}
     <div class="max-w-3xl mx-auto px-6 pt-6">
       <a
         href={localePath('/documentation', locale)}
@@ -49,7 +48,6 @@ const CATEGORY_COLORS: Record<string, string> = {
       </a>
     </div>
 
-    {/* 文章头 */}
     <header class="max-w-3xl mx-auto px-6 pt-8 pb-6">
       <div class="flex items-center gap-3 mb-5 flex-wrap">
         <span class={`text-xs px-3 py-1 rounded-full font-medium border ${CATEGORY_COLORS[doc.data.category] ?? 'bg-neutral-50 text-neutral-700 border-neutral-200'}`}>
@@ -74,7 +72,6 @@ const CATEGORY_COLORS: Record<string, string> = {
       )}
     </header>
 
-    {/* 封面图 */}
     {doc.data.coverImage && (
       <div class="max-w-4xl mx-auto px-6 mb-10">
         <div class="rounded-lg overflow-hidden aspect-[2/1]">
@@ -87,7 +84,6 @@ const CATEGORY_COLORS: Record<string, string> = {
       </div>
     )}
 
-    {/* 正文 */}
     <div class="max-w-3xl mx-auto px-6 pb-16">
       <div class="prose prose-neutral max-w-none
         prose-headings:text-neutral-900 prose-headings:font-bold
@@ -104,7 +100,6 @@ const CATEGORY_COLORS: Record<string, string> = {
         <Content />
       </div>
 
-      {/* 标签 */}
       {doc.data.tags.length > 0 && (
         <div class="mt-12 pt-6 border-t border-neutral-200 flex items-center gap-2 flex-wrap">
           {doc.data.tags.map((tag: string) => (
@@ -115,7 +110,6 @@ const CATEGORY_COLORS: Record<string, string> = {
         </div>
       )}
 
-      {/* 底部返回 */}
       <div class="mt-10 pt-6 border-t border-neutral-200">
         <a
           href={localePath('/documentation', locale)}

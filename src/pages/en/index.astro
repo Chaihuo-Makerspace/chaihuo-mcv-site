@@ -5,12 +5,15 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import HomeContent from '@/app/components/HomeContent';
 import heroesData from '@/data/heroes.json';
 import type { Locale } from '@/i18n/index';
+import { localize } from '@/i18n/index';
 import home from '@/i18n/home';
 
-const locale = (Astro.currentLocale ?? 'zh') as Locale;
+const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = home[locale];
+
+const heroImages = heroesData.map(h => localize(h, ['alt'], locale));
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
-  <HomeContent client:load heroImages={heroesData} locale={locale} t={t} />
+  <HomeContent client:load heroImages={heroImages} locale={locale} t={t} />
 </BaseLayout>

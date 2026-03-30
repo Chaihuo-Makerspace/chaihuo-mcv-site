@@ -9,7 +9,7 @@ import type { Locale } from '@/i18n/index';
 import { localize } from '@/i18n/index';
 import guideDict from '@/i18n/guide';
 
-const locale = (Astro.currentLocale ?? 'zh') as Locale;
+const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = guideDict[locale];
 
 const teamMembers = teamData.map(m => {

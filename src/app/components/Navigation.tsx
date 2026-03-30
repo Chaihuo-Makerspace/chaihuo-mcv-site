@@ -1,24 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Globe } from 'lucide-react';
 import logoHorizontalImport from '@/assets/logo-horizontal.png';
+import type { Locale } from '@/i18n/index';
+import { localePath, getAlternateUrl } from '@/i18n/index';
+import ui from '@/i18n/ui';
+
 const logoHorizontal = typeof logoHorizontalImport === 'object' && logoHorizontalImport !== null && 'src' in logoHorizontalImport
   ? (logoHorizontalImport as { src: string }).src
   : logoHorizontalImport as string;
 
-const NAV_LINKS = [
-  { to: '/', label: '首页' },
-  { to: '/deconstruct', label: '解构基地车' },
-  { to: '/documentation', label: '完整纪实' },
-  { to: '/guide', label: '上车指南' },
-  { to: '/about', label: '关于柴火' },
-];
-
 interface NavigationProps {
   pathname: string;
+  locale?: Locale;
 }
 
-export default function Navigation({ pathname }: NavigationProps) {
-  const isHome = pathname === '/';
+export default function Navigation({ pathname, locale = 'zh' }: NavigationProps) {
+  const dict = ui[locale];
+  const NAV_LINKS = [
+    { to: localePath('/', locale), label: dict['nav.home'], match: '/' },
+    { to: localePath('/deconstruct', locale), label: dict['nav.deconstruct'], match: '/deconstruct' },
+    { to: localePath('/documentation', locale), label: dict['nav.documentation'], match: '/documentation' },
+    { to: localePath('/guide', locale), label: dict['nav.guide'], match: '/guide' },
+    { to: localePath('/about', locale), label: dict['nav.about'], match: '/about' },
+  ];
+
+  const alternate = getAlternateUrl(pathname);
+
+  const isHome = pathname === '/' || pathname === '/en';
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -45,8 +54,11 @@ export default function Navigation({ pathname }: NavigationProps) {
   // Dark text mode: scrolled on home, or any non-home page
   const isLight = !isHome || scrolled;
 
-  const linkClass = (path: string, mobile = false) => {
-    const isActive = pathname === path;
+  // Match active link — strip /en prefix for comparison
+  const normalizedPath = pathname.replace(/^\/en/, '') || '/';
+
+  const linkClass = (matchPath: string, mobile = false) => {
+    const isActive = normalizedPath === matchPath || (matchPath !== '/' && normalizedPath.startsWith(matchPath));
     if (mobile) {
       return `block py-3 px-4 text-lg transition-colors duration-200 ${
         isActive
@@ -72,10 +84,10 @@ export default function Navigation({ pathname }: NavigationProps) {
           : 'bg-transparent'
       }`}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center">
+          <a href={localePath('/', locale)} className="flex items-center">
             <img
               src={logoHorizontal}
-              alt="柴火创客"
+              alt={dict['site.name']}
               className={`h-8 transition-all duration-500 ${isLight ? '' : 'brightness-0 invert'}`}
             />
           </a>
@@ -83,17 +95,29 @@ export default function Navigation({ pathname }: NavigationProps) {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8 text-sm">
             {NAV_LINKS.map((link) => (
-              <a key={link.to} href={link.to} className={linkClass(link.to)}>
+              <a key={link.to} href={link.to} className={linkClass(link.match)}>
                 {link.label}
               </a>
             ))}
+
+            {/* Language switcher */}
+            <a
+              href={alternate.path}
+              className={`flex items-center gap-1.5 transition-colors duration-200 cursor-pointer ${
+                isLight ? 'text-neutral-400 hover:text-neutral-900' : 'text-white/60 hover:text-white'
+              }`}
+              title={dict['nav.switchLang']}
+            >
+              <Globe className="w-4 h-4" />
+              <span className="text-xs font-medium">{locale === 'zh' ? 'EN' : '中文'}</span>
+            </a>
           </div>
 
           {/* Mobile hamburger */}
           <button
             className="md:hidden relative w-8 h-8 flex items-center justify-center cursor-pointer"
             onClick={() => setMenuOpen((v) => !v)}
-            aria-label={menuOpen ? '关闭菜单' : '打开菜单'}
+            aria-label={menuOpen ? dict['nav.closeMenu'] : dict['nav.openMenu']}
           >
             <span className={`absolute h-0.5 w-5 rounded transition-all duration-300 ${isLight ? 'bg-neutral-900' : 'bg-white'} ${menuOpen ? 'rotate-45' : '-translate-y-1.5'}`} />
             <span className={`absolute h-0.5 w-5 rounded transition-all duration-300 ${isLight ? 'bg-neutral-900' : 'bg-white'} ${menuOpen ? 'opacity-0' : 'opacity-100'}`} />
@@ -125,7 +149,7 @@ export default function Navigation({ pathname }: NavigationProps) {
                 <button
                   onClick={closeMenu}
                   className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
-                  aria-label="关闭菜单"
+                  aria-label={dict['nav.closeMenu']}
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="4" y1="4" x2="16" y2="16" />
@@ -141,11 +165,28 @@ export default function Navigation({ pathname }: NavigationProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, type: 'spring', damping: 25, stiffness: 200 }}
                   >
-                    <a href={link.to} className={linkClass(link.to, true)} onClick={closeMenu}>
+                    <a href={link.to} className={linkClass(link.match, true)} onClick={closeMenu}>
                       {link.label}
                     </a>
                   </motion.div>
                 ))}
+
+                {/* Mobile language switcher */}
+                <motion.div
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: NAV_LINKS.length * 0.05, type: 'spring', damping: 25, stiffness: 200 }}
+                  className="mt-4 pt-4 border-t border-neutral-200"
+                >
+                  <a
+                    href={alternate.path}
+                    className="flex items-center gap-2 py-3 px-4 text-neutral-500 hover:text-neutral-900 transition-colors duration-200"
+                    onClick={closeMenu}
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>{locale === 'zh' ? 'English' : '中文'}</span>
+                  </a>
+                </motion.div>
               </nav>
             </motion.div>
           </>

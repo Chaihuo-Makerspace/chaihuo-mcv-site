@@ -1,8 +1,30 @@
 [
-  { "id": "seeed", "name": "Seeed Studio", "logo": "", "description": "开源硬件与物联网技术支持" },
-  { "id": "nvidia", "name": "NVIDIA", "logo": "", "description": "边缘计算 GPU 算力提供" },
-  { "id": "starlink", "name": "Starlink", "logo": "", "description": "卫星互联网连接保障" },
-  { "id": "maker-media", "name": "Maker Media", "logo": "", "description": "全球创客运动媒体合作" },
-  { "id": "unesco", "name": "UNESCO", "logo": "", "description": "教育公益项目合作" },
-  { "id": "dji", "name": "DJI", "logo": "", "description": "无人机航拍与空间测绘" }
+  {
+    "id": "seeed",
+    "name": "Seeed Studio",
+    "logo": "",
+    "description": "开源硬件与物联网技术支持",
+    "description_en": "Open-source hardware & IoT technology support"
+  },
+  {
+    "id": "nvidia",
+    "name": "NVIDIA",
+    "logo": "",
+    "description": "边缘计算 GPU 算力提供",
+    "description_en": "Edge computing GPU power provider"
+  },
+  {
+    "id": "maker-media",
+    "name": "Maker Media",
+    "logo": "",
+    "description": "全球创客运动媒体合作",
+    "description_en": "Global maker movement media partner"
+  },
+  {
+    "id": "unesco",
+    "name": "UNESCO",
+    "logo": "",
+    "description": "教育公益项目合作",
+    "description_en": "Education & public welfare partnership"
+  }
 ]

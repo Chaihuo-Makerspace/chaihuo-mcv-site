@@ -9,7 +9,7 @@ import type { Locale } from '@/i18n/index';
 import { localize } from '@/i18n/index';
 import deconstructDict from '@/i18n/deconstruct';
 
-const locale = (Astro.currentLocale ?? 'zh') as Locale;
+const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = deconstructDict[locale];
 
 const notesCollection = await getCollection('notes');
@@ -32,6 +32,5 @@ const equipment = equipmentData.map(cat => {
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
-  {/* client:only 跳过 SSR，避免 Three.js 在服务端解析导致 ~1.8s 延迟 */}
   <DeconstructContent client:only="react" notes={notes} equipment={equipment} locale={locale} t={t} />
 </BaseLayout>

@@ -6,8 +6,10 @@ const notes = defineCollection({
   loader: glob({ base: './src/content/notes', pattern: '**/*.md' }),
   schema: z.object({
     title: z.string(),
+    title_en: z.string().optional(),
     date: z.string(),
     description: z.string(),
+    description_en: z.string().optional(),
     image: z.string().url(),
     tags: z.array(z.string()),
     yuqueUrl: z.string().url().optional(),
@@ -18,11 +20,15 @@ const docs = defineCollection({
   loader: glob({ base: './src/content/docs', pattern: '**/*.md' }),
   schema: z.object({
     title: z.string(),
+    title_en: z.string().optional(),
     date: z.string(),
     category: z.enum(['人物访谈', '路上VLOG', '公益合作纪录片']),
     description: z.string(),
+    description_en: z.string().optional(),
     author: z.string().optional(),
+    author_en: z.string().optional(),
     readTime: z.string().optional(),
+    readTime_en: z.string().optional(),
     coverImage: z.string().url().optional(),
     videoLinks: z.array(z.object({
       platform: z.string(),
@@ -39,9 +45,12 @@ const equipment = defineCollection({
     id: z.string(),
     icon: z.string(),
     title: z.string(),
+    title_en: z.string().optional(),
     items: z.array(z.object({
       name: z.string(),
+      name_en: z.string().optional(),
       spec: z.string(),
+      spec_en: z.string().optional(),
     })),
   }),
 });
@@ -51,9 +60,12 @@ const team = defineCollection({
   schema: z.object({
     id: z.string(),
     name: z.string(),
+    name_en: z.string().optional(),
     role: z.string(),
+    role_en: z.string().optional(),
     image: z.string(),
     bio: z.string().optional(),
+    bio_en: z.string().optional(),
     isRobot: z.boolean().optional(),
   }),
 });
@@ -63,9 +75,12 @@ const faq = defineCollection({
   schema: z.object({
     id: z.string(),
     label: z.string(),
+    label_en: z.string().optional(),
     items: z.array(z.object({
       question: z.string(),
+      question_en: z.string().optional(),
       answer: z.string(),
+      answer_en: z.string().optional(),
     })),
   }),
 });
@@ -75,6 +90,8 @@ const partners = defineCollection({
   schema: z.object({
     id: z.string(),
     name: z.string(),
+    description: z.string().optional(),
+    description_en: z.string().optional(),
   }),
 });
 
@@ -84,6 +101,7 @@ const heroes = defineCollection({
     id: z.string(),
     image: z.string().url(),
     alt: z.string().optional(),
+    alt_en: z.string().optional(),
   }),
 });
 

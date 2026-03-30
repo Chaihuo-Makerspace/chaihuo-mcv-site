@@ -15,6 +15,9 @@
       "label": {
         "type": "string"
       },
+      "label_en": {
+        "type": "string"
+      },
       "items": {
         "type": "array",
         "items": {
@@ -23,7 +26,13 @@
             "question": {
               "type": "string"
             },
+            "question_en": {
+              "type": "string"
+            },
             "answer": {
+              "type": "string"
+            },
+            "answer_en": {
               "type": "string"
             }
           },

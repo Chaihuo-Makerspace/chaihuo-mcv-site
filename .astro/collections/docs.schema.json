@@ -5,6 +5,9 @@
     "title": {
       "type": "string"
     },
+    "title_en": {
+      "type": "string"
+    },
     "date": {
       "type": "string"
     },
@@ -19,10 +22,19 @@
     "description": {
       "type": "string"
     },
+    "description_en": {
+      "type": "string"
+    },
     "author": {
       "type": "string"
     },
+    "author_en": {
+      "type": "string"
+    },
     "readTime": {
+      "type": "string"
+    },
+    "readTime_en": {
       "type": "string"
     },
     "coverImage": {
