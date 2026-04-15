@@ -18,7 +18,6 @@ import { geoMercator, geoPath } from "d3-geo";
 import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import chinaGeoJson from "@/data/china-provinces.json";
 import { routeCities } from "@/data/route-cities";
-import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 import {
   fadeUp,
   fadeLeft,
@@ -325,7 +324,7 @@ function ChinaRouteMap({ t }: { t: Record<string, string> }) {
 }
 
 export default function HomeContent({ heroImages, locale = 'zh', t }: Props) {
-  const [videoOpen, setVideoOpen] = useState(false);
+  const [comingSoonTip, setComingSoonTip] = useState(false);
 
   const sliderSettings = {
     dots: true,
@@ -340,8 +339,9 @@ export default function HomeContent({ heroImages, locale = 'zh', t }: Props) {
     pauseOnHover: false,
   };
 
-  const handleVideoClose = useCallback(() => {
-    setVideoOpen(false);
+  const handleComingSoon = useCallback(() => {
+    setComingSoonTip(true);
+    setTimeout(() => setComingSoonTip(false), 2500);
   }, []);
 
   return (
@@ -388,22 +388,34 @@ export default function HomeContent({ heroImages, locale = 'zh', t }: Props) {
               {t['hero.body']}
             </motion.p>
             <motion.div variants={fadeLeft} transition={springTransition} className="flex flex-wrap gap-4">
-              <motion.button
-                onClick={() => setVideoOpen(true)}
-                className="pointer-events-auto bg-brand text-brand-foreground px-8 py-4 rounded-full flex items-center gap-3 hover:bg-brand-hover transition-colors duration-200 cursor-pointer"
-                {...buttonPress}
-              >
-                <Play className="w-5 h-5" />
-                <span>{t['hero.watchVideo']}</span>
-              </motion.button>
               <motion.a
                 href={localePath('/guide', locale)}
-                className="pointer-events-auto border-2 border-white/60 text-white px-8 py-4 rounded-full flex items-center gap-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                className="pointer-events-auto bg-brand text-brand-foreground px-8 py-4 rounded-full flex items-center gap-3 hover:bg-brand-hover transition-colors duration-200 cursor-pointer"
                 {...buttonPress}
               >
                 <span>{t['hero.joinAction']}</span>
                 <ChevronDown className="w-4 h-4 -rotate-90" />
               </motion.a>
+              <div className="relative">
+                <motion.button
+                  onClick={handleComingSoon}
+                  className="pointer-events-auto border-2 border-white/60 text-white px-8 py-4 rounded-full flex items-center gap-3 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                  {...buttonPress}
+                >
+                  <Play className="w-5 h-5" />
+                  <span>{t['hero.watchVideo']}</span>
+                </motion.button>
+                {comingSoonTip && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute left-1/2 -translate-x-1/2 top-full mt-3 whitespace-nowrap bg-neutral-900/95 text-white text-sm px-4 py-2 rounded-lg shadow-lg backdrop-blur-sm"
+                  >
+                    {t['hero.comingSoon']}
+                  </motion.div>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         </div>
@@ -414,24 +426,6 @@ export default function HomeContent({ heroImages, locale = 'zh', t }: Props) {
         </div>
       </section>
 
-      {/* 视频弹窗 */}
-      <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
-        <DialogContent className="sm:max-w-4xl p-0 bg-black border-none overflow-hidden">
-          <DialogTitle className="sr-only">{t['hero.videoTitle']}</DialogTitle>
-          <div className="relative w-full aspect-video">
-            {videoOpen && (
-              <iframe
-                className="w-full h-full"
-                src="//player.bilibili.com/player.html?isOutside=true&aid=115653335845192&bvid=BV1BASaB5ErL&cid=34463351989&p=1&autoplay=1"
-                title={t['hero.videoTitle']}
-                scrolling="no"
-                frameBorder="0"
-                allowFullScreen
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Hero → Stats 过渡 */}
 

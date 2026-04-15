@@ -8,9 +8,9 @@ const home: Record<Locale, Record<string, string>> = {
     'hero.slogan': '生而荒野 行向未来',
     'hero.subtitle': '一台即将穿越中国的移动 AI 实验室',
     'hero.body': '以柴火数字基地车为移动载体，深入山野、草原与乡土，把 AI 带到真实场景中。用 200 天行走中国，在极限环境里检验技术，与在地居民共创解决方案，推动科技向善。',
-    'hero.watchVideo': '观看基地车介绍短片',
+    'hero.watchVideo': '基地车视频',
+    'hero.comingSoon': '敬请期待',
     'hero.joinAction': '加入行动',
-    'hero.videoTitle': '基地车介绍短片',
 
     'status.current': '当前状态：深圳改造中',
     'status.departure': '预计出发：4 月中旬',
@@ -50,9 +50,9 @@ const home: Record<Locale, Record<string, string>> = {
     'hero.slogan': 'Born for the Wild, Driving the Future',
     'hero.subtitle': 'A mobile AI lab about to traverse China',
     'hero.body': 'Using the Chaihuo Mobile Creative Vehicle as a moving platform, we venture deep into mountains, grasslands, and rural communities to bring AI into real-world scenarios. Over 200 days across China, we test technology in extreme environments, co-create solutions with local residents, and drive tech for good.',
-    'hero.watchVideo': 'Watch Intro Video',
+    'hero.watchVideo': 'MCV Video',
+    'hero.comingSoon': 'Coming soon',
     'hero.joinAction': 'Get Involved',
-    'hero.videoTitle': 'MCV Introduction Video',
 
     'status.current': 'Status: Modifying in Shenzhen',
     'status.departure': 'Estimated departure: mid-April',
