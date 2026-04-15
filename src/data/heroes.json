@@ -1,26 +1,26 @@
 [
   {
     "id": "van-on-road",
-    "image": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
-    "alt": "基地车穿越中国公路 — TODO: 替换为真实车辆照片",
-    "alt_en": "MCV traversing Chinese highways — TODO: replace with real photos"
+    "image": "https://images.unsplash.com/photo-1725864832531-f50f4639dd00?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "基地车穿越山间公路",
+    "alt_en": "MCV traversing mountain highways"
   },
   {
     "id": "mountain-road",
-    "image": "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
-    "alt": "山间公路旅途 — TODO: 替换为真实旅途照片",
-    "alt_en": "Mountain road journey — TODO: replace with real photos"
+    "image": "https://images.unsplash.com/photo-1662554802991-b97d0cd80435?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "新疆盘山公路航拍",
+    "alt_en": "Aerial view of winding mountain highway in Xinjiang, China"
   },
   {
     "id": "workshop-van",
-    "image": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
-    "alt": "移动实验室内部 — TODO: 替换为车内实拍",
-    "alt_en": "Mobile lab interior — TODO: replace with real photos"
+    "image": "https://images.unsplash.com/photo-1737703121444-c568a9d3bc0e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "创客工坊 — 3D打印机与maker工具",
+    "alt_en": "Maker workshop with 3D printer and tools"
   },
   {
     "id": "rural-china",
-    "image": "https://images.unsplash.com/photo-1537531383496-18cf04e86238?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
-    "alt": "中国乡村风光 — TODO: 替换为基地车途经乡村实拍",
-    "alt_en": "Rural China scenery — TODO: replace with real photos"
+    "image": "https://images.unsplash.com/photo-1770298040111-197004339c7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920&q=80",
+    "alt": "喀斯特山间乡村公路 — 穿越中国",
+    "alt_en": "Rural road through karst mountains in China"
   }
 ]
