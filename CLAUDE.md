@@ -4,56 +4,71 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-柴火基地车官网 (Chaihuo MCV Site) — a marketing/showcase website for Chaihuo's mobile AI laboratory vehicle "普罗米修斯号". Astro SSR site with five pages, 3D interactive vehicle viewer (React Island), Content Collections for structured data, deployed on Cloudflare Workers.
+柴火基地车官网 (Chaihuo MCV Site) — a bilingual (zh/en) marketing website for Chaihuo's mobile AI laboratory vehicle "普罗米修斯号". Astro SSR site with five pages, 3D interactive vehicle viewer (React Island), Content Collections for structured data.
 
 ## Commands
 
 - `pnpm dev` — start Astro dev server
-- `pnpm build` — production build (Astro + Cloudflare adapter)
+- `pnpm build` — production build (Node standalone)
 - `pnpm preview` — preview production build locally
-- `pnpm install` — install dependencies (**always use pnpm, never npm/yarn**)
-
-No test framework or linter is configured.
-
-## Package Manager
+- `pnpm start` — run production server (`node ./dist/server/entry.mjs`)
+- `./deploy.sh` — Docker build + deploy (one command)
 
 **pnpm only.** Do not use `npm` or `yarn`. `.npmrc` sets `legacy-peer-deps=true` for React 19 compatibility.
+
+No test framework or linter is configured.
 
 ## Architecture
 
 **Stack:** Astro 6 + React 19 (Islands) + TypeScript + Tailwind CSS 4 + shadcn/ui (Radix) + Framer Motion + React Three Fiber 9 + Three.js 0.183
 
-**Deployment:** Cloudflare Workers via `@astrojs/cloudflare` adapter. GitHub push triggers auto-deploy. Config in `wrangler.jsonc`.
+**Deployment:** Node.js standalone via `@astrojs/node` adapter. Docker (`Dockerfile` + `docker-compose.yml`). GitHub push triggers deploy.
 
-**Routing:** Astro file-based routing in `src/pages/`:
-- `/` → Home (hero carousel, video modal, China route map SVG, mobile lab cards)
-- `/deconstruct` → Deconstruct (R3F 3D exploded vehicle view, modification logs, equipment list)
-- `/documentation` → Documentation (timeline, category filters)
-- `/guide` → Guide (participation guide, FAQ accordion, team)
-- `/about` → About (Chaihuo history timeline)
+**Routing:** Astro file-based routing in `src/pages/`. Chinese is default (no prefix), English under `/en/`:
+- `/` `/en/` → Home (hero carousel, video modal, China route map SVG, mobile lab cards)
+- `/deconstruct` `/en/deconstruct` → Deconstruct (R3F 3D exploded vehicle view, modification logs, equipment list)
+- `/documentation` `/en/documentation` → Documentation (timeline, category filters)
+- `/guide` `/en/guide` → Guide (participation guide, FAQ accordion, team)
+- `/about` `/en/about` → About (Chaihuo history timeline, GSAP scroll-driven)
 
-**Key directories:**
-- `src/pages/` — Astro page files (`.astro`), each wraps a React Island in `BaseLayout`
-- `src/layouts/BaseLayout.astro` — HTML shell, `<head>`, Navigation, Footer
-- `src/app/components/` — React Island components (`*Content.tsx` for each page)
-- `src/app/components/ui/` — shadcn/ui component library (**do not modify manually**)
-- `src/app/components/VehicleExplodedView.tsx` — R3F 3D exploded view (lazy-loaded via React.lazy)
-- `src/app/components/Navigation.tsx` — route-aware nav (accepts `pathname` prop from Astro)
-- `src/content/` — Astro Content Collections (Markdown files)
-- `src/data/` — Structured JSON data files
-- `src/styles/` — CSS chain: `index.css` → `fonts.css` + `tailwind.css` + `theme.css` + slick styles
-
-**Content Layer:**
-- `src/content.config.ts` — Collection schemas (Zod). Collections: `notes`, `docs`, `equipment`, `team`, `faq`, `partners`, `heroes`
-- `src/content/notes/*.md` — 改装手记 (modification logs) — Markdown with frontmatter
-- `src/content/docs/*.md` — 时间线文档 (documentation timeline) — Markdown with frontmatter
-- `src/data/*.json` — Structured data: equipment, team, faq, partners, heroes, timeline
-
-**To add/edit content:** Edit Markdown files in `src/content/` or JSON files in `src/data/`. Schema validation runs at build time — type errors will fail the build.
-
-**React Islands pattern:** Each Astro page renders a `*Content.tsx` React component with `client:load` or `client:visible`. Data is fetched in the `.astro` frontmatter (via `getCollection()` or JSON import) and passed as props.
+**React Islands pattern:** Each Astro page renders a `*Content.tsx` React component with `client:load` or `client:visible`. Data is fetched in `.astro` frontmatter (via `getCollection()` or JSON import), localized, then passed as props.
 
 **Path alias:** `@` maps to `src/` (in `astro.config.mjs`)
+
+## i18n System
+
+**Config:** `astro.config.mjs` has `i18n: { defaultLocale: 'zh', locales: ['zh', 'en'], routing: { prefixDefaultLocale: false } }`
+
+**Translation dictionaries:** `src/i18n/` — one file per page + shared UI:
+- `index.ts` — `Locale` type, `getLangFromUrl()`, `t()`, `localize()`, `localePath()`, `getAlternateUrl()`
+- `ui.ts` — nav, footer, site-wide strings
+- `home.ts`, `deconstruct.ts`, `documentation.ts`, `guide.ts`, `about.ts` — page-specific strings
+
+Each dict exports `Record<Locale, Record<string, string>>`. Astro pages select the dict by locale and pass it as `t` prop to React Islands.
+
+**JSON data bilingualization:** JSON files in `src/data/` use `_en` suffix fields (`title_en`, `name_en`, `bio_en`, etc.). Use `localize(obj, ['field1', 'field2'], locale)` from `src/i18n/index.ts` to pick the right field before passing to React.
+
+**English routes:** `src/pages/en/` mirrors the Chinese pages. Each English page is self-contained (not a thin wrapper) — it imports dicts, localizes data, and renders with the same React Islands.
+
+**To add a new translatable string:**
+1. Add zh/en entries to the relevant `src/i18n/*.ts` dict
+2. Reference via `t['key.name']` in the React component
+
+**To add a new `_en` field to JSON data:**
+1. Add the field to the JSON file
+2. Add the optional field to the schema in `src/content.config.ts`
+3. Use `localize()` in the `.astro` page frontmatter
+
+## Content Layer
+
+- `src/content.config.ts` — Collection schemas (Zod). Collections: `notes`, `docs`, `equipment`, `team`, `faq`, `partners`, `heroes`
+- `src/content/notes/*.md` — 改装手记 (modification logs)
+- `src/content/docs/*.md` — 时间线文档 (documentation timeline)
+- `src/data/*.json` — Structured data: equipment, team, faq, partners, heroes, timeline
+
+Schema validation runs at build time — type errors will fail the build.
+
+**Content Collections (Astro 6):** Config file must be at `src/content.config.ts` (NOT `src/content/config.ts`). Import `z` from `astro/zod`, loaders from `astro/loaders`.
 
 ## Styling
 
@@ -61,15 +76,12 @@ No test framework or linter is configured.
 - Design tokens as CSS custom properties in `theme.css` (`:root` light, `.dark` dark mode)
 - `@theme inline { ... }` maps CSS vars to Tailwind tokens (`--color-*`, `--radius-*`)
 - Animation: `tw-animate-css` (CSS) + `motion` (Framer Motion JS)
-- **Color system** (60-30-10 法则: 60% 中性灰 / 30% 暖黄 / 10% 深灰强调):
-  - Brand: `brand` (#f3d230 探险黄), `brand-dark` (#b8960a), `brand-hover` (#e6c22c), `brand-light` (#fef9e7), `brand-foreground` (#333333)
-  - Surfaces: `surface` (#F5F5F5 页面背景), `surface-card` (#fff), `surface-dark` (#1a1a1a 深色区块)
-  - Neutrals: `neutral-950`~`neutral-50` 七级灰阶 (replaces Tailwind gray-xxx)
-  - Use `text-brand`, `bg-surface`, `text-neutral-700` etc. — **avoid hardcoded hex or Tailwind gray-xxx**
+- **Color system** (60-30-10): Brand `brand` (#f3d230), surfaces `surface`/`surface-card`/`surface-dark`, neutrals `neutral-950`~`neutral-50`
+- **Use `text-brand`, `bg-surface`, `text-neutral-700` etc. — avoid hardcoded hex or Tailwind gray-xxx**
 
 ## Gotchas
 
-**CJS interop:** `react-slick` is a CJS module. Vite's ESM wrapping nests the default export. Required workaround in `HomeContent.tsx`:
+**CJS interop:** `react-slick` is CJS. Required workaround in `HomeContent.tsx`:
 ```typescript
 import ReactSlick from 'react-slick';
 const Slider = ('default' in ReactSlick ? (ReactSlick as any).default : ReactSlick) as typeof ReactSlick;
@@ -82,18 +94,16 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
   ? (logoImport as { src: string }).src : logoImport as string;
 ```
 
-**Asset references:** Use Unsplash URLs or local assets in `src/assets/`.
+**3D lazy loading:** `VehicleExplodedView` is loaded via `React.lazy()` in `DeconstructContent.tsx`. Three.js chunk is ~950KB — always lazy-load R3F components. `DeconstructContent` uses `client:only="react"` to skip SSR entirely.
 
-**3D lazy loading:** `VehicleExplodedView` is loaded via `React.lazy()` in `DeconstructContent.tsx`. Three.js chunk is ~950KB — always lazy-load R3F components.
-
-**Content Collections (Astro 6):** Config file must be at `src/content.config.ts` (NOT `src/content/config.ts`). Import `z` from `astro/zod`, loaders from `astro/loaders`.
-
-**改装手记 "查看全部":** Links to external Yuque page: `https://www.yuque.com/chaihuo-mcv/home`. Future plan: sync from Yuque to local Markdown via `scripts/sync-yuque.ts` (not yet implemented).
+**改装手记 "查看全部":** Links to external Yuque page: `https://www.yuque.com/chaihuo-mcv/home`.
 
 ## Conventions
 
-- Content is in Simplified Chinese
+- Content is in Simplified Chinese with English translations via i18n system
 - Each Astro page wraps a React Island `*Content.tsx` component
+- React components accept `locale` and `t` (dictionary) props for i18n
 - Icons: Lucide React SVGs only — no emoji icons in UI
 - Interactive elements must have `cursor-pointer` and `transition-colors duration-200`
-- Navigation receives `pathname` from `Astro.url.pathname` (no React Router)
+- Navigation and Footer receive `locale` prop; internal links use `localePath()` helper
+- `src/app/components/ui/` — shadcn/ui components — **do not modify manually**
