@@ -1,0 +1,149 @@
+{
+  "tech": [
+    {
+      "id": "building-energy-retrofit",
+      "url": "https://www.seeedstudio.com.cn/solutions/building-energy-retrofit",
+      "image": "/deconstruct/solutions/building-energy-retrofit.jpg",
+      "eyebrow": "设备互联与智能管控",
+      "eyebrow_en": "Device Integration & Control",
+      "title": "旧建筑低成本能源监控改造",
+      "title_en": "Low-cost Energy Retrofit for Old Buildings",
+      "description": "LoRaWAN 免布线 + 开源网关，老楼宇也能直接装得上。",
+      "description_en": "Wire-free LoRaWAN plus open-source gateways — even old buildings can be retrofitted directly."
+    },
+    {
+      "id": "intelligent-video-analytics",
+      "url": "https://www.seeedstudio.com.cn/solutions/intelligent-video-analytics",
+      "image": "/deconstruct/solutions/intelligent-video-analytics.jpg",
+      "eyebrow": "AI 视觉分析",
+      "eyebrow_en": "AI Vision Analysis",
+      "title": "智能视频分析",
+      "title_en": "Intelligent Video Analytics",
+      "description": "让每一路摄像头都长出「AI 大脑」——本地推理、实时响应、隐私安全。",
+      "description_en": "Give every camera an AI brain — local inference, real-time response, privacy-safe."
+    },
+    {
+      "id": "indoor-outdoor-positioning",
+      "url": "https://www.seeedstudio.com.cn/solutions/indoor-outdoor-positioning",
+      "image": "/deconstruct/solutions/indoor-outdoor-positioning.jpg",
+      "eyebrow": "空间感知",
+      "eyebrow_en": "Spatial Awareness",
+      "title": "室内外一体化定位",
+      "title_en": "Indoor-Outdoor Positioning",
+      "description": "人员胸卡定位与 SOS，车辆与高价值资产长期追踪，统一接入平台。",
+      "description_en": "Badge-based personnel positioning with SOS, long-term tracking for vehicles and assets, unified platform access."
+    },
+    {
+      "id": "environment-monitoring",
+      "url": "https://www.seeedstudio.com.cn/solutions/environment-monitoring",
+      "image": "/deconstruct/solutions/environment-monitoring.jpg",
+      "eyebrow": "离网环境监测",
+      "eyebrow_en": "Off-grid Environmental Monitoring",
+      "title": "无线环境监测",
+      "title_en": "Wireless Environment Monitoring",
+      "description": "LoRaWAN 低功耗入网、4G 直连云端的无线环境监测硬件组合。",
+      "description_en": "A wireless sensing lineup — low-power LoRaWAN probes and 4G collectors that connect straight to the cloud."
+    },
+    {
+      "id": "conversational-voice-ai",
+      "url": "https://www.seeedstudio.com.cn/solutions/conversational-voice-ai",
+      "image": "/deconstruct/solutions/conversational-voice-ai.jpg",
+      "eyebrow": "语音交互",
+      "eyebrow_en": "Voice Interaction",
+      "title": "对话式语音 AI",
+      "title_en": "Conversational Voice AI",
+      "description": "端侧拾音 + 本地 ASR/TTS，端到端 0.3–0.5 秒响应，无需云端即可多语言对话。",
+      "description_en": "On-device audio capture with local ASR/TTS — 0.3–0.5s end-to-end response, multilingual dialogue without the cloud."
+    },
+    {
+      "id": "smart-warehouse-management",
+      "url": "https://www.seeedstudio.com.cn/solutions/smart-warehouse-management",
+      "image": "/deconstruct/solutions/smart-warehouse-management.jpg",
+      "eyebrow": "空间感知",
+      "eyebrow_en": "Spatial Awareness",
+      "title": "智慧仓库管理",
+      "title_en": "Smart Warehouse Management",
+      "description": "本地视觉识别操作员，语音操控出入库，零培训零改造对接现有系统。",
+      "description_en": "Local vision recognizes operators, voice controls inbound/outbound — zero training, zero retrofit."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "smart-livestock-farming",
+      "url": "https://www.seeedstudio.com.cn/solutions/smart-livestock-farming",
+      "image": "/deconstruct/solutions/smart-livestock-farming.jpg",
+      "eyebrow": "农业与畜牧",
+      "eyebrow_en": "Agriculture & Livestock",
+      "title": "智慧精细化养殖",
+      "title_en": "Smart Precision Livestock Farming",
+      "description": "提高养殖效率，降低疾病和人工成本，保障养殖稳产增收。",
+      "description_en": "Raise efficiency, cut disease and labor costs, keep production stable."
+    },
+    {
+      "id": "smart-agriculture-sensing",
+      "url": "https://www.seeedstudio.com.cn/solutions/smart-agriculture-sensing",
+      "image": "/deconstruct/solutions/smart-agriculture-sensing.jpg",
+      "eyebrow": "农业与畜牧",
+      "eyebrow_en": "Agriculture & Livestock",
+      "title": "智慧农业环境感知",
+      "title_en": "Smart Agriculture Sensing",
+      "description": "精准微气候数据结合土壤水肥感知，助力精准农业生产。",
+      "description_en": "Micro-climate data plus soil moisture and nutrient sensing for precision farming."
+    },
+    {
+      "id": "campus-safety-management",
+      "url": "https://www.seeedstudio.com.cn/solutions/campus-safety-management",
+      "image": "/deconstruct/solutions/campus-safety-management.jpg",
+      "eyebrow": "公共安全",
+      "eyebrow_en": "Public Safety",
+      "title": "园区安全管理",
+      "title_en": "Campus & Park Safety Management",
+      "description": "方便部署的人员定位及危险报警方案，保障人员安全。",
+      "description_en": "Easy-to-deploy personnel positioning and hazard alerts that keep people safe."
+    },
+    {
+      "id": "hazard-response",
+      "url": "https://www.seeedstudio.com.cn/solutions/hazard-response",
+      "image": "/deconstruct/solutions/hazard-response.jpg",
+      "eyebrow": "应急通信",
+      "eyebrow_en": "Emergency Comms",
+      "title": "应急救援指挥与安全保障",
+      "title_en": "Emergency Response & Safety",
+      "description": "专为灾后无网、弱网环境设计的应急数据采集与设备管理方案。",
+      "description_en": "Data collection and device management built for post-disaster no-network environments."
+    },
+    {
+      "id": "building-energy-management",
+      "url": "https://www.seeedstudio.com.cn/solutions/building-energy-management",
+      "image": "/deconstruct/solutions/building-energy-management.jpg",
+      "eyebrow": "能源管理",
+      "eyebrow_en": "Energy Management",
+      "title": "楼宇用能管理",
+      "title_en": "Building Energy Management",
+      "description": "把楼宇已有与新增设备接入统一平台，实现整体用能监控与调度。",
+      "description_en": "Bring existing and new building devices onto one platform for unified energy monitoring and scheduling."
+    },
+    {
+      "id": "codecraft",
+      "url": "https://codecraft.seeed.cc/",
+      "image": "/deconstruct/solutions/codecraft.jpg",
+      "eyebrow": "AI 硬件编程",
+      "eyebrow_en": "AI Hardware Coding",
+      "title": "CodeCraft",
+      "title_en": "CodeCraft",
+      "description": "用自然语言驱动的 AI 硬件编程平台，零基础也能做出自己的智能硬件。",
+      "description_en": "An AI-powered hardware coding platform — build your own smart hardware with zero experience."
+    },
+    {
+      "id": "voice-collection-analysis",
+      "url": "https://www.seeedstudio.com.cn/solutions/voicecollectionanalysis",
+      "image": "/deconstruct/solutions/voice-collection-analysis.jpg",
+      "eyebrow": "零售场景",
+      "eyebrow_en": "Retail",
+      "title": "零售语音采集与分析",
+      "title_en": "Retail Voice Collection & Analysis",
+      "description": "边缘 AI 无侵入式门店服务质检：高清音频采集、智能对话分析、隐私安全保障。",
+      "description_en": "Non-intrusive in-store service QA with edge AI — HD audio capture, conversation analysis, privacy protected."
+    }
+  ]
+}

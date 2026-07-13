@@ -1,0 +1,62 @@
+{
+  "directions": [
+    {
+      "id": "hardware",
+      "icon": "CircuitBoard",
+      "title": "硬件与传感器伙伴",
+      "title_en": "Hardware & Sensor Partners",
+      "description": "你的模块想经受真实荒野的考验？装上车，我们带它跑遍山川湖海，输出真实环境的长测数据。",
+      "description_en": "Want your module tested in the real wilderness? Mount it on the vehicle — we'll take it across the country and share long-term field data."
+    },
+    {
+      "id": "ai-developers",
+      "icon": "BrainCircuit",
+      "title": "AI 开发者",
+      "title_en": "AI Developers",
+      "description": "在弱网、边缘算力、真实人群的场景里，部署和验证你的模型、Agent 与应用。",
+      "description_en": "Deploy and validate your models, agents and apps under weak networks, edge compute and real audiences."
+    },
+    {
+      "id": "research-edu",
+      "icon": "GraduationCap",
+      "title": "科研与教育机构",
+      "title_en": "Research & Education Institutions",
+      "description": "一个移动的野外数据采集平台和科普课堂，可以开到你需要的任何地方。",
+      "description_en": "A mobile field-data platform and science classroom that can drive to wherever you need it."
+    },
+    {
+      "id": "community",
+      "icon": "HeartHandshake",
+      "title": "在地社区与组织",
+      "title_en": "Local Communities & Organizations",
+      "description": "一起把科技带进你的社区、学校和乡村，让更多人亲手触碰到技术的进步。",
+      "description_en": "Bring technology into your community, school or village — and let more people touch real progress with their own hands."
+    }
+  ],
+  "programs": [
+    {
+      "id": "your-scenario",
+      "icon": "MapPin",
+      "title": "你有场景与需求",
+      "title_en": "You have a scenario and a need",
+      "description": "你在当地发现了真实的场景与需求，或者想学习这方面的技术——这就是共创的起点。",
+      "description_en": "You've found a real scenario and need where you live, or you want to learn this technology — that's where co-creation starts."
+    },
+    {
+      "id": "contact-us",
+      "icon": "MessagesSquare",
+      "title": "联系我们",
+      "title_en": "Reach out to us",
+      "description": "告诉我们你的场景、需求和想法，我们一起评估怎么做、需要什么。",
+      "description_en": "Tell us your scenario, needs and ideas — we'll work out the how and the what together."
+    },
+    {
+      "id": "we-drive-to-you",
+      "icon": "Truck",
+      "title": "我们开车过去",
+      "title_en": "We drive to you",
+      "description": "基地车开到你所在的地方，现场做培训，一起把方案跑通、落地实施。",
+      "description_en": "The base vehicle drives to your place — we train on site and land the solution together."
+    }
+  ]
+}
