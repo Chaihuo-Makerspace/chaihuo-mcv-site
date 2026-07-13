@@ -3,8 +3,10 @@ export const prerender = true;
 
 import { getCollection } from 'astro:content';
 import DeconstructContent from '@/app/components/DeconstructContent';
-import companionData from '@/data/companion.json';
-import equipmentData from '@/data/equipment.json';
+import cocreationData from '@/data/cocreation.json';
+import coursesData from '@/data/courses.json';
+import solutionsData from '@/data/solutions.json';
+import techModulesData from '@/data/tech-modules.json';
 import deconstructDict from '@/i18n/deconstruct';
 import type { Locale } from '@/i18n/index';
 import { localize } from '@/i18n/index';
@@ -12,11 +14,6 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
 const locale = (Astro.currentLocale ?? 'zh') as Locale;
 const t = deconstructDict[locale];
-
-const companion = (() => {
-  const loc = localize(companionData, ['name', 'bio'], locale);
-  return { name: loc.name, image: loc.image, bio: loc.bio };
-})();
 
 const notesCollection = await getCollection('notes');
 const notes = notesCollection.map((note) => ({
@@ -28,17 +25,63 @@ const notes = notesCollection.map((note) => ({
   tags: note.data.tags,
 }));
 
-const equipment = equipmentData.map((cat) => {
-  const locCat = localize(cat, ['title'], locale);
+const allSolutions = [...solutionsData.tech, ...solutionsData.scenarios];
+const solutionById = new Map(
+  allSolutions.map((sol) => {
+    const loc = localize(sol, ['title'], locale);
+    return [sol.id, { id: sol.id, url: sol.url, image: sol.image, title: loc.title }];
+  })
+);
+
+const techModules = techModulesData.map((mod) => {
+  const loc = localize(mod, ['category', 'title', 'subtitle', 'description'], locale);
   return {
-    icon: locCat.icon,
-    title: locCat.title,
-    items: locCat.items.map((item) => localize(item, ['name', 'spec'], locale)),
+    id: mod.id,
+    icon: mod.icon,
+    category: loc.category,
+    title: loc.title,
+    subtitle: loc.subtitle,
+    description: loc.description,
+    devices: mod.devices,
+    solution: ('solutionId' in mod && solutionById.get(mod.solutionId as string)) || null,
   };
 });
+
+const localizeCocreation = (items: typeof cocreationData.directions) =>
+  items.map((item) => {
+    const loc = localize(item, ['title', 'description'], locale);
+    return { id: item.id, icon: item.icon, title: loc.title, description: loc.description };
+  });
+
+const directions = localizeCocreation(cocreationData.directions);
+const programs = localizeCocreation(cocreationData.programs);
+
+const courses = coursesData.map((course) => {
+  const loc = localize(course, ['title', 'tagline'], locale);
+  return {
+    id: course.id,
+    code: course.code,
+    title: loc.title,
+    tagline: loc.tagline,
+    url: course.url,
+    scenarios: locale === 'en' && course.scenarios_en ? course.scenarios_en : course.scenarios,
+    solutions: course.solutionIds
+      .map((id) => solutionById.get(id))
+      .filter((sol): sol is NonNullable<typeof sol> => Boolean(sol)),
+  };
+});
+
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
-  {/* client:only 跳过 SSR，避免 Three.js 在服务端解析导致 ~1.8s 延迟 */}
-  <DeconstructContent client:only="react" notes={notes} equipment={equipment} companion={companion} locale={locale} t={t} />
+  <DeconstructContent
+    client:load
+    techModules={techModules}
+    courses={courses}
+    directions={directions}
+    programs={programs}
+    notes={notes}
+    locale={locale}
+    t={t}
+  />
 </BaseLayout>
