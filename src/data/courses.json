@@ -1,0 +1,83 @@
+[
+  {
+    "id": "m0",
+    "code": "M0",
+    "title": "零基础智能硬件入门",
+    "title_en": "Smart Hardware Fundamentals",
+    "tagline": "用自然语言告诉 AI 你想做什么，AI 帮你写代码。",
+    "tagline_en": "Tell AI what you want in natural language — it writes the code for you.",
+    "url": "https://opc.chaihuo.org/courses/m0",
+    "scenarios": ["所有共创场景的入门基石"],
+    "scenarios_en": ["The starting point for every co-creation scenario"],
+    "solutionIds": ["codecraft"]
+  },
+  {
+    "id": "m1",
+    "code": "M1",
+    "title": "设备互联与智能管控",
+    "title_en": "Device Integration & Intelligent Control",
+    "tagline": "跨品牌、跨代际设备统一管控，打破数据孤岛。",
+    "tagline_en": "Unified control across brands and generations — no more data silos.",
+    "url": "https://opc.chaihuo.org/courses/m1",
+    "scenarios": ["楼宇能源管理"],
+    "scenarios_en": ["Building Energy Management"],
+    "solutionIds": ["building-energy-management"]
+  },
+  {
+    "id": "m2",
+    "code": "M2",
+    "title": "多模态 AI 交互",
+    "title_en": "Multimodal AI Interaction",
+    "tagline": "打造能听懂业务、能看见需求的 AI 交互终端。",
+    "tagline_en": "Build AI terminals that hear your business and see your needs.",
+    "url": "https://opc.chaihuo.org/courses/m2",
+    "scenarios": ["语音交互", "现场讲解与培训", "智慧仓库管理", "零售语音采集"],
+    "scenarios_en": [
+      "Voice Interaction",
+      "On-site Guiding & Training",
+      "Smart Warehouse Management",
+      "Retail Voice Collection"
+    ],
+    "solutionIds": ["smart-warehouse-management", "voice-collection-analysis"]
+  },
+  {
+    "id": "m3",
+    "code": "M3",
+    "title": "自组网与韧性通信",
+    "title_en": "Mesh Networking & Resilient Communication",
+    "tagline": "构建去中心化的韧性通信网络。",
+    "tagline_en": "Build decentralized, resilient communication networks.",
+    "url": "https://opc.chaihuo.org/courses/m3",
+    "scenarios": ["应急救灾响应"],
+    "scenarios_en": ["Hazard & Emergency Response"],
+    "solutionIds": ["hazard-response"]
+  },
+  {
+    "id": "m4",
+    "code": "M4",
+    "title": "边缘视觉 AI",
+    "title_en": "Edge Visual AI",
+    "tagline": "从「事后追溯」进化为「事前阻断」。",
+    "tagline_en": "Evolve from after-the-fact review to real-time prevention.",
+    "url": "https://opc.chaihuo.org/courses/m4",
+    "scenarios": ["园区安全管理", "智能视频分析"],
+    "scenarios_en": ["Campus & Park Safety Management", "Intelligent Video Analytics"],
+    "solutionIds": ["campus-safety-management"]
+  },
+  {
+    "id": "m5",
+    "code": "M5",
+    "title": "环境感知与数据采集",
+    "title_en": "Environmental Sensing & Data Acquisition",
+    "tagline": "构建从城市到野外的全域感知网络。",
+    "tagline_en": "Build sensing networks that span from cities to the wild.",
+    "url": "https://opc.chaihuo.org/courses/m5",
+    "scenarios": ["智慧农业感知", "智慧畜牧", "环境监测"],
+    "scenarios_en": [
+      "Smart Agriculture Sensing",
+      "Smart Livestock Farming",
+      "Environment Monitoring"
+    ],
+    "solutionIds": ["smart-agriculture-sensing", "smart-livestock-farming"]
+  }
+]
