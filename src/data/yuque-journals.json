@@ -3,7 +3,7 @@
     "name": "柴火基地车车长日记",
     "namespace": "mouseart/mcv",
     "url": "https://www.yuque.com/mouseart/mcv",
-    "syncedAt": "2026-07-16T08:30:58.586Z",
+    "syncedAt": "2026-07-16T10:29:28.301Z",
     "intervalMinutes": 10
   },
   "journals": [
@@ -255,7 +255,7 @@
       "city": "yibin",
       "href": "https://www.yuque.com/mouseart/mcv/pg0hgqlvma4eqgk5",
       "updatedAt": "2026-07-15T13:44:12.590Z",
-      "coverImage": "https://cdn.nlark.com/yuque/0/2026/jpeg/2392200/1778682211829-17dc181b-cae4-4fc3-8002-91a63db3ed0b.jpeg"
+      "coverImage": "/yuque-journals/pg0hgqlvma4eqgk5.jpg"
     },
     {
       "id": "269393695",
@@ -285,7 +285,7 @@
       "city": "guiyang",
       "href": "https://www.yuque.com/mouseart/mcv/oy0cvk2b743yo0ct",
       "updatedAt": "2026-07-15T13:44:12.590Z",
-      "coverImage": null
+      "coverImage": "/yuque-journals/oy0cvk2b743yo0ct.jpg"
     },
     {
       "id": "268974696",
