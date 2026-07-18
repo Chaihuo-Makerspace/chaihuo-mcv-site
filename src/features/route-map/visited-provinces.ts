@@ -7,4 +7,5 @@ export const PROVINCE_VISITED = [
   '青海省',
   '新疆维吾尔自治区',
   '甘肃省',
+  '宁夏回族自治区',
 ];
