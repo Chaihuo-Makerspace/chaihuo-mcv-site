@@ -89,6 +89,16 @@
     "image": "/people/zhou-yantong.webp"
   },
   {
+    "id": "qu-jialu",
+    "name": "瞿嘉露",
+    "name_en": "Qu Jialu",
+    "role": "媒体担当",
+    "role_en": "Media Lead",
+    "bio": "内容记录与传播支持，负责用影像和文字记录基地车沿途的故事与现场。",
+    "bio_en": "Content and communications support, documenting the MCV's journey and on-site stories through visuals and writing.",
+    "image": "/people/qu-jialu.png"
+  },
+  {
     "id": "ye-yu",
     "name": "叶雨",
     "name_en": "Ye Yu",
