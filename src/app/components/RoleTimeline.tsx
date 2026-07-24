@@ -77,7 +77,12 @@ export default function RoleTimeline({
 
   useEffect(() => {
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Shanghai',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(now);
     const pct = Math.max(0, Math.min(100, pctOf(todayStr, projectStart, totalDays)));
     setTodayPct(pct);
     setTodayIso(todayStr);
@@ -286,6 +291,14 @@ export default function RoleTimeline({
                                   src={seg.image}
                                   alt={seg.name}
                                   className="w-full h-full object-cover"
+                                  style={
+                                    seg.crewId === 'ye-kaiwei'
+                                      ? {
+                                          transform: 'translateX(25%) scale(1.45)',
+                                          transformOrigin: '26% 35%',
+                                        }
+                                      : undefined
+                                  }
                                 />
                               </div>
 
@@ -362,6 +375,14 @@ export default function RoleTimeline({
                             src={member.image}
                             alt={member.name}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={
+                              member.crewId === 'ye-kaiwei'
+                                ? {
+                                    transform: 'translateX(25%) scale(1.45)',
+                                    transformOrigin: '26% 35%',
+                                  }
+                                : undefined
+                            }
                           />
                         </div>
                       ))}

@@ -137,5 +137,15 @@
     "bio": "负责和用户沟通，了解场景需求，共创解决方案。",
     "bio_en": "Responsible for communicating with users, understanding their scenario needs, and co-creating solutions.",
     "image": "/people/cui-ming.webp"
+  },
+  {
+    "id": "ye-kaiwei",
+    "name": "叶凯伟",
+    "name_en": "Ye Kaiwei",
+    "role": "场景担当",
+    "role_en": "Scenario Lead",
+    "bio": "负责和用户沟通，了解场景需求，共创解决方案。",
+    "bio_en": "Responsible for communicating with users, understanding their scenario needs, and co-creating solutions.",
+    "image": "/people/ye-kaiwei.jpg"
   }
 ]
