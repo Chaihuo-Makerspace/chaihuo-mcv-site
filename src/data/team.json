@@ -79,6 +79,16 @@
     "image": "/people/ma-zhile.webp"
   },
   {
+    "id": "he-zhiwei",
+    "name": "何智伟",
+    "name_en": "He Zhiwei",
+    "role": "技术担当",
+    "role_en": "Tech Lead",
+    "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+    "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
+    "image": "/people/he-zhiwei.jpg"
+  },
+  {
     "id": "zhou-yantong",
     "name": "周彦彤",
     "name_en": "Zhou Yantong",

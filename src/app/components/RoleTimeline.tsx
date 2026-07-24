@@ -123,6 +123,16 @@ export default function RoleTimeline({
       });
   }, [segments, roles]);
 
+  const activeGroups = useMemo(() => {
+    const groups = new Map<string, Segment[]>();
+    for (const segment of activeSegments) {
+      const members = groups.get(segment.role);
+      if (members) members.push(segment);
+      else groups.set(segment.role, [segment]);
+    }
+    return Array.from(groups, ([role, members]) => ({ role, members }));
+  }, [activeSegments]);
+
   return (
     <section className="relative bg-gradient-to-b from-neutral-50 via-white to-white py-24 md:py-36 px-6 border-t border-neutral-100/50">
       <div className="max-w-6xl mx-auto">
@@ -305,7 +315,7 @@ export default function RoleTimeline({
         </motion.div>
 
         {/* Currently aboard — bio detail list */}
-        {activeSegments.length > 0 && (
+        {activeGroups.length > 0 && (
           <motion.div
             variants={stagger(0.08)}
             initial="hidden"
@@ -321,29 +331,53 @@ export default function RoleTimeline({
               {t['timeline.currentlyAboard']}
             </motion.h3>
             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {activeSegments.map((seg) => (
-                <motion.div
-                  key={seg.id}
-                  variants={fadeUp}
-                  transition={springTransition}
-                  className="group"
-                >
-                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 mb-4">
-                    <img
-                      src={seg.image}
-                      alt={seg.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <p className="text-[11px] uppercase tracking-[0.15em] text-brand-dark font-semibold mb-1.5 text-center">
-                    {roleLabel.get(seg.role) ?? seg.role}
-                  </p>
-                  <h4 className="text-lg font-bold text-neutral-900 leading-tight mb-2 text-center">
-                    {seg.name}
-                  </h4>
-                  {seg.bio && <p className="text-sm text-neutral-600 leading-relaxed">{seg.bio}</p>}
-                </motion.div>
-              ))}
+              {activeGroups.map(({ role, members }) => {
+                const isSharedRole = members.length > 1;
+                const memberNames = isSharedRole
+                  ? locale === 'en'
+                    ? `${members[0].name} (left) & ${members[1].name} (right)`
+                    : `${members[0].name}（左）& ${members[1].name}（右）`
+                  : members[0].name;
+
+                return (
+                  <motion.div
+                    key={role}
+                    variants={fadeUp}
+                    transition={springTransition}
+                    className="group"
+                  >
+                    <div
+                      className={`h-32 flex items-center justify-center mb-4 ${
+                        isSharedRole ? 'gap-4' : ''
+                      }`}
+                    >
+                      {members.map((member) => (
+                        <div
+                          key={member.id}
+                          className={`rounded-full overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 ${
+                            isSharedRole ? 'w-24 h-24 md:w-28 md:h-28' : 'w-32 h-32'
+                          }`}
+                        >
+                          <img
+                            src={member.image}
+                            alt={member.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[11px] uppercase tracking-[0.15em] text-brand-dark font-semibold mb-1.5 text-center">
+                      {roleLabel.get(role) ?? role}
+                    </p>
+                    <h4 className="text-lg font-bold text-neutral-900 leading-tight mb-2 text-center">
+                      {memberNames}
+                    </h4>
+                    {members[0].bio && (
+                      <p className="text-sm text-neutral-600 leading-relaxed">{members[0].bio}</p>
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}

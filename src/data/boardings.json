@@ -202,5 +202,16 @@
       "location_en": "Yulin"
     },
     "disembarkedAt": null
+  },
+  {
+    "id": "b15",
+    "crewId": "he-zhiwei",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-07-24",
+      "location": "西安",
+      "location_en": "Xi'an"
+    },
+    "disembarkedAt": null
   }
 ]
