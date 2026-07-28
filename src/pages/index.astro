@@ -6,6 +6,7 @@ import { PROJECT_END, PROJECT_START } from '@/config/project';
 import boardingsData from '@/data/boardings.json';
 import heroesData from '@/data/heroes.json';
 import teamData from '@/data/team.json';
+import { buildRouteLegs } from '@/features/route-map/route-legs';
 import { loadLocalizedStops } from '@/features/route-map/stops-loader';
 import home from '@/i18n/home';
 import type { Locale } from '@/i18n/index';
@@ -50,12 +51,13 @@ const segments = boardingsData
   .filter((x): x is NonNullable<typeof x> => x !== null);
 
 const ROLE_ORDER = ['领队', '技术担当', '媒体担当', '场景担当'];
-const localizeRole = (zhRole: string): string => {
-  if (locale === 'zh') return zhRole;
-  const m = teamData.find((tm) => tm.role === zhRole);
-  return m?.role_en ?? zhRole;
-};
-const roles = ROLE_ORDER.map((r) => ({ key: r, label: localizeRole(r) }));
+const roles = ROLE_ORDER.map((r) => {
+  const roleEn = teamData.find((tm) => tm.role === r)?.role_en;
+  // zh 页: 中文主标签 + 英文副标签; en 页反之
+  return locale === 'zh'
+    ? { key: r, label: r, sub: roleEn ?? '' }
+    : { key: r, label: roleEn ?? r, sub: r };
+});
 
 // Month markers — first day of each month within the project window
 const monthMarkers: Array<{ label: string; pct: number }> = [];
@@ -81,6 +83,7 @@ const timeline = {
   roles,
   segments,
   monthMarkers,
+  legs: buildRouteLegs(cities, locale),
   projectStart: PROJECT_START,
   projectEnd: PROJECT_END,
 };

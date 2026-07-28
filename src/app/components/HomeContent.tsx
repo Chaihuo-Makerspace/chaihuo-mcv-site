@@ -45,9 +45,10 @@ interface TimelineSegment {
 }
 
 interface TimelineData {
-  roles: Array<{ key: string; label: string }>;
+  roles: Array<{ key: string; label: string; sub?: string }>;
   segments: TimelineSegment[];
   monthMarkers: Array<{ label: string; pct: number }>;
+  legs: Array<{ key: string; label: string; fullName: string; startDate: string; endDate: string }>;
   projectStart: string;
   projectEnd: string;
 }
@@ -466,11 +467,12 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
         </div>
       </section>
 
-      {/* 在路上的人 - 三角色时间轴 */}
+      {/* 在路上的人 - 角色接力时间轴 */}
       <RoleTimeline
         roles={timeline.roles}
         segments={timeline.segments}
         monthMarkers={timeline.monthMarkers}
+        legs={timeline.legs}
         projectStart={timeline.projectStart}
         projectEnd={timeline.projectEnd}
         locale={locale}
