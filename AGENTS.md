@@ -165,7 +165,7 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 
 | Date | Branch | Description |
 | --- | --- | --- |
-| 2026-07-28 | main | Replaced the three fake deconstruct-page modification logs with six real Yuque articles (covers downloaded locally, bilingual titles/descriptions), and made note cards link to their Yuque articles. |
+| 2026-07-28 | feature/deconstruct-yuque-notes | Replaced the three fake deconstruct-page modification logs with three real Yuque articles (covers downloaded locally, bilingual titles/descriptions/tags), and made note cards link to their Yuque articles. |
 | 2026-07-28 | main | Added the route legs band, role label gutter, and lane rails to the home timeline; completed the Astro 7 + Vite 8 upgrade; documented the update-route-stop / update-team-member skills in README. |
 | 2026-07-09 | fix/yuque-first-image-cover | Replaced blank Yuque covers with article images, fixed compact journal date sorting, enabled 10-minute automatic sync, and merged into main. |
 | 2026-07-08 | fix/yuque-journal-sync | Restored Yuque journal sync by removing the failing dependency install, refreshed 3 public journal cards, skipped inaccessible 401/403 docs, and merged into main. |
