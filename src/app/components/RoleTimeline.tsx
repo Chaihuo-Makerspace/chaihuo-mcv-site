@@ -57,6 +57,29 @@ function formatShortDate(iso: string, locale: 'zh' | 'en'): string {
   return `${d.getUTCMonth() + 1}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
 
+/** Minimum gap as % of timeline width to keep two avatars + labels from overlapping */
+const MIN_GAP_PCT = 4;
+
+/** Nudge close segment starts within a lane so avatars never collide — stays single-line */
+function computeVisualStarts(
+  segments: Segment[],
+  projectStart: string,
+  totalDays: number,
+): Map<string, number> {
+  const sorted = [...segments].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const visualMap = new Map<string, number>();
+  let lastOccupied = -Infinity;
+
+  for (const seg of sorted) {
+    const actualStart = pctOf(seg.startDate, projectStart, totalDays);
+    const visualStart = Math.max(actualStart, lastOccupied);
+    visualMap.set(seg.id, visualStart);
+    lastOccupied = visualStart + MIN_GAP_PCT;
+  }
+
+  return visualMap;
+}
+
 export default function RoleTimeline({
   roles,
   segments,
@@ -77,7 +100,12 @@ export default function RoleTimeline({
 
   useEffect(() => {
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Shanghai',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(now);
     const pct = Math.max(0, Math.min(100, pctOf(todayStr, projectStart, totalDays)));
     setTodayPct(pct);
     setTodayIso(todayStr);
@@ -103,6 +131,15 @@ export default function RoleTimeline({
     return map;
   }, [roles, segments]);
 
+  // Per-role visual start positions to prevent avatar/label overlap (single-line nudge)
+  const visualStartsByRole = useMemo(() => {
+    const result = new Map<string, Map<string, number>>();
+    for (const [role, segs] of segmentsByRole) {
+      result.set(role, computeVisualStarts(segs, projectStart, totalDays));
+    }
+    return result;
+  }, [segmentsByRole, projectStart, totalDays]);
+
   // Role key → localized label lookup
   const roleLabel = useMemo(() => {
     const map = new Map<string, string>();
@@ -122,6 +159,17 @@ export default function RoleTimeline({
         return a.startDate.localeCompare(b.startDate);
       });
   }, [segments, roles]);
+
+  // Active members grouped by role for the "currently aboard" cards
+  const activeGroups = useMemo(() => {
+    const groups = new Map<string, Segment[]>();
+    for (const segment of activeSegments) {
+      const members = groups.get(segment.role);
+      if (members) members.push(segment);
+      else groups.set(segment.role, [segment]);
+    }
+    return Array.from(groups, ([role, members]) => ({ role, members }));
+  }, [activeSegments]);
 
   return (
     <section className="relative bg-gradient-to-b from-neutral-50 via-white to-white py-24 md:py-36 px-6 border-t border-neutral-100/50">
@@ -218,6 +266,8 @@ export default function RoleTimeline({
 
                 {roles.map((role) => {
                   const laneSegments = segmentsByRole.get(role.key) ?? [];
+                  const visualStarts = visualStartsByRole.get(role.key);
+
                   return (
                     <div
                       key={role.key}
@@ -231,7 +281,8 @@ export default function RoleTimeline({
                       {/* Segments */}
                       <div className="relative w-full h-full">
                         {laneSegments.map((seg) => {
-                          const startPct = pctOf(seg.startDate, projectStart, totalDays);
+                          const actualStartPct = pctOf(seg.startDate, projectStart, totalDays);
+                          const startPct = visualStarts?.get(seg.id) ?? actualStartPct;
                           const endPctRaw = seg.endDate
                             ? pctOf(seg.endDate, projectStart, totalDays)
                             : (todayPct ?? startPct + 0.5);
@@ -247,7 +298,10 @@ export default function RoleTimeline({
                             <div
                               key={seg.id}
                               className="absolute top-1/2 -translate-y-1/2 h-7 group"
-                              style={{ left: `${startPct}%`, width: `${widthPct}%` }}
+                              style={{
+                                left: `${startPct}%`,
+                                width: `${widthPct}%`,
+                              }}
                             >
                               {/* Bar */}
                               <div
@@ -276,6 +330,14 @@ export default function RoleTimeline({
                                   src={seg.image}
                                   alt={seg.name}
                                   className="w-full h-full object-cover"
+                                  style={
+                                    seg.crewId === 'ye-kaiwei'
+                                      ? {
+                                          transform: 'translateX(25%) scale(1.45)',
+                                          transformOrigin: '26% 35%',
+                                        }
+                                      : undefined
+                                  }
                                 />
                               </div>
 
@@ -304,8 +366,8 @@ export default function RoleTimeline({
           </p>
         </motion.div>
 
-        {/* Currently aboard — bio detail list */}
-        {activeSegments.length > 0 && (
+        {/* Currently aboard — grouped by role */}
+        {activeGroups.length > 0 && (
           <motion.div
             variants={stagger(0.08)}
             initial="hidden"
@@ -321,29 +383,62 @@ export default function RoleTimeline({
               {t['timeline.currentlyAboard']}
             </motion.h3>
             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {activeSegments.map((seg) => (
-                <motion.div
-                  key={seg.id}
-                  variants={fadeUp}
-                  transition={springTransition}
-                  className="group"
-                >
-                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 mb-4">
-                    <img
-                      src={seg.image}
-                      alt={seg.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <p className="text-[11px] uppercase tracking-[0.15em] text-brand-dark font-semibold mb-1.5 text-center">
-                    {roleLabel.get(seg.role) ?? seg.role}
-                  </p>
-                  <h4 className="text-lg font-bold text-neutral-900 leading-tight mb-2 text-center">
-                    {seg.name}
-                  </h4>
-                  {seg.bio && <p className="text-sm text-neutral-600 leading-relaxed">{seg.bio}</p>}
-                </motion.div>
-              ))}
+              {activeGroups.map(({ role, members }) => {
+                const isSharedRole = members.length > 1;
+                const memberNames = members.map((m) => m.name).join(' & ');
+                const isTriple = members.length >= 3;
+                const avatarClass = isTriple
+                  ? 'w-20 h-20 md:w-24 md:h-24'
+                  : isSharedRole
+                    ? 'w-24 h-24 md:w-28 md:h-28'
+                    : 'w-32 h-32';
+                const gapClass = isTriple ? 'gap-2' : isSharedRole ? 'gap-4' : '';
+
+                return (
+                  <motion.div
+                    key={role}
+                    variants={fadeUp}
+                    transition={springTransition}
+                    className="group"
+                  >
+                    <div
+                      className={`h-32 flex items-center justify-center mb-4 ${
+                        isSharedRole ? gapClass : ''
+                      }`}
+                    >
+                      {members.map((member) => (
+                        <div
+                          key={member.id}
+                          className={`rounded-full overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 ${avatarClass}`}
+                        >
+                          <img
+                            src={member.image}
+                            alt={member.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={
+                              member.crewId === 'ye-kaiwei'
+                                ? {
+                                    transform: 'translateX(25%) scale(1.45)',
+                                    transformOrigin: '26% 35%',
+                                  }
+                                : undefined
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[11px] uppercase tracking-[0.15em] text-brand-dark font-semibold mb-1.5 text-center">
+                      {roleLabel.get(role) ?? role}
+                    </p>
+                    <h4 className="text-lg font-bold text-neutral-900 leading-tight mb-2 text-center">
+                      {memberNames}
+                    </h4>
+                    {members[0].bio && (
+                      <p className="text-sm text-neutral-600 leading-relaxed">{members[0].bio}</p>
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}

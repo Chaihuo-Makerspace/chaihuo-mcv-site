@@ -79,6 +79,16 @@
     "image": "/people/ma-zhile.webp"
   },
   {
+    "id": "he-zhiwei",
+    "name": "何智伟",
+    "name_en": "He Zhiwei",
+    "role": "技术担当",
+    "role_en": "Tech Lead",
+    "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+    "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
+    "image": "/people/he-zhiwei.jpg"
+  },
+  {
     "id": "zhou-yantong",
     "name": "周彦彤",
     "name_en": "Zhou Yantong",
@@ -87,6 +97,16 @@
     "bio": "内容记录与传播支持，负责用影像和文字记录基地车沿途的故事与现场。",
     "bio_en": "Content and communications support, documenting the MCV's journey and on-site stories through visuals and writing.",
     "image": "/people/zhou-yantong.webp"
+  },
+  {
+    "id": "qu-jialu",
+    "name": "瞿嘉露",
+    "name_en": "Qu Jialu",
+    "role": "媒体担当",
+    "role_en": "Media Lead",
+    "bio": "内容记录与传播支持，负责用影像和文字记录基地车沿途的故事与现场。",
+    "bio_en": "Content and communications support, documenting the MCV's journey and on-site stories through visuals and writing.",
+    "image": "/people/qu-jialu.png"
   },
   {
     "id": "ye-yu",
@@ -117,5 +137,25 @@
     "bio": "负责和用户沟通，了解场景需求，共创解决方案。",
     "bio_en": "Responsible for communicating with users, understanding their scenario needs, and co-creating solutions.",
     "image": "/people/cui-ming.webp"
+  },
+  {
+    "id": "ye-kaiwei",
+    "name": "叶凯伟",
+    "name_en": "Ye Kaiwei",
+    "role": "场景担当",
+    "role_en": "Scenario Lead",
+    "bio": "负责和用户沟通，了解场景需求，共创解决方案。",
+    "bio_en": "Responsible for communicating with users, understanding their scenario needs, and co-creating solutions.",
+    "image": "/people/ye-kaiwei.jpg"
+  },
+  {
+    "id": "zibo-chen",
+    "name": "陈梓博",
+    "name_en": "Zibo Chen",
+    "role": "技术担当",
+    "role_en": "Tech Lead",
+    "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+    "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
+    "image": "/people/zibo-chen.webp"
   }
 ]

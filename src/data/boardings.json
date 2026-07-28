@@ -158,7 +158,12 @@
       "location": "哈密",
       "location_en": "Hami"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-07-22",
+      "location": "榆林",
+      "location_en": "Yulin",
+      "handoffTo": "qu-jialu"
+    }
   },
   {
     "id": "b12",
@@ -184,6 +189,55 @@
       "date": "2026-07-01",
       "location": "哈密",
       "location_en": "Hami"
+    },
+    "disembarkedAt": {
+      "date": "2026-07-25",
+      "location": "西安",
+      "location_en": "Xi'an",
+      "handoffTo": "ye-kaiwei"
+    }
+  },
+  {
+    "id": "b14",
+    "crewId": "qu-jialu",
+    "role": "媒体担当",
+    "boardedAt": {
+      "date": "2026-07-22",
+      "location": "榆林",
+      "location_en": "Yulin"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b15",
+    "crewId": "he-zhiwei",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-07-24",
+      "location": "西安",
+      "location_en": "Xi'an"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b16",
+    "crewId": "ye-kaiwei",
+    "role": "场景担当",
+    "boardedAt": {
+      "date": "2026-07-25",
+      "location": "西安",
+      "location_en": "Xi'an"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b17",
+    "crewId": "zibo-chen",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-07-26",
+      "location": "西安",
+      "location_en": "Xi'an"
     },
     "disembarkedAt": null
   }

@@ -19,7 +19,7 @@ const home: Record<Locale, Record<string, string>> = {
 
     'status.current': '位于 {city}',
     'status.days': '已出发 {days} 天',
-    'status.cities': '已抵达 {count} 城',
+    'status.cities': '已抵达 {count} 站',
 
     'route.title1': '连接技术的',
     'route.title2': '每一个经纬度',
@@ -89,7 +89,7 @@ const home: Record<Locale, Record<string, string>> = {
 
     'status.current': 'Now in {city}',
     'status.days': 'On the road · {days} days',
-    'status.cities': '{count} cities reached',
+    'status.cities': '{count} stops reached',
 
     'route.title1': 'Connecting technology',
     'route.title2': 'to every coordinate',

@@ -1,6 +1,8 @@
 const YUQUE_ORIGIN = 'https://www.yuque.com';
 
 const CITY_KEYWORDS = [
+  ['xian', ['西安']],
+  ['yulin-shaanxi', ['榆林']],
   ['chengdu', ['成都', 'C-SCHOOL', 'BOSA', '麓湖']],
   ['mianyang', ['绵阳']],
   ['yibin', ['宜宾']],
