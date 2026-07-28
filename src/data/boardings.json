@@ -147,7 +147,12 @@
       "location": "哈密",
       "location_en": "Hami"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-07-24",
+      "location": "西安",
+      "location_en": "Xi'an",
+      "handoffTo": "he-zhiwei"
+    }
   },
   {
     "id": "b11",
