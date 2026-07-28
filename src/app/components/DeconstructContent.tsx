@@ -69,6 +69,7 @@ interface NoteEntry {
   description: string;
   image: string;
   tags: string[];
+  yuqueUrl?: string;
 }
 
 interface Props {
@@ -615,38 +616,47 @@ export default function DeconstructContent({
             {notes.map((note) => (
               <motion.div
                 key={note.title}
-                className="bg-surface-card rounded-xl overflow-hidden shadow-sm"
+                className="bg-surface-card rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
                 variants={fadeUp}
                 transition={springTransition}
               >
-                <div className="aspect-[16/10] overflow-hidden">
-                  <img src={note.image} alt={note.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-4">
-                  <h4 className="text-sm font-semibold text-neutral-900 mb-1.5 line-clamp-1">
-                    {note.title}
-                  </h4>
-                  {note.description && (
-                    <p className="text-xs text-neutral-700 leading-relaxed line-clamp-2 mb-3">
-                      {note.description}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between gap-2">
-                    <time className="text-xs text-neutral-500 font-mono shrink-0">{note.date}</time>
-                    {note.tags && note.tags.length > 0 && (
-                      <div className="flex flex-wrap justify-end gap-1">
-                        {note.tags.slice(0, 2).map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[10px] font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                <a
+                  href={note.yuqueUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block cursor-pointer"
+                >
+                  <div className="aspect-[16/10] overflow-hidden">
+                    <img src={note.image} alt={note.title} className="w-full h-full object-cover" />
                   </div>
-                </div>
+                  <div className="p-4">
+                    <h4 className="text-sm font-semibold text-neutral-900 mb-1.5 line-clamp-1 group-hover:text-brand transition-colors duration-200">
+                      {note.title}
+                    </h4>
+                    {note.description && (
+                      <p className="text-xs text-neutral-700 leading-relaxed line-clamp-2 mb-3">
+                        {note.description}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between gap-2">
+                      <time className="text-xs text-neutral-500 font-mono shrink-0">
+                        {note.date}
+                      </time>
+                      {note.tags && note.tags.length > 0 && (
+                        <div className="flex flex-wrap justify-end gap-1">
+                          {note.tags.slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] font-medium text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </a>
               </motion.div>
             ))}
           </motion.div>
