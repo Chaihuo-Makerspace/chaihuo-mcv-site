@@ -22,8 +22,8 @@
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
-    "@astrojs/node": "^10.1.0",
-    "@astrojs/react": "^5.0.4",
+    "@astrojs/node": "^11.0.2",
+    "@astrojs/react": "^6.0.1",
     "@gsap/react": "^2.1.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -33,7 +33,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "astro": "^6.3.1",
+    "astro": "^7.1.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "2.1.1",
     "d3-geo": "^3.1.1",
@@ -53,10 +53,10 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
+    "@astrojs/check": "^0.9.10",
     "@biomejs/biome": "^2.4.16",
     "@playwright/test": "^1.60.0",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/d3-geo": "^3.1.0",
     "@types/d3-selection": "^3.0.11",
     "@types/d3-transition": "^3.0.9",
@@ -69,7 +69,7 @@
     "simple-git-hooks": "^2.13.1",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.3",
-    "vite": "^7"
+    "vite": "^8.1.5"
   },
   "simple-git-hooks": {
     "pre-commit": "bash scripts/validate-lockfile.sh"
