@@ -26,7 +26,7 @@ No unit test framework or linter is configured. Use `pnpm check` as the main non
 
 ## Architecture
 
-**Stack:** Astro 6 + React 19 (Islands) + TypeScript + Tailwind CSS 4 + shadcn/ui (Radix) + Framer Motion
+**Stack:** Astro 7 + React 19 (Islands) + TypeScript + Tailwind CSS 4 + shadcn/ui (Radix) + Framer Motion
 
 **Deployment:** Node.js standalone via `@astrojs/node` adapter. Docker (`Dockerfile` + `docker-compose.yml`). GitHub push triggers Jenkins deploy through repository webhook job `chaihuo-chaihuo-mcv-site`.
 
@@ -84,7 +84,7 @@ Schema validation runs at build time — type errors will fail the build.
 
 See `docs/ai-iteration.md` for the recommended AI change loop.
 
-**Content Collections (Astro 6):** Config file must be at `src/content.config.ts` (NOT `src/content/config.ts`). Import `z` from `astro/zod`, loaders from `astro/loaders`.
+**Content Collections (Astro 7):** Config file must be at `src/content.config.ts` (NOT `src/content/config.ts`). Import `z` from `astro/zod`, loaders from `astro/loaders`.
 
 ## Styling
 
@@ -94,6 +94,16 @@ See `docs/ai-iteration.md` for the recommended AI change loop.
 - Animation: `tw-animate-css` (CSS) + `motion` (Framer Motion JS)
 - **Color system** (60-30-10): Brand `brand` (#f3d230), surfaces `surface`/`surface-card`/`surface-dark`, neutrals `neutral-950`~`neutral-50`
 - **Use `text-brand`, `bg-surface`, `text-neutral-700` etc. — avoid hardcoded hex or Tailwind gray-xxx**
+
+## Design System
+
+设计规则分三档,详见 `docs/DESIGN.md`,可视化对照页 `/elements`(中)/ `/en/elements`(英)。**开发任何功能(尤其全新功能)前先对照这三档:**
+
+- **🔒 不可破(Invariants):** 颜色/字号/圆角/间距令牌(源:`src/styles/theme.css`)、60-30-10 配色、`prefers-reduced-motion` 与对比度无障碍底线、中英对等。永远用 `text-brand`/`bg-surface` 等令牌,不硬编码 hex、不用 gray-xxx。
+- **🧭 要领会延续(Principles):** 探险黄克制使用、远征探索叙事、手绘在地感(非塑料 SaaS 感)、高级克制动效、中文优先英文对等、内容即主体。给全新功能(如地图类)用——结构可不同,气质要一致。
+- **🎨 自由发挥(Open):** 已有模式(卡片/手风琴/时间线/轮播/地图 feature)仅作参考,新功能可大胆偏离,只要守住前两档。
+
+新功能开发流程:先列本次涉及的 🔒 令牌确保零硬编码 → 想清楚如何延续 🧭 → 复用或自由设计 🎨。
 
 ## Gotchas
 
@@ -109,6 +119,12 @@ import logoImport from '@/assets/logo.png';
 const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in logoImport
   ? (logoImport as { src: string }).src : logoImport as string;
 ```
+
+**Astro 7 behavior changes (from the v6 → v7 upgrade):**
+- `compressHTML` now defaults to `'jsx'`: whitespace between inline elements is stripped by JSX rules, so `<span>a</span>\n<em>b</em>` renders as `ab`. If a space goes missing between inline elements, add an explicit `{' '}` (or set `compressHTML: true` in `astro.config.mjs` to restore the v6 behavior).
+- The Rust compiler is the only compiler and is strict: unclosed non-void tags are build errors, and invalid HTML nesting (e.g. `<div>` inside `<p>`) is passed through as-is instead of being auto-corrected — check the rendered output when editing templates.
+
+**Astro 7 whitespace:** Astro 7 defaults to `compressHTML: 'jsx'`, which strips whitespace between inline elements using JSX rules (e.g. `<span>a</span>\n<em>b</em>` renders as `ab`, not `a b`). If spaces go missing between inline elements, add an explicit `{" "}` between them. Only set `compressHTML: true` in `astro.config.mjs` if the old HTML-aware behavior is needed globally. The Rust compiler is also strict about unclosed tags — build errors pointing at unexpected tokens usually mean a missing closing tag.
 
 **改装手记 "查看全部":** Links to external Yuque page: `https://www.yuque.com/chaihuo-mcv/home`.
 
@@ -143,11 +159,13 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 - Route map now extends from Karamay to Urumqi, with Urumqi highlighted as the latest visited stop.
 - Tracker Allen location updates can be checked through `pnpm update:city`; enabling hourly GitHub Actions requires a GitHub credential with `workflow` scope.
 - Route map now extends from Urumqi to Hami, with Hami highlighted as the latest visited stop.
+- Home "people on the road" timeline shows a province legs band (built from stops via `route-legs.ts`) with the current leg highlighted down through the lanes, role labels in a fixed bilingual gutter, and full-span lane rails.
 
 ## Changelog
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-07-28 | main | Added the route legs band, role label gutter, and lane rails to the home timeline; completed the Astro 7 + Vite 8 upgrade; documented the update-route-stop / update-team-member skills in README. |
 | 2026-07-09 | fix/yuque-first-image-cover | Replaced blank Yuque covers with article images, fixed compact journal date sorting, enabled 10-minute automatic sync, and merged into main. |
 | 2026-07-08 | fix/yuque-journal-sync | Restored Yuque journal sync by removing the failing dependency install, refreshed 3 public journal cards, skipped inaccessible 401/403 docs, and merged into main. |
 | 2026-07-02 | feature/location-auto-update | Added the Tracker Allen location update script, added Hami as stop 27, updated route copy to 28 cities, and merged into main. |

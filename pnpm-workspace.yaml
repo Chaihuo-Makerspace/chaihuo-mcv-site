@@ -6,5 +6,9 @@ allowBuilds:
   sharp: true
   simple-git-hooks: true
 
+minimumReleaseAgeExclude:
+  - '@astrojs/check@0.9.10'
+  - astro@7.1.4
+
 overrides:
-  vite: ^7
+  vite: ^8

@@ -19,6 +19,15 @@ interface Segment {
 interface RoleLane {
   key: string; // canonical zh role string used as join key
   label: string; // localized label
+  sub?: string; // secondary label in the other locale
+}
+
+interface RouteLeg {
+  key: string;
+  label: string; // short label, e.g. 粤 / GD
+  fullName: string;
+  startDate: string;
+  endDate: string;
 }
 
 interface MonthMarker {
@@ -30,6 +39,7 @@ interface RoleTimelineProps {
   roles: RoleLane[];
   segments: Segment[];
   monthMarkers: MonthMarker[];
+  legs: RouteLeg[];
   projectStart: string;
   projectEnd: string;
   locale: 'zh' | 'en';
@@ -84,6 +94,7 @@ export default function RoleTimeline({
   roles,
   segments,
   monthMarkers,
+  legs,
   projectStart,
   projectEnd,
   locale,
@@ -171,6 +182,24 @@ export default function RoleTimeline({
     return Array.from(groups, ([role, members]) => ({ role, members }));
   }, [activeSegments]);
 
+  // The leg the journey is currently in — its column carries down through the lanes
+  const currentLegRange = useMemo(() => {
+    if (todayPct === null) return null;
+    const idx = legs.findIndex(
+      (leg, i) => todayIso >= leg.startDate && (todayIso < leg.endDate || i === legs.length - 1),
+    );
+    if (idx < 0) return null;
+    const leg = legs[idx];
+    const startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
+    // Last leg is still in progress — the column reaches today, not the last stop
+    const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
+    const endPct = Math.min(
+      100,
+      Math.max(startPct + 0.5, idx === legs.length - 1 ? Math.max(legEndPct, todayPct) : legEndPct),
+    );
+    return { startPct, endPct };
+  }, [todayPct, todayIso, legs, projectStart, totalDays]);
+
   return (
     <section className="relative bg-gradient-to-b from-neutral-50 via-white to-white py-24 md:py-36 px-6 border-t border-neutral-100/50">
       <div className="max-w-6xl mx-auto">
@@ -227,135 +256,219 @@ export default function RoleTimeline({
           transition={springTransition}
           className="relative"
         >
-          <div
-            ref={scrollerRef}
-            className="overflow-x-auto md:overflow-visible -mx-6 md:mx-0 px-6 md:px-0 pb-2"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            <div className="relative min-w-[800px] md:min-w-0">
-              {/* Month scale */}
-              <div className="relative h-7 mb-3 border-b border-neutral-200">
-                {monthMarkers.map((m) => (
-                  <div
-                    key={m.label}
-                    className="absolute top-0 bottom-0 flex items-end pl-1.5"
-                    style={{ left: `${m.pct}%` }}
-                  >
-                    <span className="absolute left-0 top-0 h-full w-px bg-neutral-200" />
-                    <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-neutral-400 pb-1">
-                      {m.label}
+          <div className="flex">
+            {/* Gutter — role labels in a fixed column, stays put while the timeline scrolls */}
+            <div className="w-24 md:w-28 shrink-0 border-r border-neutral-200">
+              {/* Spacers mirroring the month scale + legs band heights */}
+              <div className="h-7 mb-3 border-b border-neutral-200" />
+              <div className="h-6 mb-3" />
+              {roles.map((role) => (
+                <div
+                  key={role.key}
+                  className="h-20 flex flex-col items-end justify-center pr-3 md:pr-4 border-b border-neutral-100 last:border-b-0"
+                >
+                  <span className="text-[13px] font-semibold text-neutral-800 whitespace-nowrap">
+                    {role.label}
+                  </span>
+                  {role.sub && (
+                    <span className="text-[9px] font-mono uppercase tracking-[0.12em] text-neutral-400 mt-0.5 whitespace-nowrap">
+                      {role.sub}
                     </span>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </div>
+              ))}
+            </div>
 
-              {/* Lanes */}
-              <div className="relative">
-                {/* Today vertical line — spans all lanes */}
-                {todayPct !== null && (
-                  <div
-                    className="absolute top-0 bottom-0 w-px bg-brand z-20 pointer-events-none"
-                    style={{ left: `${todayPct}%` }}
-                  >
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-brand" />
-                    <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-mono uppercase tracking-[0.15em] text-brand-dark bg-white px-1.5">
-                      {t['timeline.today']} · {formatShortDate(todayIso, locale)}
-                    </div>
-                  </div>
-                )}
-
-                {roles.map((role) => {
-                  const laneSegments = segmentsByRole.get(role.key) ?? [];
-                  const visualStarts = visualStartsByRole.get(role.key);
-
-                  return (
+            <div
+              ref={scrollerRef}
+              className="flex-1 min-w-0 overflow-x-auto md:overflow-visible pb-2"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <div className="relative min-w-[720px] md:min-w-0 pl-4">
+                {/* Month scale */}
+                <div className="relative h-7 mb-3 border-b border-neutral-200">
+                  {monthMarkers.map((m) => (
                     <div
-                      key={role.key}
-                      className="relative h-20 flex items-center border-b border-neutral-100 last:border-b-0"
+                      key={m.label}
+                      className="absolute top-0 bottom-0 flex items-end pl-1.5"
+                      style={{ left: `${m.pct}%` }}
                     >
-                      {/* Role label — absolute top-left of the lane */}
-                      <span className="absolute left-0 top-2 text-[10px] font-mono uppercase tracking-[0.2em] text-neutral-500 z-10 bg-white pr-2">
-                        {role.label}
+                      <span className="absolute left-0 top-0 h-full w-px bg-neutral-200" />
+                      <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-neutral-400 pb-1">
+                        {m.label}
                       </span>
+                    </div>
+                  ))}
+                </div>
 
-                      {/* Segments */}
-                      <div className="relative w-full h-full">
-                        {laneSegments.map((seg) => {
-                          const actualStartPct = pctOf(seg.startDate, projectStart, totalDays);
-                          const startPct = visualStarts?.get(seg.id) ?? actualStartPct;
-                          const endPctRaw = seg.endDate
-                            ? pctOf(seg.endDate, projectStart, totalDays)
-                            : (todayPct ?? startPct + 0.5);
-                          const endPct = Math.max(endPctRaw, startPct + 0.5);
-                          const widthPct = endPct - startPct;
-                          const isOngoing = !seg.endDate;
-                          const futureFadeWidthPct =
-                            isOngoing && todayPct !== null && widthPct > 0
-                              ? (Math.max(0, 100 - endPct) / widthPct) * 100
-                              : 0;
+                {/* Journey legs + lanes share a wrapper so the today line spans both */}
+                <div className="relative">
+                  {/* Current leg column — carries the province down through the lanes */}
+                  {currentLegRange && (
+                    <div
+                      className="absolute top-0 bottom-0 bg-brand/[0.06] pointer-events-none"
+                      style={{
+                        left: `${currentLegRange.startPct}%`,
+                        width: `${currentLegRange.endPct - currentLegRange.startPct}%`,
+                      }}
+                    />
+                  )}
 
-                          return (
-                            <div
-                              key={seg.id}
-                              className="absolute top-1/2 -translate-y-1/2 h-7 group"
-                              style={{
-                                left: `${startPct}%`,
-                                width: `${widthPct}%`,
-                              }}
-                            >
-                              {/* Bar */}
-                              <div
-                                className={`absolute inset-y-2 left-0 right-0 rounded-full ${
-                                  isOngoing
-                                    ? 'bg-gradient-to-r from-brand to-brand/70'
-                                    : 'bg-neutral-300'
-                                }`}
-                              />
-
-                              {/* Future fade for ongoing segments — extends past today */}
-                              {isOngoing && todayPct !== null && (
-                                <div
-                                  className="absolute inset-y-2 left-full rounded-r-full"
-                                  style={{
-                                    width: `${futureFadeWidthPct}%`,
-                                    background:
-                                      'linear-gradient(to right, rgb(243 210 48 / 0.5), rgb(243 210 48 / 0))',
-                                  }}
-                                />
-                              )}
-
-                              {/* Avatar at segment start */}
-                              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full overflow-hidden ring-2 ring-white bg-neutral-100 z-10">
-                                <img
-                                  src={seg.image}
-                                  alt={seg.name}
-                                  className="w-full h-full object-cover"
-                                  style={
-                                    seg.crewId === 'ye-kaiwei'
-                                      ? {
-                                          transform: 'translateX(25%) scale(1.45)',
-                                          transformOrigin: '26% 35%',
-                                        }
-                                      : undefined
-                                  }
-                                />
-                              </div>
-
-                              {/* Name label — muted for alumni segments */}
-                              <div
-                                className={`absolute top-full left-0 mt-1 text-[11px] whitespace-nowrap pl-1 ${
-                                  isOngoing ? 'font-medium text-neutral-700' : 'text-neutral-400'
-                                }`}
-                              >
-                                {seg.name}
-                              </div>
-                            </div>
-                          );
-                        })}
+                  {/* Today vertical line — from the legs band down through all lanes */}
+                  {todayPct !== null && (
+                    <div
+                      className="absolute top-0 bottom-0 w-px bg-brand z-20 pointer-events-none"
+                      style={{ left: `${todayPct}%` }}
+                    >
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-brand" />
+                      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-mono uppercase tracking-[0.15em] text-brand-dark bg-white px-1.5">
+                        {t['timeline.today']} · {formatShortDate(todayIso, locale)}
                       </div>
                     </div>
-                  );
-                })}
+                  )}
+
+                  {legs.length > 0 && (
+                    <div className="relative h-6 mb-3">
+                      {legs.map((leg, i) => {
+                        const startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
+                        // Last leg is still in progress — extend it to today
+                        const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
+                        const endPct = Math.min(
+                          100,
+                          Math.max(
+                            startPct + 0.5,
+                            i === legs.length - 1 && todayPct !== null
+                              ? Math.max(legEndPct, todayPct)
+                              : legEndPct,
+                          ),
+                        );
+                        const isCurrent =
+                          todayPct !== null &&
+                          todayIso >= leg.startDate &&
+                          (todayIso < leg.endDate || i === legs.length - 1);
+                        return (
+                          <div
+                            key={leg.key}
+                            title={leg.fullName}
+                            className={`absolute top-0 bottom-0 flex items-center justify-center overflow-hidden rounded-sm ${
+                              isCurrent ? 'bg-brand/25' : 'bg-neutral-100'
+                            }`}
+                            style={{
+                              left: `calc(${startPct}% + 1px)`,
+                              width: `calc(${endPct - startPct}% - 2px)`,
+                            }}
+                          >
+                            <span
+                              className={`text-[10px] whitespace-nowrap ${
+                                isCurrent
+                                  ? 'font-semibold text-neutral-800'
+                                  : 'font-medium text-neutral-500'
+                              }`}
+                            >
+                              {leg.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Lanes */}
+                  <div className="relative">
+                    {roles.map((role) => {
+                      const laneSegments = segmentsByRole.get(role.key) ?? [];
+                      const visualStarts = visualStartsByRole.get(role.key);
+
+                      return (
+                        <div
+                          key={role.key}
+                          className="relative h-20 flex items-center border-b border-neutral-100 last:border-b-0"
+                        >
+                          {/* Full-span rail — anchors segments so lanes with late starts don't float */}
+                          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-neutral-100" />
+
+                          {/* Segments */}
+                          <div className="relative w-full h-full">
+                            {laneSegments.map((seg) => {
+                              const actualStartPct = pctOf(seg.startDate, projectStart, totalDays);
+                              const startPct = visualStarts?.get(seg.id) ?? actualStartPct;
+                              const endPctRaw = seg.endDate
+                                ? pctOf(seg.endDate, projectStart, totalDays)
+                                : (todayPct ?? startPct + 0.5);
+                              const endPct = Math.max(endPctRaw, startPct + 0.5);
+                              const widthPct = endPct - startPct;
+                              const isOngoing = !seg.endDate;
+                              const futureFadeWidthPct =
+                                isOngoing && todayPct !== null && widthPct > 0
+                                  ? (Math.max(0, 100 - endPct) / widthPct) * 100
+                                  : 0;
+
+                              return (
+                                <div
+                                  key={seg.id}
+                                  className="absolute top-1/2 -translate-y-1/2 h-7 group"
+                                  style={{
+                                    left: `${startPct}%`,
+                                    width: `${widthPct}%`,
+                                  }}
+                                >
+                                  {/* Bar */}
+                                  <div
+                                    className={`absolute inset-y-2 left-0 right-0 rounded-full ${
+                                      isOngoing
+                                        ? 'bg-gradient-to-r from-brand to-brand/70'
+                                        : 'bg-neutral-300'
+                                    }`}
+                                  />
+
+                                  {/* Future fade for ongoing segments — extends past today */}
+                                  {isOngoing && todayPct !== null && (
+                                    <div
+                                      className="absolute inset-y-2 left-full rounded-r-full"
+                                      style={{
+                                        width: `${futureFadeWidthPct}%`,
+                                        background:
+                                          'linear-gradient(to right, rgb(243 210 48 / 0.5), rgb(243 210 48 / 0))',
+                                      }}
+                                    />
+                                  )}
+
+                                  {/* Avatar at segment start */}
+                                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full overflow-hidden ring-2 ring-white bg-neutral-100 z-10">
+                                    <img
+                                      src={seg.image}
+                                      alt={seg.name}
+                                      className="w-full h-full object-cover"
+                                      style={
+                                        seg.crewId === 'ye-kaiwei'
+                                          ? {
+                                              transform: 'translateX(25%) scale(1.45)',
+                                              transformOrigin: '26% 35%',
+                                            }
+                                          : undefined
+                                      }
+                                    />
+                                  </div>
+
+                                  {/* Name label — muted for alumni segments */}
+                                  <div
+                                    className={`absolute top-full left-0 mt-1 text-[11px] whitespace-nowrap pl-1 ${
+                                      isOngoing
+                                        ? 'font-medium text-neutral-700'
+                                        : 'text-neutral-400'
+                                    }`}
+                                  >
+                                    {seg.name}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
