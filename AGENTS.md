@@ -159,11 +159,13 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 - Route map now extends from Karamay to Urumqi, with Urumqi highlighted as the latest visited stop.
 - Tracker Allen location updates can be checked through `pnpm update:city`; enabling hourly GitHub Actions requires a GitHub credential with `workflow` scope.
 - Route map now extends from Urumqi to Hami, with Hami highlighted as the latest visited stop.
+- Home "people on the road" timeline shows a province legs band (built from stops via `route-legs.ts`) with the current leg highlighted down through the lanes, role labels in a fixed bilingual gutter, and full-span lane rails.
 
 ## Changelog
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-07-28 | main | Added the route legs band, role label gutter, and lane rails to the home timeline; completed the Astro 7 + Vite 8 upgrade; documented the update-route-stop / update-team-member skills in README. |
 | 2026-07-09 | fix/yuque-first-image-cover | Replaced blank Yuque covers with article images, fixed compact journal date sorting, enabled 10-minute automatic sync, and merged into main. |
 | 2026-07-08 | fix/yuque-journal-sync | Restored Yuque journal sync by removing the failing dependency install, refreshed 3 public journal cards, skipped inaccessible 401/403 docs, and merged into main. |
 | 2026-07-02 | feature/location-auto-update | Added the Tracker Allen location update script, added Hami as stop 27, updated route copy to 28 cities, and merged into main. |
