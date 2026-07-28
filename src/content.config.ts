@@ -12,8 +12,9 @@ const notes = defineCollection({
     date: z.string(),
     description: z.string(),
     description_en: z.string().optional(),
-    image: z.url(),
+    image: z.string(),
     tags: z.array(z.string()),
+    tags_en: z.array(z.string()).optional(),
     yuqueUrl: z.url().optional(),
   }),
 });
