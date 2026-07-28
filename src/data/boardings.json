@@ -229,5 +229,16 @@
       "location_en": "Xi'an"
     },
     "disembarkedAt": null
+  },
+  {
+    "id": "b17",
+    "crewId": "zibo-chen",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-07-26",
+      "location": "西安",
+      "location_en": "Xi'an"
+    },
+    "disembarkedAt": null
   }
 ]
