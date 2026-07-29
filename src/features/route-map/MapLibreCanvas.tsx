@@ -453,7 +453,7 @@ export default function MapLibreCanvas({
         map.on('moveend', schedule);
         map.on('resize', schedule);
         // The map's own 'resize' can fire before the surrounding layout settles
-        // (the ridge/river band reflows under it), which would leave pins solved
+        // (the river band reflows under it), which would leave pins solved
         // against a taller box and clipped at the bottom edge.
         if (containerRef.current) {
           resizeObserver = new ResizeObserver(schedule);
@@ -537,6 +537,42 @@ export default function MapLibreCanvas({
       });
     }
   }, [selectedKey, ready, cities, activePadding]);
+
+  // Re-fit when the layout padding changes (CityPanel open/close/collapse): a
+  // selected city stays framed against the new inset; with no selection the
+  // whole-country view reclaims the freed space. The first run is skipped —
+  // the initial fit already applied the padding via fitBoundsOptions.
+  const fitKey = `${fitPadding.top},${fitPadding.bottom},${fitPadding.left},${fitPadding.right}`;
+  const lastFitKeyRef = useRef<string | null>(null);
+  const selectedKeyRef = useRef(selectedKey);
+  selectedKeyRef.current = selectedKey;
+  const citiesRef = useRef(cities);
+  citiesRef.current = cities;
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    if (lastFitKeyRef.current === fitKey) return;
+    const isFirst = lastFitKeyRef.current === null;
+    lastFitKeyRef.current = fitKey;
+    if (isFirst) return;
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const key = selectedKeyRef.current;
+    const city = key ? citiesRef.current.find((c) => c.label === key) : null;
+    if (city) {
+      mapRef.current.easeTo({
+        center: [city.lng, city.lat],
+        padding: activePadding(),
+        duration: reduce ? 0 : 500,
+        essential: true,
+      });
+    } else {
+      mapRef.current.fitBounds(CHINA_BOUNDS, {
+        padding: activePadding(),
+        duration: reduce ? 0 : 600,
+      });
+    }
+  }, [fitKey, ready, activePadding]);
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden border border-neutral-300/40">
