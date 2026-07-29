@@ -22,7 +22,8 @@ const notes = notesCollection.map((note) => ({
   description:
     locale === 'en' && note.data.description_en ? note.data.description_en : note.data.description,
   image: note.data.image,
-  tags: note.data.tags,
+  tags: locale === 'en' && note.data.tags_en ? note.data.tags_en : note.data.tags,
+  yuqueUrl: note.data.yuqueUrl,
 }));
 
 const allSolutions = [...solutionsData.tech, ...solutionsData.scenarios];
