@@ -11,26 +11,33 @@ import deconstructDict from '@/i18n/deconstruct';
 import type { Locale } from '@/i18n/index';
 import { localize } from '@/i18n/index';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { createDerivativeResolver, getPublicImageSize } from '@/lib/derivatives';
 
 const locale = (Astro.currentLocale ?? 'zh') as Locale;
 const t = deconstructDict[locale];
 
 const notesCollection = await getCollection('notes');
-const notes = notesCollection.map((note) => ({
-  date: note.data.date,
-  title: locale === 'en' && note.data.title_en ? note.data.title_en : note.data.title,
-  description:
-    locale === 'en' && note.data.description_en ? note.data.description_en : note.data.description,
-  image: note.data.image,
-  tags: locale === 'en' && note.data.tags_en ? note.data.tags_en : note.data.tags,
-  yuqueUrl: note.data.yuqueUrl,
-}));
+const notes = await Promise.all(
+  notesCollection.map(async (note) => ({
+    date: note.data.date,
+    title: locale === 'en' && note.data.title_en ? note.data.title_en : note.data.title,
+    description:
+      locale === 'en' && note.data.description_en ? note.data.description_en : note.data.description,
+    image: note.data.image,
+    tags: locale === 'en' && note.data.tags_en ? note.data.tags_en : note.data.tags,
+    yuqueUrl: note.data.yuqueUrl,
+    // 原始宽高供 <img> width/height 防 CLS;读不到时省略
+    ...(await getPublicImageSize(note.data.image)),
+  })),
+);
 
+// 解决方案卡片只渲染 112px 高,用 224px 派生图(构建时生成,缺失回退原图)
+const solutionThumb = createDerivativeResolver('/deconstruct/solutions/thumb');
 const allSolutions = [...solutionsData.tech, ...solutionsData.scenarios];
 const solutionById = new Map(
   allSolutions.map((sol) => {
     const loc = localize(sol, ['title'], locale);
-    return [sol.id, { id: sol.id, url: sol.url, image: sol.image, title: loc.title }];
+    return [sol.id, { id: sol.id, url: sol.url, image: solutionThumb(sol.image), title: loc.title }];
   })
 );
 
@@ -76,7 +83,7 @@ const courses = coursesData.map((course) => {
 
 <BaseLayout title={t['title']} description={t['description']}>
   <DeconstructContent
-    client:load
+    client:idle
     techModules={techModules}
     courses={courses}
     directions={directions}

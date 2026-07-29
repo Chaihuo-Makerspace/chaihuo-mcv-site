@@ -9,18 +9,26 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
-import type { RouteCity } from '@/features/route-map/types';
 import type { Locale } from '@/i18n/index';
 import { localePath } from '@/i18n/index';
 import type { LocalizedJournal } from '@/lib/journals';
 import { fadeUp, springTransition, stagger } from './motion';
 
 interface Props {
-  cities: RouteCity[];
+  cities: CityFilterOption[];
   journals: LocalizedJournal[];
   yuqueJournals?: YuqueJournalCard[];
   locale?: Locale;
   t: Record<string, string>;
+}
+
+// Slimmed stop shape shipped to the island: filter label + placeholder telemetry
+interface CityFilterOption {
+  id: string;
+  label: string;
+  altitude: string;
+  terrain: string;
+  challenge: string;
 }
 
 interface YuqueJournalCard {
@@ -30,7 +38,6 @@ interface YuqueJournalCard {
   date: string | null;
   city: string;
   href: string;
-  updatedAt: string | null;
   coverImage: string | null;
 }
 

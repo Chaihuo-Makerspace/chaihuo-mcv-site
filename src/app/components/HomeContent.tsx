@@ -11,7 +11,8 @@ import 'slick-carousel/slick/slick-theme.css';
 import { ChevronDown, ChevronLeft, ChevronRight, Compass, Cpu, Mountain } from 'lucide-react';
 import { MAP_BG } from '@/features/route-map/map-style';
 import RoutePreview from '@/features/route-map/RoutePreview';
-import type { Stop as RouteCity } from '@/features/route-map/stops-loader';
+import type { Stop } from '@/features/route-map/stops-loader';
+import type { ProjectableStop } from '@/features/route-map/types';
 import type { Locale } from '@/i18n/index';
 import { localePath } from '@/i18n/index';
 import {
@@ -28,6 +29,7 @@ import RoleTimeline from './RoleTimeline';
 
 interface HeroImage {
   image: string;
+  imageMobile?: string;
   alt?: string;
 }
 
@@ -63,12 +65,15 @@ interface TimelineData {
 }
 
 interface Props {
-  cities: RouteCity[];
+  cities: HomeStop[];
   heroImages: HeroImage[];
   timeline: TimelineData;
   locale?: Locale;
   t: Record<string, string>;
 }
+
+// Slimmed stop payload shipped to the island: map geometry + lastVisited fact card
+type HomeStop = ProjectableStop & Pick<Stop, 'terrain' | 'climate' | 'challenge'>;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DEPARTURE_DATE = Date.UTC(2026, 3, 22);
@@ -115,6 +120,11 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  // 非首张 slide 的背景图推迟到挂载后再下发,不与 LCP 首图抢带宽。
+  // SSR 与首次客户端渲染都只带首图,hydration 不会不一致。
+  const [deferRest, setDeferRest] = useState(true);
+  useEffect(() => setDeferRest(false), []);
+
   const SliderPrevArrow = ({ onClick }: { onClick?: () => void }) => (
     <button
       type="button"
@@ -157,18 +167,32 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
       {/* Hero Banner */}
       <section className="relative h-screen min-h-[600px] bg-black text-white">
         <Slider {...sliderSettings} className="h-full">
-          {heroImages.map((image) => (
-            <div key={image.image} className="h-screen min-h-[600px] relative">
-              <div
-                className="h-screen min-h-[600px] bg-cover bg-center"
-                style={{ backgroundImage: `url(${image.image})` }}
-                role="img"
-                aria-label={image.alt ?? t['hero.title']}
-              >
-                <div className="absolute inset-0 bg-black/40" />
+          {heroImages.map((image, index) => {
+            // 桌面/移动两套背景按断点互斥显示;display:none 的背景图浏览器不下载,
+            // 所以不会双拉。非首张推迟到挂载后再给 URL(见 deferRest)。
+            const withBg = (url: string) =>
+              index === 0 || !deferRest ? { backgroundImage: `url(${url})` } : undefined;
+            return (
+              <div key={image.image} className="h-screen min-h-[600px] relative">
+                <div
+                  className="h-screen min-h-[600px] bg-cover bg-center hidden md:block"
+                  style={withBg(image.image)}
+                  role="img"
+                  aria-label={image.alt ?? t['hero.title']}
+                >
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
+                <div
+                  className="h-screen min-h-[600px] bg-cover bg-center md:hidden"
+                  style={withBg(image.imageMobile ?? image.image)}
+                  role="img"
+                  aria-label={image.alt ?? t['hero.title']}
+                >
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </Slider>
 
         {/* Hero 内容 */}

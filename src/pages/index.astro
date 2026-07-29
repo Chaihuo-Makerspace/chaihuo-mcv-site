@@ -11,12 +11,36 @@ import { loadLocalizedStops } from '@/features/route-map/stops-loader';
 import home from '@/i18n/home';
 import type { Locale } from '@/i18n/index';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { createDerivativeResolver } from '@/lib/derivatives';
 import { withAvatarDerivatives } from '@/lib/people';
 
 const locale = (Astro.currentLocale ?? 'zh') as Locale;
 const t = home[locale];
 
+// 移动端 hero 轮播用 768px 派生图(public/heroes/mobile/,构建时生成,缺失回退原图)
+const heroMobile = createDerivativeResolver('/heroes/mobile');
+const heroImages = heroesData.map((h) => ({ ...h, imageMobile: heroMobile(h.image) }));
+const firstHero = heroImages[0];
+
 const cities = await loadLocalizedStops(locale);
+
+// Island payload:HomeContent/RoutePreview 只读地图几何与当前站点事实卡字段,
+// 事件/人物/散文等完整 Stop 数据不出服务端(timeline legs 仍用完整 cities)
+const islandCities = cities.map((c) => ({
+  id: c.id,
+  order: c.order,
+  visited: c.visited,
+  isOrigin: c.isOrigin,
+  anchor: c.anchor,
+  routeOnly: c.routeOnly,
+  label: c.label,
+  lng: c.lng,
+  lat: c.lat,
+  altitude: c.altitude,
+  terrain: c.terrain,
+  climate: c.climate,
+  challenge: c.challenge,
+}));
 
 const memberById = new Map(teamData.map((m) => [m.id, m] as const));
 const memberDisplayName = (id: string | undefined) => {
@@ -93,5 +117,8 @@ const timeline = {
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
-  <HomeContent client:load cities={cities} heroImages={heroesData} timeline={timeline} locale={locale} t={t} />
+  {/* 首屏 LCP:只预加载第一张轮播图,按视口宽度各取桌面/移动派生 */}
+  <link slot="head" rel="preload" as="image" href={firstHero.image} media="(min-width: 768px)" />
+  <link slot="head" rel="preload" as="image" href={firstHero.imageMobile} media="(max-width: 767.98px)" />
+  <HomeContent client:load cities={islandCities} heroImages={heroImages} timeline={timeline} locale={locale} t={t} />
 </BaseLayout>

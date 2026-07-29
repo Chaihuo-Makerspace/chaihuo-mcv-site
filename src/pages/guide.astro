@@ -22,7 +22,7 @@ const faqGroups = faqData.map((g) => {
 
 <BaseLayout title={t['title']} description={t['description']}>
   <GuideContent
-    client:load
+    client:idle
     faqGroups={faqGroups}
     locale={locale}
     t={t}

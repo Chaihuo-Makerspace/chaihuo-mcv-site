@@ -77,3 +77,9 @@ public/yuque-journals/card/
 
 # Generated avatar derivatives (rebuilt by `pnpm run images:avatars`)
 public/people/avatars/
+
+# Generated hero mobile variants (rebuilt by `pnpm run images:heroes`)
+public/heroes/mobile/
+
+# Generated solution thumbs (rebuilt by `pnpm run images:deconstruct`)
+public/deconstruct/solutions/thumb/
