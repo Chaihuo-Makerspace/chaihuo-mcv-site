@@ -48,7 +48,14 @@ interface TimelineData {
   roles: Array<{ key: string; label: string; sub?: string }>;
   segments: TimelineSegment[];
   monthMarkers: Array<{ label: string; pct: number }>;
-  legs: Array<{ key: string; label: string; fullName: string; startDate: string; endDate: string }>;
+  legs: Array<{
+    key: string;
+    label: string;
+    fullName: string;
+    startDate: string;
+    endDate: string;
+    planned: boolean;
+  }>;
   projectStart: string;
   projectEnd: string;
 }

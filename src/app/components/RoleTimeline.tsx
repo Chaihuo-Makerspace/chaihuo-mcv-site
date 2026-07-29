@@ -28,6 +28,7 @@ interface RouteLeg {
   fullName: string;
   startDate: string;
   endDate: string;
+  planned: boolean; // unvisited — dates are placeholders, laid out right of the today pointer
 }
 
 interface MonthMarker {
@@ -182,23 +183,59 @@ export default function RoleTimeline({
     return Array.from(groups, ([role, members]) => ({ role, members }));
   }, [activeSegments]);
 
+  // Last leg that has actually started — planned legs (unvisited) carry placeholder
+  // dates and are laid out right of the today pointer instead of by date.
+  const lastVisitedIdx = useMemo(() => {
+    for (let i = legs.length - 1; i >= 0; i--) if (!legs[i].planned) return i;
+    return -1;
+  }, [legs]);
+
   // The leg the journey is currently in — its column carries down through the lanes
-  const currentLegRange = useMemo(() => {
-    if (todayPct === null) return null;
+  const currentLegIdx = useMemo(() => {
+    if (todayPct === null || lastVisitedIdx < 0) return null;
     const idx = legs.findIndex(
-      (leg, i) => todayIso >= leg.startDate && (todayIso < leg.endDate || i === legs.length - 1),
+      (leg) => !leg.planned && todayIso >= leg.startDate && todayIso < leg.endDate,
     );
-    if (idx < 0) return null;
-    const leg = legs[idx];
+    // Between dated stops the exact leg may not contain today — fall back to the
+    // most recent visited leg.
+    return idx >= 0 ? idx : lastVisitedIdx;
+  }, [todayPct, todayIso, legs, lastVisitedIdx]);
+
+  const currentLegRange = useMemo(() => {
+    if (todayPct === null || currentLegIdx === null) return null;
+    const leg = legs[currentLegIdx];
     const startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
-    // Last leg is still in progress — the column reaches today, not the last stop
+    // The current leg is still in progress — the column reaches today, not the last stop
     const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
-    const endPct = Math.min(
-      100,
-      Math.max(startPct + 0.5, idx === legs.length - 1 ? Math.max(legEndPct, todayPct) : legEndPct),
-    );
+    const endPct = Math.min(100, Math.max(startPct + 0.5, Math.max(legEndPct, todayPct)));
     return { startPct, endPct };
-  }, [todayPct, todayIso, legs, projectStart, totalDays]);
+  }, [todayPct, currentLegIdx, legs, projectStart, totalDays]);
+
+  // Planned legs start where the today pointer stands (SSR: end of the last visited leg).
+  const plannedAnchorPct = useMemo(() => {
+    if (todayPct !== null) return todayPct;
+    if (lastVisitedIdx >= 0) {
+      return Math.min(
+        100,
+        Math.max(0, pctOf(legs[lastVisitedIdx].endDate, projectStart, totalDays)),
+      );
+    }
+    return 0;
+  }, [todayPct, lastVisitedIdx, legs, projectStart, totalDays]);
+
+  // Planned legs are near-term (weeks, not months) — they share the rest of the
+  // current month instead of stretching across the whole remaining timeline.
+  // Minimum span keeps the short labels readable when today is near month end.
+  const plannedEndPct = useMemo(() => {
+    const d = new Date(`${todayIso}T00:00:00Z`);
+    const nextMonth = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
+      .toISOString()
+      .slice(0, 10);
+    const monthEndPct = Math.min(100, pctOf(nextMonth, projectStart, totalDays));
+    return Math.min(100, Math.max(monthEndPct, plannedAnchorPct + 12));
+  }, [todayIso, projectStart, totalDays, plannedAnchorPct]);
+
+  const plannedCount = useMemo(() => legs.filter((leg) => leg.planned).length, [legs]);
 
   return (
     <section className="relative bg-gradient-to-b from-neutral-50 via-white to-white py-24 md:py-36 px-6 border-t border-neutral-100/50">
@@ -329,47 +366,64 @@ export default function RoleTimeline({
 
                   {legs.length > 0 && (
                     <div className="relative h-6 mb-3">
-                      {legs.map((leg, i) => {
-                        const startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
-                        // Last leg is still in progress — extend it to today
-                        const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
-                        const endPct = Math.min(
-                          100,
-                          Math.max(
-                            startPct + 0.5,
-                            i === legs.length - 1 && todayPct !== null
-                              ? Math.max(legEndPct, todayPct)
-                              : legEndPct,
-                          ),
-                        );
-                        const isCurrent =
-                          todayPct !== null &&
-                          todayIso >= leg.startDate &&
-                          (todayIso < leg.endDate || i === legs.length - 1);
-                        return (
-                          <div
-                            key={leg.key}
-                            title={leg.fullName}
-                            className={`absolute top-0 bottom-0 flex items-center justify-center overflow-hidden rounded-sm ${
-                              isCurrent ? 'bg-brand/25' : 'bg-neutral-100'
-                            }`}
-                            style={{
-                              left: `calc(${startPct}% + 1px)`,
-                              width: `calc(${endPct - startPct}% - 2px)`,
-                            }}
-                          >
-                            <span
-                              className={`text-[10px] whitespace-nowrap ${
+                      {(() => {
+                        let plannedSeen = 0;
+                        return legs.map((leg, i) => {
+                          const isCurrent = i === currentLegIdx;
+                          let startPct: number;
+                          let endPct: number;
+                          if (leg.planned) {
+                            // Planned legs have no real dates — fan them out evenly
+                            // across the rest of the current month, right of today.
+                            const plannedIdx = plannedSeen++;
+                            const span = Math.max(0, plannedEndPct - plannedAnchorPct);
+                            startPct = plannedAnchorPct + (span * plannedIdx) / plannedCount;
+                            endPct = plannedAnchorPct + (span * (plannedIdx + 1)) / plannedCount;
+                          } else {
+                            startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
+                            // The last visited leg is still in progress — extend it to today
+                            const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
+                            endPct = Math.min(
+                              100,
+                              Math.max(
+                                startPct + 0.5,
+                                i === lastVisitedIdx && todayPct !== null
+                                  ? Math.max(legEndPct, todayPct)
+                                  : legEndPct,
+                              ),
+                            );
+                          }
+                          return (
+                            <div
+                              key={leg.key}
+                              title={leg.fullName}
+                              className={`absolute top-0 bottom-0 flex items-center justify-center overflow-hidden rounded-sm ${
                                 isCurrent
-                                  ? 'font-semibold text-neutral-800'
-                                  : 'font-medium text-neutral-500'
+                                  ? 'bg-brand/25'
+                                  : leg.planned
+                                    ? 'bg-brand/10'
+                                    : 'bg-neutral-100'
                               }`}
+                              style={{
+                                left: `calc(${startPct}% + 1px)`,
+                                width: `calc(${endPct - startPct}% - 2px)`,
+                              }}
                             >
-                              {leg.label}
-                            </span>
-                          </div>
-                        );
-                      })}
+                              <span
+                                className={`text-[10px] whitespace-nowrap ${
+                                  isCurrent
+                                    ? 'font-semibold text-neutral-800'
+                                    : leg.planned
+                                      ? 'font-medium text-neutral-400'
+                                      : 'font-medium text-neutral-500'
+                                }`}
+                              >
+                                {leg.label}
+                              </span>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   )}
 

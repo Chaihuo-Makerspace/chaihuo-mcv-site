@@ -7,6 +7,7 @@ export type RouteLeg = {
   fullName: string; // localized full province name, for tooltips
   startDate: string; // ISO yyyy-mm-dd
   endDate: string; // ISO yyyy-mm-dd
+  planned: boolean; // all stops unvisited — dates are placeholders, position after today
 };
 
 // Province → short label per locale. zh uses 单字简称, en uses two-letter codes.
@@ -82,6 +83,13 @@ export function buildRouteLegs(stops: Stop[], locale: Locale): RouteLeg[] {
     const prev = legs[legs.length - 1];
     if (prev && prev.key === stop.province) {
       prev.endDate = date;
+      prev.planned = prev.planned && !stop.visited;
+      continue;
+    }
+    // Planned tail: the same province recurring later (e.g. 蒙→京→蒙 for
+    // 呼和浩特→北京→赤峰) folds into its first planned leg — the band shows
+    // each upcoming province once.
+    if (!stop.visited && legs.some((leg) => leg.planned && leg.key === stop.province)) {
       continue;
     }
     const short = PROVINCE_SHORT[stop.province];
@@ -91,6 +99,7 @@ export function buildRouteLegs(stops: Stop[], locale: Locale): RouteLeg[] {
       fullName: locale === 'en' ? (short?.enFull ?? stop.province) : stop.province,
       startDate: date,
       endDate: date,
+      planned: !stop.visited,
     });
   }
 
