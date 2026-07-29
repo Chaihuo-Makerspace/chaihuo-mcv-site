@@ -58,7 +58,7 @@ const route: Record<Locale, Record<string, string>> = {
     // Time / altitude / story-density ridge
     'route.ridge.title': '时间 · 海拔 · 故事密度',
     'route.ridge.caption': '{from} → {to} · {days} 天 · 最高 {alt}m',
-    'route.ridge.gap': '{days} 天，零篇日记（{from} → {to}）',
+    'route.ridge.gap': '{from} → {to} · {days} 天',
     // Story river
     'route.river.title': '故事流 · 按时间',
     'route.river.locate': '定位到该城',
@@ -119,7 +119,7 @@ const route: Record<Locale, Record<string, string>> = {
     'route.stats.journals': 'journals',
     'route.ridge.title': 'Time · Altitude · Story density',
     'route.ridge.caption': '{from} → {to} · {days} days · peak {alt}m',
-    'route.ridge.gap': '{days} days, no journals ({from} → {to})',
+    'route.ridge.gap': '{from} → {to} · {days} days',
     'route.river.title': 'Story river · by date',
     'route.river.locate': 'Locate this stop',
     'route.river.open': 'Open journal',
