@@ -92,16 +92,16 @@ See `docs/ai-iteration.md` for the recommended AI change loop.
 - Design tokens as CSS custom properties in `theme.css` (`:root` light, `.dark` dark mode)
 - `@theme inline { ... }` maps CSS vars to Tailwind tokens (`--color-*`, `--radius-*`)
 - Animation: `tw-animate-css` (CSS) + `motion` (Framer Motion JS)
-- **Color system** (60-30-10): Brand `brand` (#f3d230), surfaces `surface`/`surface-card`/`surface-dark`, neutrals `neutral-950`~`neutral-50`
+- **Color system**: Brand `brand` (#f3d230) as a small-area accent only (deep variant `brand-dark` for emphasis text/completed route), surfaces `surface`/`surface-card`/`surface-dark`, full neutral ramp `neutral-950`~`neutral-50` (all defined in `theme.css`; undefined shades silently do nothing)
 - **Use `text-brand`, `bg-surface`, `text-neutral-700` etc. — avoid hardcoded hex or Tailwind gray-xxx**
 
 ## Design System
 
 设计规则分三档,详见 `docs/DESIGN.md`,可视化对照页 `/elements`(中)/ `/en/elements`(英)。**开发任何功能(尤其全新功能)前先对照这三档:**
 
-- **🔒 不可破(Invariants):** 颜色/字号/圆角/间距令牌(源:`src/styles/theme.css`)、60-30-10 配色、`prefers-reduced-motion` 与对比度无障碍底线、中英对等。永远用 `text-brand`/`bg-surface` 等令牌,不硬编码 hex、不用 gray-xxx。
-- **🧭 要领会延续(Principles):** 探险黄克制使用、远征探索叙事、手绘在地感(非塑料 SaaS 感)、高级克制动效、中文优先英文对等、内容即主体。给全新功能(如地图类)用——结构可不同,气质要一致。
-- **🎨 自由发挥(Open):** 已有模式(卡片/手风琴/时间线/轮播/地图 feature)仅作参考,新功能可大胆偏离,只要守住前两档。
+- **🔒 不可破(Invariants):** 颜色/字号/圆角/间距令牌(源:`src/styles/theme.css`)、探险黄只做小面积强调(60-30-10 已废弃)、全页循环动画 ≤1 个、占位内容不外露、`prefers-reduced-motion` 与对比度无障碍底线、中英对等。永远用 `text-brand`/`bg-surface` 等令牌,不硬编码 hex、不用 gray-xxx;中性色只用 `theme.css` 已定义的档位(不存在的档位静默不生效)。
+- **🧭 要领会延续(Principles):** 黄是点睛不是底色、视觉焦点即叙事(当前位置一眼可得)、地图/数据可视化用暖纸底+明度阶梯(不做冷灰也不做同饱和度黄褐)、高级克制动效、中文优先英文对等、内容即主体结构扁平。给全新功能(如地图类)用——结构可不同,气质要一致。
+- **🎨 自由发挥(Open):** 已有模式(卡片/手风琴/时间线/轮播/地图 feature)仅作参考,`DESIGN.md` 附真实反例清单(黄土地图/HUD 套娃/占位符外露等),新功能可大胆偏离,只要守住前两档、不踩反例。
 
 新功能开发流程:先列本次涉及的 🔒 令牌确保零硬编码 → 想清楚如何延续 🧭 → 复用或自由设计 🎨。
 
@@ -160,11 +160,21 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 - Tracker Allen location updates can be checked through `pnpm update:city`; enabling hourly GitHub Actions requires a GitHub credential with `workflow` scope.
 - Route map now extends from Urumqi to Hami, with Hami highlighted as the latest visited stop.
 - Home "people on the road" timeline shows a province legs band (built from stops via `route-legs.ts`) with the current leg highlighted down through the lanes, role labels in a fixed bilingual gutter, and full-span lane rails.
+- Route page redesigned: neutral functional map coloring (brand-dark completed route, brand-light visited provinces), latest-stop pulse as the single focus animation, flat telemetry facts replacing the HUD panel, placeholder stop content scrubbed at load, mobile map framing fixed, and home `RoutePreview` palette synced. Route pages hydrate on `client:idle` and start the maplibre chunk fetch at module scope for faster first paint.
+- `docs/DESIGN.md` rewritten after the route redesign pilot: 60-30-10 retired, yellow-as-accent codified, full neutral ramp documented, anti-pattern list added.
+- Route extended beyond Xi'an with the confirmed planned leg 临汾 → 太原 → 呼和浩特 → 北京 → 赤峰 (orders 38–42, all `visited: false`); copy updated to 24 省 42 城; `PROVINCE_SHORT` gained 晋/蒙/京; location aliases added.
+- The 2026 Year-of-the-Horse motif is the designer's original horse path (`horseRouteD`), inverted and uniformly scaled into `HORSE_TARGET` (80–128°E, 22–50°N — the same fit as the long-running production version, reaching 江浙沪 in the east and 深圳 in the south); out-of-border points are pulled inward individually. Rendered as a background watermark: faint brand fill (0.12) + dashed brand outline with a paper casing, and explained by a map legend (已走过 / 计划段 / 马年愿景线).
+- Route CityPanel now links real journals: `getRouteJournals()` (`src/lib/journals.ts`) merges local md journals with `yuque-journals.json` (deduped by city+date, local wins; titles stripped of the "基地车日记｜日期｜" prefix), so recently visited stops (Hami→Xi'an) show real events with cover thumbnails and external Yuque links. Auto-generated filler sentences ("…路线图记录该城市节点") are scrubbed at load, and the elevation profile's vertical scale is computed from data (was hardcoded 1510m, clipping 4000m+ stops). The old "地学事实" right column (big altitude number, climate/terrain prose) was removed: altitude + terrain step live in the profile header, and only the field "challenge" survives — promoted to a one-line brand-ruled quote in the main column.
+- Yuque journal city inference (`scripts/lib/yuque-journal-sync.mjs` `CITY_KEYWORDS`) is a stop-level merge table: small places/transit points fold into route stops (定边→榆林, 肃南→张掖, 四川科技馆/绵阳/宜宾→成都, 赫章→毕节, 格凸河→贵阳, 七百弄/三都→柳州, 浩坤湖/广西科技馆→南宁, etc.). Keyword order is priority (later stops first) so "A→B" transit titles attach to the destination; unknown titles still fall back to `city: "yuque"` and are hidden from the route panel. All 50 synced journals currently map to real stops.
 
 ## Changelog
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-07-28 | main | Wired Yuque journals into the route CityPanel (getRouteJournals merge + covers + external links), scrubbed auto-generated filler stop sentences, fixed the elevation profile scale (dynamic maxAlt instead of hardcoded 1510m), and decluttered the panel: removed the 地学事实 column (altitude/terrain-step folded into the profile header, climate/terrain prose dropped), keeping only the field challenge as a one-line quote. |
+| 2026-07-28 | main | Rewrote Yuque city inference as a stop-level merge table (CITY_KEYWORDS): all 50 synced journals now map to real route stops (small places fold into nearest leg stops, transit "A→B" titles attach to the destination), so every visited city's panel shows its real field journals. |
+| 2026-07-28 | main | Added the confirmed planned leg Xi'an→Linfen→Taiyuan→Hohhot→Beijing→Chifeng (24 省 42 城, Beijing connects directly to Chifeng), and reworked the horse motif: designer's original horse with the production HORSE_TARGET fit (reaches 江浙沪 and 深圳), outline-only rendering (fill removed — it read as a blob) + casing + legend; zoom control moved clear of the CityPanel. |
+| 2026-07-28 | main | Redesigned /route (functional map colors, flat CityPanel, placeholder scrubbing, mobile fitPadding fix, single focus animation), synced RoutePreview palette, fixed route perf (client:idle + module-scope maplibre import + desktop drawer skip), rewrote DESIGN.md, completed the neutral ramp in theme.css, and aligned harness tests with route-only stop filtering. |
 | 2026-07-28 | feature/deconstruct-yuque-notes | Replaced the three fake deconstruct-page modification logs with three real Yuque articles (covers downloaded locally, bilingual titles/descriptions/tags), and made note cards link to their Yuque articles. |
 | 2026-07-28 | main | Added the route legs band, role label gutter, and lane rails to the home timeline; completed the Astro 7 + Vite 8 upgrade; documented the update-route-stop / update-team-member skills in README. |
 | 2026-07-09 | fix/yuque-first-image-cover | Replaced blank Yuque covers with article images, fixed compact journal date sorting, enabled 10-minute automatic sync, and merged into main. |

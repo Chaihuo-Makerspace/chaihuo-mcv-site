@@ -4,7 +4,7 @@ const route: Record<Locale, Record<string, string>> = {
   zh: {
     // Page metadata
     'route.pageTitle': '行程路线',
-    'route.pageDesc': '跟随柴火基地车，穿越中国 21 省 37 城。',
+    'route.pageDesc': '跟随柴火基地车，穿越中国 24 省 42 城。',
     // Status and labels
     'route.status.visited': '已抵达',
     'route.status.planned': '计划中',
@@ -40,10 +40,13 @@ const route: Record<Locale, Record<string, string>> = {
     'theme.industry': '产业',
     'theme.ariaGroup': '按主题筛选地图',
     'map.recenter': '回到全图',
+    'map.legend.visited': '已走过',
+    'map.legend.planned': '计划段',
+    'map.legend.horseYear': '2026 · 马年愿景线',
   },
   en: {
     'route.pageTitle': 'Journey Route',
-    'route.pageDesc': 'Follow Chaihuo MCV across 21 provinces and 37 cities in China.',
+    'route.pageDesc': 'Follow Chaihuo MCV across 24 provinces and 42 cities in China.',
     'route.status.visited': 'Visited',
     'route.status.planned': 'Planned',
     'route.status.origin': 'Origin',
@@ -75,6 +78,9 @@ const route: Record<Locale, Record<string, string>> = {
     'theme.industry': 'Industry',
     'theme.ariaGroup': 'Filter the map by theme',
     'map.recenter': 'Reset view',
+    'map.legend.visited': 'Driven',
+    'map.legend.planned': 'Planned',
+    'map.legend.horseYear': '2026 · Year of the Horse vision line',
   },
 };
 

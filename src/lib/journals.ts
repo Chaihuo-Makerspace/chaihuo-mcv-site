@@ -1,4 +1,5 @@
 import { type CollectionEntry, getCollection } from 'astro:content';
+import yuqueJournalsData from '@/data/yuque-journals.json';
 import type { Stop } from '@/features/route-map/stops-loader';
 import type { Locale } from '@/i18n/index';
 
@@ -74,4 +75,41 @@ export function localizeJournal(
     yuqueUrl: d.yuqueUrl,
     tags: d.tags,
   };
+}
+
+export interface RouteJournal {
+  slug: string;
+  title: string;
+  date: string;
+  status: string;
+  city: string;
+  href?: string;
+  coverImage?: string;
+}
+
+// "基地车日记｜2026.05.22｜基地车首保…" / "基地车日记|2026.0727 西安理工…" → 去头
+const YUQUE_TITLE_PREFIX = /^基地车日记\s*[|｜]\s*[\d.\-–/]+\s*[|｜]?\s*/;
+
+/** 本地日记 + 语雀日记（同城同日去重，本地优先），供路线页城市面板使用。 */
+export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<RouteJournal[]> {
+  const local = (await getAllJournals()).map((j) => {
+    const l = localizeJournal(j, cities, locale);
+    return { slug: l.slug, title: l.title, date: l.date, status: l.status as string, city: l.city };
+  });
+  const localKeys = new Set(local.map((j) => `${j.city}@${j.date}`));
+  const stopIds = new Set(cities.map((c) => c.id));
+  const yuque: RouteJournal[] = [];
+  for (const j of yuqueJournalsData.journals) {
+    if (!j.date || !stopIds.has(j.city) || localKeys.has(`${j.city}@${j.date}`)) continue;
+    yuque.push({
+      slug: j.slug,
+      title: j.title.replace(YUQUE_TITLE_PREFIX, ''),
+      date: j.date,
+      status: 'published',
+      city: j.city,
+      href: j.href,
+      coverImage: j.coverImage ?? undefined,
+    });
+  }
+  return [...local, ...yuque].sort((a, b) => b.date.localeCompare(a.date));
 }

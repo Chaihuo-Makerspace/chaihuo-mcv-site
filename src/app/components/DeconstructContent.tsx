@@ -455,6 +455,7 @@ export default function DeconstructContent({
                     href={course.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={`${t['cocreate.courseLink']}: ${course.code} ${course.title}`}
                     className="mt-4 flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 transition-colors duration-200 cursor-pointer"
                   >
                     {t['cocreate.courseLink']}

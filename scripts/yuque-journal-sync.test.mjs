@@ -59,7 +59,7 @@ describe('yuque journal sync helpers', () => {
       {
         type: 'DOC',
         visible: 1,
-        title: '基地车日记｜2026.05.17｜四川科技馆',
+        title: '基地车日记｜2026.05.17｜某地未知事件',
         url: 'tyfswi0moe2b5r5i',
         doc_id: 270805168,
       },
@@ -69,7 +69,7 @@ describe('yuque journal sync helpers', () => {
       {
         id: '270805168',
         slug: 'tyfswi0moe2b5r5i',
-        title: '基地车日记｜2026.05.17｜四川科技馆',
+        title: '基地车日记｜2026.05.17｜某地未知事件',
         date: '2026-05-17',
         city: 'yuque',
         href: 'https://www.yuque.com/mouseart/mcv/tyfswi0moe2b5r5i',

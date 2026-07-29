@@ -8,7 +8,7 @@ const Slider = (
 ) as typeof ReactSlick;
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Compass, Cpu, Mountain } from 'lucide-react';
 import { MAP_BG } from '@/features/route-map/map-style';
 import RoutePreview from '@/features/route-map/RoutePreview';
 import type { Stop as RouteCity } from '@/features/route-map/stops-loader';
@@ -321,10 +321,7 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
                   </div>
                   <div className="text-xl font-bold font-mono text-neutral-900 mt-1 flex items-center gap-2">
                     <span>{departureDays}</span>
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75 motion-reduce:animate-none"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
-                    </span>
+                    <span className="inline-flex rounded-full h-2 w-2 bg-brand" />
                   </div>
                 </div>
 
@@ -341,58 +338,75 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                     {t['telemetry.planProvinces']}
                   </div>
-                  <div className="text-base font-bold text-neutral-900 mt-1">21 省 37 城</div>
+                  <div className="text-base font-bold text-neutral-900 mt-1">24 省 42 城</div>
                 </div>
               </motion.div>
 
-              {/* 车载环境信息实时流 (Live Environment Log) */}
+              {/* 当前站点事实卡(与 /route CityPanel 同一语言:扁平定义列表,纸感浅色) */}
               {lastVisited && (
                 <motion.div
                   variants={fadeUp}
                   transition={springTransition}
-                  className="bg-neutral-900/95 text-white p-4.5 rounded-xl border border-white/10 shadow-lg font-mono relative overflow-hidden"
+                  className="bg-surface-card border border-neutral-300/60 rounded-xl p-5 shadow-sm"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.01] to-transparent bg-[length:100%_4px] pointer-events-none" />
-
-                  <div className="flex items-center justify-between border-b border-neutral-900 pb-2 mb-3 text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse motion-reduce:animate-none" />
-                      {/* TODO: 信息呈现待重新构思 — 旧排版残留,先不显示 */}
-                    </span>
-                    <span>live feed</span>
+                  <div className="flex items-baseline justify-between gap-3 pb-3 border-b border-neutral-300/60">
+                    <div>
+                      <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider block">
+                        {locale === 'zh' ? '当前站点' : 'CURRENT STOP'}
+                      </span>
+                      <span className="text-lg font-bold text-neutral-900 mt-0.5 block">
+                        {lastVisited.label}
+                      </span>
+                    </div>
+                    <p className="text-xl font-bold font-mono text-neutral-900 leading-none">
+                      {lastVisited.altitude}
+                      <span className="text-[10px] font-sans font-semibold text-neutral-500">
+                        {' '}
+                        m
+                      </span>
+                    </p>
                   </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-neutral-500">ALT / 海拔</span>
-                      <span className="text-brand font-bold">{lastVisited.altitude} m</span>
-                    </div>
-                    <div className="flex justify-between items-baseline gap-4">
-                      <span className="text-neutral-500 shrink-0">GEO / 地貌</span>
-                      <span
-                        className="text-neutral-100 text-right truncate max-w-[200px]"
-                        title={lastVisited.terrain}
-                      >
-                        {lastVisited.terrain}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-baseline gap-4">
-                      <span className="text-neutral-500 shrink-0">CLM / 气候</span>
-                      <span
-                        className="text-neutral-100 text-right truncate max-w-[200px]"
-                        title={lastVisited.climate}
-                      >
-                        {lastVisited.climate}
-                      </span>
-                    </div>
-                    <div className="border-t border-neutral-900/60 pt-2 mt-2 flex flex-col gap-1">
-                      <span className="text-[10px] text-brand/75 uppercase tracking-wider font-semibold">
-                        Current Tech Challenge / 实时技术挑战:
-                      </span>
-                      <span className="text-neutral-300 leading-relaxed text-[11px] font-sans mt-0.5">
-                        {lastVisited.challenge}
-                      </span>
-                    </div>
-                  </div>
+                  <dl className="pt-3 flex flex-col gap-2.5 text-left">
+                    {lastVisited.terrain && (
+                      <div className="flex gap-2.5">
+                        <Mountain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
+                        <div>
+                          <dt className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
+                            {locale === 'zh' ? '地貌' : 'TERRAIN'}
+                          </dt>
+                          <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
+                            {lastVisited.terrain}
+                          </dd>
+                        </div>
+                      </div>
+                    )}
+                    {lastVisited.climate && (
+                      <div className="flex gap-2.5">
+                        <Compass className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
+                        <div>
+                          <dt className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
+                            {locale === 'zh' ? '气候' : 'CLIMATE'}
+                          </dt>
+                          <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
+                            {lastVisited.climate}
+                          </dd>
+                        </div>
+                      </div>
+                    )}
+                    {lastVisited.challenge && (
+                      <div className="flex gap-2.5">
+                        <Cpu className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
+                        <div>
+                          <dt className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
+                            {locale === 'zh' ? '行车挑战' : 'CHALLENGE'}
+                          </dt>
+                          <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-3">
+                            {lastVisited.challenge}
+                          </dd>
+                        </div>
+                      </div>
+                    )}
+                  </dl>
                 </motion.div>
               )}
 
@@ -431,17 +445,14 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.6, duration: 0.4 }}
-                    className="absolute top-4 left-4 bg-neutral-900/90 backdrop-blur-md text-white px-3.5 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 border border-white/10"
+                    className="absolute top-4 left-4 bg-surface-card/90 backdrop-blur-md px-3.5 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 border border-neutral-300/60"
                   >
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75 motion-reduce:animate-none"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand"></span>
-                    </span>
+                    <span className="inline-flex rounded-full h-2.5 w-2.5 bg-brand ring-2 ring-brand/30" />
                     <div>
                       <span className="text-[9px] text-neutral-500 uppercase tracking-wider font-semibold block leading-none">
                         {t['telemetry.current']}
                       </span>
-                      <span className="text-sm font-bold text-white leading-tight mt-0.5 block">
+                      <span className="text-sm font-bold text-neutral-900 leading-tight mt-0.5 block">
                         {lastVisited.label}
                       </span>
                     </div>
