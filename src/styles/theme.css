@@ -289,17 +289,30 @@
   cursor: grabbing;
 }
 
+/* The marker is a zero-size origin pinned to the stop's coordinate; the dot,
+   the hit area and the label are positioned around it. The label offset is
+   written by placeLabels() (label-layout.ts) — the same solver the home map
+   uses — so labels never collide and are culled when no readable spot exists. */
 .mlc-marker {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  /* Must stay absolute: .maplibregl-marker positions itself with an inline
+     transform and relies on absolute placement. Overriding it with `relative`
+     drops the marker into normal flow and shifts every offset it owns. */
+  position: absolute;
+  /* Above the photo pins: a pin body must never swallow a click meant for a
+     neighbouring stop's dot. */
+  z-index: 2;
+  /* A real 28px hit target rather than a zero-size box: MapLibre's
+     anchor="center" centres it on the coordinate, and the dot/label are
+     placed from that centre. Zero-size markers are invisible to hit-testing
+     and to accessibility/e2e tooling. */
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
   cursor: pointer;
   background: transparent;
   border: 0;
-  /* Enlarged hit area (negative margin keeps visual position) so dots are easy to click. */
-  padding: 8px 10px;
-  margin: -8px -10px;
-  font-size: 11px;
+  padding: 0;
+  margin: 0;
   font-weight: 600;
   color: var(--neutral-900);
   white-space: nowrap;
@@ -307,18 +320,53 @@
 }
 /* Label stays legible over the textured paper map. */
 .mlc-marker .mlc-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--neutral-700);
+  paint-order: stroke;
   text-shadow: 0 0 3px #ffffff, 0 0 6px #ffffff, 0 1px 1px rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+.mlc-marker--latest .mlc-label {
+  color: var(--neutral-900);
+  font-weight: 800;
 }
 .mlc-marker .mlc-dot {
-  width: 10px;
-  height: 10px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
   border-radius: 9999px;
+  /* Ink, not yellow: brand is spent on the current position alone. */
   background: var(--neutral-500);
   box-shadow: 0 0 0 2px #ffffff, 0 1px 2px rgba(0, 0, 0, 0.18);
   transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.2s ease;
 }
 .mlc-marker--visited .mlc-dot {
+  background: var(--neutral-700);
+}
+/* Dot radius carries journal density (1–3 vs 4+ field journals). */
+.mlc-marker--some .mlc-dot {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+}
+.mlc-marker--dense .mlc-dot {
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+}
+.mlc-marker--latest .mlc-dot {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
   background: var(--brand);
+  box-shadow: 0 0 0 2.5px #ffffff, 0 1px 3px rgba(0, 0, 0, 0.22);
 }
 /* Clear hover feedback — perceivable click target. */
 .mlc-marker:hover .mlc-dot {
@@ -328,11 +376,12 @@
 .mlc-marker:hover .mlc-label {
   color: var(--brand-dark);
 }
-/* Theme lens — matched pops: scale + brand ring + bold label. */
+/* Theme lens — matched pops: scale + brand-dark ring + bold label. The ring
+   reads as emphasis without turning a dozen dots into yellow blobs. */
 .mlc-marker--match .mlc-dot {
-  transform: scale(1.4);
-  background: var(--brand);
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px var(--brand), 0 2px 5px rgba(0, 0, 0, 0.2);
+  transform: scale(1.35);
+  background: var(--neutral-900);
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4.5px var(--brand-dark), 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 .mlc-marker--match .mlc-label {
   font-weight: 800;
@@ -353,14 +402,101 @@
   color: var(--brand-dark);
 }
 
-/* 低缩放紧凑模式:隐藏普通标签防重叠,关键标签(最新/选中/hover)保留 */
-.mlc-compact .mlc-marker .mlc-label {
+/* ─── 照片钉:把日记贴回它发生的地方 ───
+   钉自带城市名题注,所以被钉住的城不再单独排标签(同一个名字不出现两遍)。
+   位置同样由成本函数求解,钉框会被 placeLabels() 当作障碍物避开。 */
+/* The button is the zero-size marker MapLibre positions; .mlc-pin-body carries
+   the solver's offset, so the two transforms never fight. */
+.mlc-pin {
+  position: absolute;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+.mlc-pin-body {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  padding: 3px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(60, 50, 20, 0.26);
+  transition: box-shadow 0.2s ease;
+}
+.mlc-pin:hover .mlc-pin-body {
+  box-shadow: 0 4px 12px rgba(60, 50, 20, 0.34);
+}
+.mlc-pin-cover {
+  display: block;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--neutral-100);
+}
+.mlc-pin-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mlc-pin-cap {
+  display: block;
+  padding-top: 2px;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--neutral-900);
+  white-space: nowrap;
+}
+.mlc-pin-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: var(--neutral-900);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 17px;
+  text-align: center;
+}
+.mlc-pin--dimmed {
+  opacity: 0.35;
+}
+.mlc-pin--selected .mlc-pin-body {
+  box-shadow: 0 0 0 2.5px var(--brand), 0 4px 12px rgba(60, 50, 20, 0.3);
+}
+/* Hairlines from each pin back to its stop. */
+.mlc-leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+/* 愿景模式:事实层整体退场,让 2026 马年线成为唯一主体。
+   用 display 而不是 opacity —— MapLibre 的 Marker 自己会写内联 opacity,
+   内联样式会盖掉这里的规则。 */
+.mlc-vision .mlc-marker,
+.mlc-vision .mlc-pin,
+.mlc-vision .mlc-leaders {
   display: none;
 }
-.mlc-compact .mlc-marker--latest .mlc-label,
-.mlc-compact .mlc-marker--selected .mlc-label,
-.mlc-compact .mlc-marker:hover .mlc-label {
-  display: inline;
+
+/* 回到全图按钮 — 与内置缩放控件同一套外观 */
+.mlc-recenter {
+  font-size: 15px;
+  line-height: 1;
 }
 
 /* ─── MapLibre 内置控件主题化(替换默认黑方块) ─── */

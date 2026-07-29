@@ -76,6 +76,7 @@ export function buildRouteSource(stops: Stop[]) {
   const sorted = [...stops].sort((a, b) => a.order - b.order);
   const pts = sorted.map((s) => [s.lng, s.lat] as [number, number]);
   const features: Feature<LineString>[] = [];
+  const lastLeg = Math.max(1, sorted.length - 2);
   for (let i = 0; i < sorted.length - 1; i++) {
     const p0 = pts[i - 1] ?? pts[i];
     const p1 = pts[i];
@@ -86,7 +87,10 @@ export function buildRouteSource(stops: Stop[]) {
     const bulge = Math.max(...curve.map((p) => chordDeviation(p, p1, p2)));
     features.push({
       type: 'Feature',
-      properties: { visited: sorted[i].visited && sorted[i + 1].visited },
+      // `t` = how late in the journey this leg is (0 = first, 1 = last). The
+      // route layer interpolates lightness along it, so direction of travel is
+      // readable without arrows: early legs pale, recent legs near-ink.
+      properties: { visited: sorted[i].visited && sorted[i + 1].visited, t: i / lastLeg },
       geometry: {
         type: 'LineString',
         coordinates: bulge > MAX_BULGE_RATIO * chordLen ? [p1, p2] : curve,
@@ -102,8 +106,9 @@ export function buildRouteSource(stops: Stop[]) {
 /**
  * Tile-less MapLibre style: blank background + our own GeoJSON layers.
  * Warm paper base with lightness-step hierarchy: paper → paper-white
- * provinces → highlighter-yellow visited provinces; brand-dark solid for the
- * completed route, muted dashes for the planned leg. No glyphs/sprite/tiles.
+ * provinces → one-step-deeper visited provinces; the completed route ramps
+ * pale→ink along the journey, planned legs stay muted dashes. Brand yellow is
+ * spent on the current position only. No glyphs/sprite/tiles.
  */
 export function buildMapStyle(
   routeData: FeatureCollection,
@@ -124,10 +129,14 @@ export function buildMapStyle(
         type: 'fill',
         source: 'provinces',
         paint: {
+          // Geography is background, not subject. The old highlighter yellow
+          // (#f7e9bd) competed with the route, the stop dots and the horse for
+          // the same hue; visited provinces now read as one lightness step
+          // deeper than paper — present, never loud.
           'fill-color': [
             'case',
             ['in', ['get', 'name'], ['literal', PROVINCE_VISITED]],
-            '#f7e9bd', // 荧光笔标记 — visited
+            '#ece5d2', // 走过 — 暖中性,比纸白深半档
             '#fdfbf3', // 纸白 — unvisited
           ],
           'fill-opacity': 0.96,
@@ -140,28 +149,27 @@ export function buildMapStyle(
         paint: { 'line-color': '#ddd5c0', 'line-width': 0.8 },
       },
       {
-        // 2026 马年愿景:背景级存在——brand 淡填充 + 虚线轮廓(纸色套管托底)
+        // 2026 马年愿景 — a WISH, not a fact, so it no longer shares the fact
+        // layer's ink. Hidden in 足迹 mode and revealed as the subject in 愿景
+        // mode (MapLibreCanvas drives the opacities).
         id: 'horse-fill',
         type: 'fill',
         source: 'horse',
-        paint: { 'fill-color': '#f3d230', 'fill-opacity': 0.12 }, // --brand watermark
-      },
-      {
-        id: 'horse-casing',
-        type: 'line',
-        source: 'horse',
-        paint: { 'line-color': '#fdfbf3', 'line-width': 4.5, 'line-opacity': 0.95 },
-        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'fill-color': '#f3d230',
+          'fill-opacity': 0,
+          'fill-opacity-transition': { duration: 420 },
+        },
       },
       {
         id: 'horse-line',
         type: 'line',
         source: 'horse',
         paint: {
-          'line-color': '#f3d230',
-          'line-width': 1.6,
-          'line-opacity': 0.85,
-          'line-dasharray': [2.5, 1.8],
+          'line-color': '#b8960a',
+          'line-width': 3,
+          'line-opacity': 0,
+          'line-opacity-transition': { duration: 420 },
         },
         layout: { 'line-cap': 'round', 'line-join': 'round' },
       },
@@ -170,11 +178,19 @@ export function buildMapStyle(
         type: 'line',
         source: 'route',
         paint: {
-          'line-color': ['case', ['get', 'visited'], '#b8960a', '#a8a295'], // brand-dark / warm-muted
-          'line-width': ['case', ['get', 'visited'], 3.5, 2],
+          // Visited legs ramp pale → ink along `t` (direction of travel);
+          // planned legs stay a muted warm neutral dash.
+          'line-color': [
+            'case',
+            ['get', 'visited'],
+            ['interpolate', ['linear'], ['get', 't'], 0, '#a99a5e', 1, '#5c4d08'],
+            '#a8a295',
+          ],
+          'line-width': ['case', ['get', 'visited'], 3.4, 2],
           'line-dasharray': ['case', ['get', 'visited'], ['literal', [1, 0]], ['literal', [2, 2]]],
           'line-opacity': 1,
           'line-opacity-transition': { duration: 300 },
+          'line-color-transition': { duration: 420 },
         },
         layout: { 'line-cap': 'round', 'line-join': 'round' },
       },

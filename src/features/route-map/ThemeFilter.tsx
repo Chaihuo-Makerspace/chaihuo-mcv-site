@@ -21,13 +21,15 @@ const ACTIVE_CLS = 'bg-brand text-brand-foreground border-brand';
 const IDLE_CLS = 'bg-white text-neutral-700 border-neutral-200 hover:border-neutral-900';
 
 export default function ThemeFilter({ counts, active, onSelect, t }: Props) {
+  // Chips wrap instead of scrolling horizontally: the route page's left rail is
+  // 320px wide, and a scroll row cropped the last chip down to half an icon.
   return (
-    // biome-ignore lint/a11y/useSemanticElements: 横向滚动的筛选 chip 组无对应原生元素,role="group" + aria-label 是恰当的 ARIA 模式
+    // biome-ignore lint/a11y/useSemanticElements: 筛选 chip 组无对应原生元素,role="group" + aria-label 是恰当的 ARIA 模式
     <div
       role="group"
       aria-label={t['theme.ariaGroup'] ?? '按主题筛选地图'}
       data-theme-filter="true"
-      className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1"
+      className="flex flex-wrap items-center gap-2 py-1"
     >
       <button
         type="button"
