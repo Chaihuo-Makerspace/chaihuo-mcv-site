@@ -25,6 +25,8 @@ interface SerializedJournal {
   city: string;
   href?: string;
   coverImage?: string;
+  coverThumb?: string;
+  coverCard?: string;
 }
 
 /**
@@ -196,8 +198,10 @@ export default function CityPanel({
               >
                 {lead.coverImage && (
                   <img
-                    src={lead.coverImage}
+                    src={lead.coverCard ?? lead.coverImage}
                     alt=""
+                    width={360}
+                    height={128}
                     loading="lazy"
                     decoding="async"
                     className="h-32 w-full object-cover"
@@ -232,8 +236,10 @@ export default function CityPanel({
                         >
                           {j.coverImage && (
                             <img
-                              src={j.coverImage}
+                              src={j.coverThumb ?? j.coverImage}
                               alt=""
+                              width={44}
+                              height={32}
                               loading="lazy"
                               decoding="async"
                               className="h-8 w-11 flex-none rounded object-cover"

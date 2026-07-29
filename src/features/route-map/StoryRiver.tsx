@@ -20,6 +20,7 @@ export interface RiverJournal {
   city: string;
   href?: string;
   coverImage?: string;
+  coverThumb?: string;
 }
 
 interface Props {
@@ -99,10 +100,13 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
             >
               {j.coverImage ? (
                 <img
-                  src={j.coverImage}
+                  src={j.coverThumb ?? j.coverImage}
                   alt=""
+                  width={104}
+                  height={62}
                   loading="lazy"
                   decoding="async"
+                  fetchPriority="low"
                   className={`h-[62px] w-[104px] rounded-lg object-cover bg-neutral-100 transition-shadow duration-200 group-hover:shadow-md ${
                     active ? 'ring-2 ring-brand ring-offset-1' : ''
                   }`}

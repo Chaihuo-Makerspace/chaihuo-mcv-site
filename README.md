@@ -83,7 +83,7 @@ src/
 
 仓库在 `.agents/skills/`（本地目录，不入库）维护了两个项目级 skill，覆盖最高频的两类例行更新。让 AI agent 按对应 skill 的步骤清单执行，可以避免漏掉跨文件同步点：
 
-- **车到新城市 / 进入新省** → `update-route-stop`：新增或更新 `src/content/stops/` 站点、翻转 `visited`、省份填色、首页时间轴的省际路段带（`route-legs.ts` 的 `PROVINCE_SHORT`)、"N 省 N 城"文案等 8 项同步清单；也可先跑 `pnpm update:city` 自动生成站点骨架再手动补齐。
+- **车到新城市 / 进入新省** → `update-route-stop`：新增或更新 `src/content/stops/` 站点、翻转 `visited`、省份填色、首页时间轴的省际路段带（`route-legs.ts` 的 `PROVINCE_SHORT`)、"N 省 N 城"文案、语雀日记词表等 10 项同步清单；也说明了 /route 三视图（地图照片钉 / 时间-海拔脊 / 故事流）各自吃哪些字段——尤其 `event.date` 现在决定站点在时间轴上的位置。也可先跑 `pnpm update:city` 自动生成站点骨架再手动补齐。
 - **加成员 / 换头像 / 交接换班** → `update-team-member`:`team.json`（档案）→ `boardings.json`（登车与交接）→ `public/people/`（头像）的数据流，以及角色标签、`role_en` 一致性的注意事项。
 
 两类更新都以 `pnpm check` 收尾验证；渲染行为有变化再跑 `pnpm harness`。

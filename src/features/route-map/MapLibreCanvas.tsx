@@ -22,6 +22,8 @@ export type MapViewMode = 'track' | 'vision';
 export interface MapPinSource {
   city: string;
   coverImage?: string;
+  /** 208px WebP derivative — pins render at 36–58px, never the 960px original. */
+  coverThumb?: string;
   date: string;
 }
 
@@ -107,14 +109,15 @@ export default function MapLibreCanvas({
   const pinData = useMemo(() => {
     const byCity = new Map<string, { n: number; cover?: string; date: string }>();
     for (const j of journals) {
+      const cover = j.coverThumb ?? j.coverImage;
       const prev = byCity.get(j.city);
       if (!prev) {
-        byCity.set(j.city, { n: 1, cover: j.coverImage, date: j.date });
+        byCity.set(j.city, { n: 1, cover, date: j.date });
         continue;
       }
       prev.n += 1;
-      if (j.coverImage && j.date >= prev.date) {
-        prev.cover = j.coverImage;
+      if (cover && j.date >= prev.date) {
+        prev.cover = cover;
         prev.date = j.date;
       }
     }
@@ -408,6 +411,7 @@ export default function MapLibreCanvas({
             img.alt = '';
             img.loading = 'lazy';
             img.decoding = 'async';
+            img.fetchPriority = 'low';
             cover.appendChild(img);
             const cap = document.createElement('span');
             cap.className = 'mlc-pin-cap';
