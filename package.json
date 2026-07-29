@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "pnpm run images:covers && astro dev",
-    "build": "pnpm run check && pnpm run images:covers && astro build",
+    "dev": "pnpm run images:covers && pnpm run images:avatars && astro dev",
+    "build": "pnpm run check && pnpm run images:covers && pnpm run images:avatars && astro build",
     "build:astro": "astro build",
     "check": "pnpm run lint && pnpm run check:content && pnpm run check:astro",
     "lint": "biome check .",
@@ -20,7 +20,8 @@
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
     "prepare": "simple-git-hooks",
-    "images:covers": "node scripts/generate-cover-thumbs.mjs"
+    "images:covers": "node scripts/generate-cover-thumbs.mjs",
+    "images:avatars": "node scripts/generate-people-avatars.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.0.2",

@@ -129,8 +129,14 @@ export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<
  * 回退原图,dev 首次启动或 CI 漏跑都不会瞎掉。
  */
 function withCoverDerivatives(journals: RouteJournal[]): RouteJournal[] {
-  const publicDir = fileURLToPath(new URL('../../public', import.meta.url));
+  // dev 下 import.meta.url 是源码路径;构建预渲染时却是 dist/server 产物
+  // 的路径,'../../public' 解析不到真实 public —— 两个候选都试,存在者胜。
+  const publicDir = [
+    fileURLToPath(new URL('../../public', import.meta.url)),
+    join(process.cwd(), 'public'),
+  ].find((dir) => existsSync(join(dir, 'yuque-journals')));
   const resolve = (cover: string, variant: 'thumb' | 'card'): string | undefined => {
+    if (!publicDir) return undefined;
     const slash = cover.lastIndexOf('/');
     if (slash < 0) return undefined;
     const dir = cover.slice(0, slash);
