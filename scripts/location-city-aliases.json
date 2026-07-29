@@ -88,5 +88,35 @@
     "label": "嘉峪关",
     "label_en": "Jiayuguan",
     "province": "甘肃省"
+  },
+  "临汾": {
+    "id": "linfen",
+    "label": "临汾",
+    "label_en": "Linfen",
+    "province": "山西省"
+  },
+  "太原": {
+    "id": "taiyuan",
+    "label": "太原",
+    "label_en": "Taiyuan",
+    "province": "山西省"
+  },
+  "呼和浩特": {
+    "id": "hohhot",
+    "label": "呼和浩特",
+    "label_en": "Hohhot",
+    "province": "内蒙古自治区"
+  },
+  "北京": {
+    "id": "beijing",
+    "label": "北京",
+    "label_en": "Beijing",
+    "province": "北京市"
+  },
+  "赤峰": {
+    "id": "chifeng",
+    "label": "赤峰",
+    "label_en": "Chifeng",
+    "province": "内蒙古自治区"
   }
 }

@@ -1,10 +1,10 @@
 import {
   Activity,
   ArrowUpRight,
-  Compass,
   Cpu,
   Image as ImageIcon,
   MapPin,
+  Mountain,
   Users,
 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -21,16 +21,17 @@ interface SerializedJournal {
   date: string;
   status: string;
   city: string;
+  href?: string;
+  coverImage?: string;
 }
 
 // SVG 高度图尺寸与内边距 —— 纯常量,放在组件外,避免被 useMemo 当作依赖项
-const maxAlt = 1510; // 最大海拔刻度 1510m (毕节)
 const svgW = 460;
 const svgH = 85;
-const paddingLeft = 25;
-const paddingRight = 20;
+const paddingLeft = 30;
+const paddingRight = 16;
 const paddingTop = 12;
-const paddingBottom = 22;
+const paddingBottom = 20;
 const plotW = svgW - paddingLeft - paddingRight;
 const plotH = svgH - paddingTop - paddingBottom;
 
@@ -64,6 +65,12 @@ export default function CityPanel({
     return cities.filter((c) => c.altitude != null);
   }, [cities]);
 
+  // 纵轴上限按实际最高站点取整（邦达 4120m → 4500m），避免高点画出图外
+  const maxAlt = useMemo(() => {
+    const max = Math.max(0, ...elevationCities.map((c) => parseFloat(c.altitude) || 0));
+    return Math.max(500, Math.ceil((max + 100) / 500) * 500);
+  }, [elevationCities]);
+
   // 映射高程坐标点
   const points = useMemo(() => {
     if (elevationCities.length === 0) return [];
@@ -81,7 +88,7 @@ export default function CityPanel({
         alt,
       };
     });
-  }, [elevationCities]);
+  }, [elevationCities, maxAlt]);
 
   // 生成剖面线与区域填充路径
   const lineD = useMemo(() => {
@@ -89,25 +96,28 @@ export default function CityPanel({
     return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
   }, [points]);
 
-  const areaD = useMemo(() => {
-    if (points.length === 0) return '';
-    return `${lineD} L ${points[points.length - 1].x} ${svgH - paddingBottom} L ${points[0].x} ${svgH - paddingBottom} Z`;
-  }, [points, lineD]);
-
-  // 海拔网格基准线
+  // 海拔网格基准线（随纵轴上限取 500/1000 步长）
   const gridLines = useMemo(() => {
-    const alts = [500, 1000, 1500];
+    const step = maxAlt > 2000 ? 1000 : 500;
+    const alts: number[] = [];
+    for (let alt = step; alt < maxAlt; alt += step) alts.push(alt);
     return alts.map((alt) => {
       const y = svgH - paddingBottom - (alt / maxAlt) * plotH;
       return { alt, y };
     });
-  }, []);
+  }, [maxAlt]);
 
   // Filter journals for this city
   const cityJournals = useMemo(() => {
     if (!journals || !city) return [];
     return journals.filter((j) => j.city === city.id);
   }, [journals, city]);
+
+  // The latest visited stop drives both the badge and the elevation-chart label
+  const lastVisitedLabel = useMemo(
+    () => [...cities].reverse().find((c) => c.visited)?.label ?? null,
+    [cities],
+  );
 
   if (!city) {
     return (
@@ -146,13 +156,12 @@ export default function CityPanel({
             <header className="mb-5">
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 {legCounter && (
-                  <span className="inline-flex items-center text-[10px] uppercase tracking-[0.18em] text-neutral-500 border border-neutral-200 px-2 py-0.5 rounded-sm">
+                  <span className="inline-flex items-center text-[10px] uppercase tracking-[0.18em] text-neutral-500 border border-neutral-300 px-2 py-0.5 rounded-sm">
                     {legCounter}
                   </span>
                 )}
                 {isLatest && !city.isOrigin && (
                   <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-brand-foreground bg-brand px-2 py-0.5 rounded-sm font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-foreground animate-pulse" />
                     {getT('journal.latest', getT('route.status.latest', '最新'))}
                   </span>
                 )}
@@ -188,8 +197,8 @@ export default function CityPanel({
             {city.people && city.people.length > 0 && (
               <div className="mb-6">
                 <div className="mb-2 flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5 text-brand" />
-                  <h5 className="text-[10px] font-bold uppercase tracking-wider text-[#796f59]">
+                  <Users className="h-3.5 w-3.5 text-brand-dark" />
+                  <h5 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
                     {locale === 'zh' ? '新文明 · 遇见的人' : 'NEW CIVILIZATIONS'}
                   </h5>
                 </div>
@@ -201,8 +210,8 @@ export default function CityPanel({
             {city.photos && city.photos.length > 0 && (
               <div className="mb-6">
                 <div className="mb-2 flex items-center gap-1.5">
-                  <ImageIcon className="h-3.5 w-3.5 text-brand" />
-                  <h5 className="text-[10px] font-bold uppercase tracking-wider text-[#796f59]">
+                  <ImageIcon className="h-3.5 w-3.5 text-brand-dark" />
+                  <h5 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
                     {locale === 'zh' ? '剧照' : 'FROM THE FIELD'}
                   </h5>
                 </div>
@@ -210,19 +219,22 @@ export default function CityPanel({
               </div>
             )}
 
-            {/* 1. 行程海拔剖面图（横向高度断面，反映地理阶梯的攀爬过程） */}
-            <div className="mb-6 bg-[#fcfbf9]/60 border border-[#e5dfd3]/60 rounded-xl p-3.5 shadow-sm">
+            {/* 行程海拔剖面图（横向高度断面，反映地理阶梯的攀爬过程） */}
+            <div className="mb-6 bg-neutral-50 border border-neutral-300/50 rounded-xl p-3.5">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-[10px] uppercase tracking-[0.15em] text-neutral-500 font-semibold flex items-center gap-1 font-mono">
-                  <Activity className="w-3 h-3 text-brand" />
+                <h4 className="text-[10px] uppercase tracking-[0.15em] text-neutral-500 font-semibold flex items-center gap-1 font-mono flex-shrink-0">
+                  <Mountain className="w-3 h-3 text-brand-dark" />
                   {getT(
                     'route.telemetry.elevationProfile',
                     locale === 'zh' ? '海拔高度纵断面' : 'EXPEDITION ELEVATION PROFILE',
                   )}
                 </h4>
-                <span className="text-[10px] text-amber-700 font-mono font-bold">
+                <span
+                  className="text-[10px] text-brand-dark font-mono font-bold truncate min-w-0 text-right"
+                  title={city.terrainStep || undefined}
+                >
                   {getT('route.telemetry.currentElevation', locale === 'zh' ? '当前海拔' : 'Elev')}:{' '}
-                  {city.altitude}m
+                  {city.altitude}m{city.terrainStep ? ` · ${city.terrainStep}` : ''}
                 </span>
               </div>
 
@@ -235,23 +247,23 @@ export default function CityPanel({
                 <title>{locale === 'zh' ? '海拔高度纵断面图' : 'Elevation profile chart'}</title>
                 {/* 阶梯基准线 */}
                 {gridLines.map((g) => (
-                  <g key={g.alt} opacity={0.25}>
+                  <g key={g.alt} opacity={0.6}>
                     <line
                       x1={paddingLeft}
                       y1={g.y}
                       x2={svgW - paddingRight}
                       y2={g.y}
-                      stroke="#a16207"
+                      stroke="var(--neutral-300)"
                       strokeWidth={0.5}
                       strokeDasharray="2 3"
                     />
                     <text
                       x={paddingLeft - 4}
-                      y={g.y + 2}
-                      fontSize={6.5}
-                      fill="#78350f"
+                      y={g.y + 2.5}
+                      fontSize={8}
+                      fill="var(--neutral-500)"
                       textAnchor="end"
-                      className="font-mono font-medium"
+                      className="font-mono"
                     >
                       {g.alt}m
                     </text>
@@ -259,15 +271,18 @@ export default function CityPanel({
                 ))}
 
                 {/* 海拔渐变阴影填充，反映山岳厚重感 */}
-                <path d={areaD} fill="url(#elevation-grad)" opacity={0.12} />
+                <path
+                  d={`${lineD} L ${points[points.length - 1]?.x ?? 0} ${svgH - paddingBottom} L ${points[0]?.x ?? 0} ${svgH - paddingBottom} Z`}
+                  fill="url(#elevation-grad)"
+                  opacity={0.1}
+                />
 
-                {/* 背景总航线路线虚线 */}
+                {/* 未驶过的计划航线（中性虚线） */}
                 <path
                   d={lineD}
                   fill="none"
-                  stroke="#d8b4fe"
+                  stroke="var(--neutral-300)"
                   strokeWidth={1.2}
-                  opacity={0.35}
                   strokeDasharray="1.5 2"
                 />
 
@@ -283,7 +298,7 @@ export default function CityPanel({
                       .join(' ');
                   })()}
                   fill="none"
-                  stroke="#eab308"
+                  stroke="var(--brand-dark)"
                   strokeWidth={1.8}
                   strokeLinecap="round"
                 />
@@ -292,6 +307,9 @@ export default function CityPanel({
                 {points.map((p) => {
                   const isActive = p.city.label === city.label;
                   const isVisited = p.city.visited;
+                  // 密集点位只标三个关键标签:出发点 / 最新抵达 / 当前选中
+                  const showLabel =
+                    isActive || p.city.isOrigin || p.city.label === lastVisitedLabel;
 
                   return (
                     // biome-ignore lint/a11y/noStaticElementInteractions: SVG 图表海拔锚点命中区,指针优先可视化
@@ -300,16 +318,9 @@ export default function CityPanel({
                       className="cursor-pointer group"
                       onClick={() => onSelectCity?.(p.city.label)}
                     >
-                      {/* 活跃点雷达呼吸圈 */}
+                      {/* 活跃点静态光圈(不用无限动画,保持克制) */}
                       {isActive && (
-                        <circle
-                          cx={p.x}
-                          cy={p.y}
-                          r={7}
-                          fill="#f3d230"
-                          opacity={0.25}
-                          className="animate-ping"
-                        />
+                        <circle cx={p.x} cy={p.y} r={7} fill="var(--brand)" opacity={0.3} />
                       )}
 
                       {/* 海拔点 */}
@@ -317,7 +328,13 @@ export default function CityPanel({
                         cx={p.x}
                         cy={p.y}
                         r={isActive ? 4.5 : isVisited ? 3 : 2.5}
-                        fill={isActive ? '#eab308' : isVisited ? '#f3d230' : '#d1d5db'}
+                        fill={
+                          isActive
+                            ? 'var(--brand-dark)'
+                            : isVisited
+                              ? 'var(--brand)'
+                              : 'var(--neutral-300)'
+                        }
                         stroke={isActive ? 'white' : 'transparent'}
                         strokeWidth={isActive ? 1.2 : 0}
                         className="transition-all duration-200 group-hover:scale-130"
@@ -325,37 +342,47 @@ export default function CityPanel({
 
                       <title>{`${p.city.label}: ${p.alt}m`}</title>
 
-                      {/* 底部城市标签 */}
-                      <text
-                        x={p.x}
-                        y={svgH - 4}
-                        textAnchor="middle"
-                        fontSize={7.5}
-                        fill={isActive ? '#1a1408' : '#78716c'}
-                        fontWeight={isActive ? 800 : 500}
-                      >
-                        {p.city.label}
-                      </text>
+                      {/* 底部城市标签 — 仅关键点 */}
+                      {showLabel && (
+                        <text
+                          x={p.x}
+                          y={svgH - 4}
+                          textAnchor="middle"
+                          fontSize={9}
+                          fill={isActive ? 'var(--neutral-900)' : 'var(--neutral-500)'}
+                          fontWeight={isActive ? 800 : 500}
+                        >
+                          {p.city.label}
+                        </text>
+                      )}
                     </g>
                   );
                 })}
 
                 <defs>
                   <linearGradient id="elevation-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#eab308" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="#eab308" stopOpacity="0.0" />
+                    <stop offset="0%" stopColor="var(--brand-dark)" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="var(--brand-dark)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
               </svg>
             </div>
 
-            {/* 行程日志主要陈述 */}
+            {/* 极境挑战：唯一保留的地学信息,提为正文金句(讲的是车和人,不是地理课) */}
+            {city.challenge && (
+              <p className="mb-6 flex gap-2.5 items-start border-l-2 border-brand pl-3 text-[13px] text-neutral-700 leading-relaxed">
+                <Cpu className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
+                <span>{city.challenge}</span>
+              </p>
+            )}
+
+            {/* 行程日志主要陈述(占位内容已在装配层剔除,空则不渲染) */}
             <div className="mt-2 text-left">
-              {city.event ? (
+              {city.event?.summary ? (
                 <p className="text-neutral-700 leading-relaxed text-sm md:text-[14.5px]">
                   {city.event.summary}
                 </p>
-              ) : (
+              ) : !city.event ? (
                 <div className="space-y-2">
                   <span className="inline-flex w-fit items-center text-[10px] uppercase tracking-[0.18em] text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-sm font-semibold">
                     {getT('journal.upcoming', getT('route.status.upcoming', '即将抵达'))}
@@ -367,22 +394,19 @@ export default function CityPanel({
                     )}
                   </p>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
           {/* 日志外部链接 CTA 按钮区 */}
-          {city.event && (
-            <div className="mt-6 pt-4 border-t border-neutral-100 flex flex-wrap gap-4 items-center">
-              {/* localSlug pointed at the deprecated /documentation collection.
-                      Related journals are now surfaced by city.id in the journals
-                      panel above, so no inline link is needed here. */}
+          {city.event && (city.event.link || city.event.summary) && (
+            <div className="mt-6 pt-4 border-t border-neutral-300/60 flex flex-wrap gap-4 items-center">
               {city.event.link && (
                 <a
                   href={city.event.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold border-b border-neutral-900 pb-0.5 text-neutral-900 hover:text-brand hover:border-brand transition-colors duration-200 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold border-b border-neutral-900 pb-0.5 text-neutral-900 hover:text-brand-dark hover:border-brand-dark transition-colors duration-200 cursor-pointer"
                 >
                   {city.event.linkLabel ?? '查看现场连线'}
                   <ArrowUpRight className="w-3 h-3" />
@@ -392,121 +416,41 @@ export default function CityPanel({
           )}
         </div>
 
-        {/* 右侧栏：地质地貌与运行测控 HUD 面板 */}
-        <div
-          className={`w-full flex-shrink-0 flex flex-col bg-[#fcfbf9]/60 backdrop-blur-md border border-[#e5dfd3] rounded-2xl p-5 md:p-6 justify-between ${hero ? 'lg:w-[50%]' : ''}`}
-        >
-          <div>
-            {/* HUD 头部 */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#e5dfd3]/60 mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-                <span className="font-semibold text-[11px] tracking-wider text-[#796f59] uppercase font-mono">
-                  {getT('route.telemetry.hud', locale === 'zh' ? '极境测控台' : 'Telemetry HUD')}
-                </span>
+        {/* 右侧栏：在地共创与关联日记 — 扁平定义列表,不再做 HUD 套娃 */}
+        <div className={`w-full flex-shrink-0 flex flex-col ${hero ? 'lg:w-[50%]' : ''}`}>
+          {/* 在地共创实绩 */}
+          {city.relationStats && city.relationStats.length > 0 && (
+            <div className="py-4 border-b border-neutral-300/60 text-left">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Users className="w-3.5 h-3.5 text-brand-dark" />
+                <h5 className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
+                  {getT(
+                    'route.telemetry.coCreation',
+                    locale === 'zh' ? '在地共创与科普实绩' : 'LOCAL CO-CREATION',
+                  )}
+                </h5>
               </div>
-              <span className="font-mono text-[9px] text-green-600 bg-green-50 px-2 py-0.5 rounded font-bold tracking-wider">
-                {getT('route.telemetry.sensorsOnline', 'SENSORS ONLINE')}
-              </span>
-            </div>
-
-            {/* 2x2 Telemetry Grid - 地学与工程核心数据 */}
-            <div className={`grid grid-cols-1 gap-4 text-left ${hero ? 'md:grid-cols-2' : ''}`}>
-              {/* Grid 1: 海拔高度与三级阶梯 */}
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-center flex-shrink-0 text-brand">
-                  <Activity className="w-4 h-4" />
-                </div>
-                <div>
-                  <h5 className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
-                    {getT('route.telemetry.altitude', 'ALTITUDE')} /{' '}
-                    {getT('route.telemetry.terrainStep', 'TERRAIN STEP')}
-                  </h5>
-                  <p className="text-lg font-bold font-mono text-neutral-800 leading-tight mt-0.5">
-                    {city.altitude}{' '}
-                    <span className="text-[10px] font-sans font-semibold text-neutral-500">m</span>
-                  </p>
-                  <p className="text-[11px] text-neutral-600 font-semibold mt-1">
-                    {city.terrainStep}
-                  </p>
-                </div>
-              </div>
-
-              {/* Grid 2: 局部气候与地质地貌 */}
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-center flex-shrink-0 text-brand">
-                  <Compass className="w-4 h-4" />
-                </div>
-                <div>
-                  <h5 className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
-                    {getT('route.telemetry.climate', 'MICROCLIMATE')} /{' '}
-                    {getT('route.telemetry.terrain', 'TERRAIN')}
-                  </h5>
-                  <p
-                    className="text-xs font-bold text-neutral-800 leading-tight mt-1 truncate max-w-[170px]"
-                    title={city.climate}
+              <div className={`grid grid-cols-1 gap-2 ${hero ? 'md:grid-cols-3' : ''}`}>
+                {city.relationStats.map((stat) => (
+                  <div
+                    key={stat}
+                    className="bg-neutral-100 rounded-lg px-2.5 py-1.5 border border-neutral-300/50 text-left"
                   >
-                    {city.climate}
-                  </p>
-                  <p
-                    className="text-[10.5px] text-neutral-500 font-medium mt-1 leading-snug line-clamp-2"
-                    title={city.terrain}
-                  >
-                    {city.terrain}
-                  </p>
-                </div>
-              </div>
-
-              {/* Grid 3: 在地共创实绩 */}
-              <div className={`pt-3.5 border-t border-[#e5dfd3]/40 ${hero ? 'md:col-span-2' : ''}`}>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <Users className="w-3.5 h-3.5 text-brand" />
-                  <h5 className="text-[10px] text-[#796f59] font-bold uppercase tracking-wider">
-                    {getT(
-                      'route.telemetry.coCreation',
-                      locale === 'zh' ? '在地共创与科普实绩' : 'LOCAL CO-CREATION',
-                    )}
-                  </h5>
-                </div>
-
-                <div className={`grid grid-cols-1 gap-2 ${hero ? 'md:grid-cols-3' : ''}`}>
-                  {city.relationStats?.map((stat) => (
-                    <div
-                      key={stat}
-                      className="bg-[#f5f2eb]/60 rounded-lg px-2.5 py-1.5 border border-[#e5dfd3]/50 text-left"
-                    >
-                      <span className="block text-[11px] font-semibold text-neutral-700 leading-tight">
-                        {stat}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                    <span className="block text-[11px] font-semibold text-neutral-700 leading-tight">
+                      {stat}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-
-          {/* Grid 4: 车载测控与极境挑战 */}
-          <div className="mt-5 bg-[#fbf5e6]/60 border border-[#e8d5b5]/50 rounded-xl p-3 text-xs text-neutral-700 leading-relaxed shadow-[inset_0_1px_2px_rgba(232,213,181,0.05)] text-left">
-            <div className="font-semibold text-amber-800 mb-1 flex items-center gap-1.5 font-mono text-[10.5px]">
-              <Cpu className="w-3.5 h-3.5 text-brand animate-pulse" />
-              <span>
-                {getT(
-                  'route.telemetry.challenge',
-                  locale === 'zh' ? '车载测控与极境行车挑战' : 'CHALLENGE',
-                )}
-              </span>
-            </div>
-            <p className="text-[11.5px] font-medium text-neutral-600 leading-relaxed">
-              {city.challenge}
-            </p>
-          </div>
+          )}
 
           {/* 关联日记列表 */}
           {journals && cityJournals.length > 0 && (
-            <div className="mt-5 pt-4 border-t border-[#e5dfd3]/40 text-left">
+            <div className="pt-4 text-left">
               <div className="flex items-center gap-1.5 mb-2.5">
-                <Activity className="w-3.5 h-3.5 text-brand" />
-                <h5 className="text-[10px] text-[#796f59] font-bold uppercase tracking-wider">
+                <Activity className="w-3.5 h-3.5 text-brand-dark" />
+                <h5 className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
                   {getT('route.journals.title', 'RELATED JOURNALS')}
                 </h5>
               </div>
@@ -516,26 +460,36 @@ export default function CityPanel({
                   return (
                     <div
                       key={j.slug}
-                      className="flex items-center justify-between bg-[#f5f2eb]/60 rounded-xl p-2.5 border border-[#e5dfd3]/50 hover:border-brand/30 transition-colors duration-200"
+                      className="flex items-center justify-between bg-neutral-100 rounded-xl p-2.5 border border-neutral-300/50 hover:border-brand-dark/40 transition-colors duration-200"
                     >
+                      {j.coverImage && (
+                        <img
+                          src={j.coverImage}
+                          alt=""
+                          loading="lazy"
+                          className="w-11 h-11 rounded-lg object-cover flex-shrink-0 mr-2.5"
+                        />
+                      )}
                       <div className="flex-1 min-w-0 pr-3">
-                        <span className="block text-[12px] font-semibold text-neutral-800 truncate">
+                        <span className="block text-[12px] font-semibold text-neutral-900 truncate">
                           {j.title}
                         </span>
-                        <span className="block text-[9px] font-mono text-neutral-400 mt-0.5">
+                        <span className="block text-[9px] font-mono text-neutral-500 mt-0.5">
                           {j.date}
                         </span>
                       </div>
                       {isPublished ? (
                         <a
-                          href={localePath(`/journals/${j.slug}`, locale)}
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-brand/10 hover:bg-brand/20 px-2.5 py-1 rounded-full transition-colors duration-200"
+                          href={j.href ?? localePath(`/journals/${j.slug}`, locale)}
+                          {...(j.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                          aria-label={`${getT('route.action.readLocal', '阅读')}：${j.title}`}
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-dark bg-brand/15 hover:bg-brand/25 px-2.5 py-1 rounded-full transition-colors duration-200"
                         >
                           <span>{getT('route.action.readLocal', '阅读')}</span>
                           <ArrowUpRight className="w-2.5 h-2.5" />
                         </a>
                       ) : (
-                        <span className="inline-flex items-center text-[9px] font-semibold text-neutral-400 bg-neutral-100 px-2.5 py-1 rounded-full">
+                        <span className="inline-flex items-center text-[9px] font-semibold text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full">
                           {getT('route.journals.organizing', '整理中')}
                         </span>
                       )}

@@ -66,6 +66,7 @@ export async function loadStops(requestedLocale: 'zh' | 'en' = 'zh'): Promise<St
       visited: fm.visited,
       isOrigin: fm.isOrigin,
       anchor: fm.anchor,
+      routeOnly: fm.routeOnly,
       label: requestedLocale === 'en' && fm.label_en ? fm.label_en : fm.label,
       lng: fm.lng,
       lat: fm.lat,

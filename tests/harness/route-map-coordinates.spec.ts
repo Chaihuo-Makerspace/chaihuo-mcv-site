@@ -23,7 +23,9 @@ let sortedCities: RouteCity[] = [];
 let expectedLabelIds: string[] = [];
 
 test.beforeAll(async () => {
-  routeCities = await loadStops();
+  // Mirror the page: route-only stops (e.g. the hidden return waypoint) are not
+  // rendered as markers/dots and are excluded from theme counts.
+  routeCities = (await loadStops()).filter((c) => !c.routeOnly && !c.id.endsWith('-return'));
   sortedCities = [...routeCities].sort((a, b) => a.order - b.order);
   expectedLabelIds = sortedCities
     .filter((city) => city.visited || city.isOrigin || city.anchor)
@@ -63,7 +65,7 @@ function makeProjectedCity(
 
 async function getVisibleProvinceFootprint(page: Page, svgSelector: string) {
   return page
-    .locator(`${svgSelector} path[fill="#ffffff"], ${svgSelector} path[fill="#fdf6d2"]`)
+    .locator(`${svgSelector} path[fill="#fdfbf3"], ${svgSelector} path[fill="#f7e9bd"]`)
     .evaluateAll((nodes) => {
       const boxes = nodes
         .filter((node) => node.getClientRects().length > 0)

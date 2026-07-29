@@ -21,6 +21,9 @@ const PROVINCE_SHORT: Record<string, { zh: string; en: string; enFull: string }>
   宁夏回族自治区: { zh: '宁', en: 'NX', enFull: 'Ningxia' },
   陕西省: { zh: '陕', en: 'SX', enFull: 'Shaanxi' },
   新疆维吾尔自治区: { zh: '新', en: 'XJ', enFull: 'Xinjiang' },
+  山西省: { zh: '晋', en: 'SH', enFull: 'Shanxi' },
+  内蒙古自治区: { zh: '蒙', en: 'NM', enFull: 'Inner Mongolia' },
+  北京市: { zh: '京', en: 'BJ', enFull: 'Beijing' },
 };
 
 // Event dates come in loose formats: "2026.04.22", "2026.04.24 / 04.25", "2026.05.05–07".

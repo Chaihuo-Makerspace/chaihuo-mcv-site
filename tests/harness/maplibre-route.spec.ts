@@ -63,7 +63,10 @@ test.describe('maplibre /route', () => {
     // The canvas is at nth(visibleIdx); its container is at the same index.
     const mapContainer = page.locator('[data-maplibre-canvas="true"]').nth(visibleIdx);
     const markers = mapContainer.locator('.mlc-marker');
-    const stopCount = (await loadStops()).length;
+    // Route-only stops (hidden waypoints) get no marker — mirror the page filter.
+    const stopCount = (await loadStops()).filter(
+      (c) => !c.routeOnly && !c.id.endsWith('-return'),
+    ).length;
     await expect(markers).toHaveCount(stopCount);
 
     // Clicking a marker selects that city and the CityPanel (an <article>) shows it.

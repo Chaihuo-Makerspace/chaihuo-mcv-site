@@ -1,6 +1,6 @@
 import { ChevronLeft, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CityPanel, countThemes, MapLibreCanvas, ThemeFilter } from '@/features/route-map';
 import type { ThemeType } from '@/features/route-map/theme';
 import { isRouteOnlyCity, type RouteCity } from '@/features/route-map/types';
@@ -12,6 +12,8 @@ interface SerializedJournal {
   date: string;
   status: string;
   city: string;
+  href?: string;
+  coverImage?: string;
 }
 
 interface Props {
@@ -21,7 +23,7 @@ interface Props {
   t: Record<string, string>;
 }
 
-// Desktop: full-viewport map. Keep the route/horse clear of the top bar (nav +
+// Desktop: full-viewport map. Keep the route clear of the top bar (nav +
 // title/chips ≈ 150) and the right CityPanel card (380 + margin ≈ 420).
 const DESKTOP_FIT_PADDING = { top: 150, bottom: 48, left: 48, right: 420 };
 
@@ -51,6 +53,18 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   // Mobile Drawer expanded state
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
 
+  // The mobile bottom drawer is display:none on desktop (lg:hidden) but was still
+  // mounted, doubling the CityPanel render cost during hydration. Mount it only
+  // below the lg breakpoint. Initial false matches SSR (drawer present).
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
   const handleCitySelect = useCallback((key: string) => {
     setSelectedCityKey(key);
     // Auto expand drawer on mobile when clicking a city
@@ -68,7 +82,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   };
 
   const pageTitle = getT('route.pageTitle', '行程路线');
-  const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 21 省 26 城。');
+  const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 24 省 42 城。');
   const backHref = locale === 'zh' ? '/' : '/en';
 
   return (
@@ -123,35 +137,10 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
         />
       </div>
 
-      {/* ── Mobile: visited-city chip row above the drawer ── */}
-      {visibleCities.filter((c) => c.visited).length > 1 && (
-        <div className="lg:hidden flex flex-wrap items-center gap-1.5 px-4 sm:px-6 py-2 overflow-x-auto pb-4 max-w-full no-scrollbar">
-          {visibleCities
-            .filter((c) => c.visited)
-            .map((c) => {
-              const active = selectedCityKey === c.label;
-              return (
-                <button
-                  type="button"
-                  key={`${c.id}-${c.order}`}
-                  onClick={() => handleCitySelect(c.label)}
-                  className={`text-[11px] px-3 py-1 rounded-full border transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                    active
-                      ? 'bg-neutral-900 text-white border-neutral-900 font-semibold'
-                      : 'bg-white text-neutral-700 border-neutral-200 hover:border-neutral-900'
-                  }`}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-        </div>
-      )}
-
       {/* ── Mobile: bottom drawer (desktop uses the floating card above) ── */}
-      {selectedCity && (
+      {selectedCity && !isDesktop && (
         <motion.div
-          className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-[#fcfbf9]/95 backdrop-blur-md border-t border-[#e5dfd3] rounded-t-3xl shadow-2xl flex flex-col overflow-hidden"
+          className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-surface-card/95 backdrop-blur-md border-t border-neutral-300 rounded-t-3xl shadow-2xl flex flex-col overflow-hidden"
           style={{ height: '75vh' }}
           variants={drawerVariants}
           animate={isDrawerExpanded ? 'expanded' : 'peek'}
@@ -174,7 +163,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
             role="button"
             tabIndex={0}
             aria-expanded={isDrawerExpanded}
-            className="w-full flex flex-col justify-between py-3 px-6 border-b border-[#e5dfd3]/40 cursor-pointer flex-shrink-0"
+            className="w-full flex flex-col justify-between py-3 px-6 border-b border-neutral-300/50 cursor-pointer flex-shrink-0"
             onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -184,7 +173,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
             }}
           >
             {/* Central pill handle */}
-            <div className="w-12 h-1.5 bg-neutral-350/80 rounded-full mx-auto mb-3" />
+            <div className="w-12 h-1.5 bg-neutral-300 rounded-full mx-auto mb-3" />
 
             {/* Peek Content Bar */}
             <div className="flex items-center justify-between w-full h-[60px]">
@@ -201,16 +190,15 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
               {/* Status indicator chip */}
               <div>
                 {selectedCity.isOrigin ? (
-                  <span className="inline-flex text-[10px] tracking-wider text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded font-semibold border border-neutral-250/20">
+                  <span className="inline-flex text-[10px] tracking-wider text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded font-semibold border border-neutral-300/50">
                     {getT('route.status.origin', '出发点')}
                   </span>
                 ) : selectedCity.label === lastVisited?.label ? (
                   <span className="inline-flex items-center gap-1 text-[10px] tracking-wider text-brand-foreground bg-brand px-2.5 py-1 rounded font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-foreground animate-pulse" />
                     {getT('route.status.latest', '最新')}
                   </span>
                 ) : selectedCity.visited ? (
-                  <span className="inline-flex text-[10px] tracking-wider text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded font-semibold border border-neutral-250/20">
+                  <span className="inline-flex text-[10px] tracking-wider text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded font-semibold border border-neutral-300/50">
                     {getT('route.status.visited', '已抵达')}
                   </span>
                 ) : (
