@@ -14,7 +14,8 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 - `pnpm audit:ui` — run lightweight UI/accessibility semantics audit
 - `pnpm visual` — capture desktop/mobile screenshots and verify visual substance, overflow, and runtime errors
 - `pnpm harness` — run `pnpm check` and the full Playwright harness
-- `pnpm build` — run checks, then production build (Node standalone)
+- `pnpm run images:covers` — regenerate Yuque cover derivatives (208px/480px WebP); runs automatically inside `pnpm dev` and `pnpm build`
+- `pnpm build` — run checks, generate cover derivatives, then production build (Node standalone)
 - `pnpm build:astro` — raw Astro build without the pre-build check wrapper
 - `pnpm preview` — preview production build locally
 - `pnpm start` — run production server (`node ./dist/server/entry.mjs`)
@@ -127,6 +128,8 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 **Astro 7 whitespace:** Astro 7 defaults to `compressHTML: 'jsx'`, which strips whitespace between inline elements using JSX rules (e.g. `<span>a</span>\n<em>b</em>` renders as `ab`, not `a b`). If spaces go missing between inline elements, add an explicit `{" "}` between them. Only set `compressHTML: true` in `astro.config.mjs` if the old HTML-aware behavior is needed globally. The Rust compiler is also strict about unclosed tags — build errors pointing at unexpected tokens usually mean a missing closing tag.
 
 **改装手记 "查看全部":** Links to external Yuque page: `https://www.yuque.com/chaihuo-mcv/home`.
+
+**Yuque cover derivatives:** synced covers are 960px originals (~100KB median, 5MB total) but the route page renders them at 36–132px. `scripts/generate-cover-thumbs.mjs` (sharp) writes `public/yuque-journals/thumb/` (208px) and `card/` (480px) WebP derivatives. They are **gitignored and rebuilt at build time**, so the Yuque sync workflow still needs no dependency install. `withCoverDerivatives()` in `src/lib/journals.ts` checks each file with `existsSync` and falls back to the original, so a missing derivative degrades instead of 404-ing.
 
 **Yuque journal sync:** `Sync Yuque Journals` GitHub Actions workflow syncs visible, publicly accessible Yuque `DOC` entries from `https://www.yuque.com/mouseart/mcv` once per day and via manual dispatch. It commits `src/data/yuque-journals.json` and `public/yuque-journals/*` changes back to `main`, which then triggers Jenkins deploy. DOC entries that appear in the Yuque TOC but return 401/403 are skipped until public access is restored.
 

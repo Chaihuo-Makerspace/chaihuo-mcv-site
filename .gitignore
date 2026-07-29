@@ -70,3 +70,7 @@ skills-lock.json
 # spec/plan working docs — keep uncommitted (user preference)
 docs/superpowers/
 .alma-snapshots
+
+# Generated cover derivatives (rebuilt by `pnpm run images:covers`)
+public/yuque-journals/thumb/
+public/yuque-journals/card/

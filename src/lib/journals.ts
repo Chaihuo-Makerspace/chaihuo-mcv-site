@@ -1,4 +1,7 @@
 import { type CollectionEntry, getCollection } from 'astro:content';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import yuqueJournalsData from '@/data/yuque-journals.json';
 import type { Stop } from '@/features/route-map/stops-loader';
 import type { Locale } from '@/i18n/index';
@@ -85,6 +88,10 @@ export interface RouteJournal {
   city: string;
   href?: string;
   coverImage?: string;
+  /** 208px WebP — 故事流卡片与地图照片钉 */
+  coverThumb?: string;
+  /** 480px WebP — 城市面板首篇大图 */
+  coverCard?: string;
 }
 
 // "基地车日记｜2026.05.22｜基地车首保…" / "基地车日记|2026.0727 西安理工…" → 去头
@@ -111,5 +118,32 @@ export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<
       coverImage: j.coverImage ?? undefined,
     });
   }
-  return [...local, ...yuque].sort((a, b) => b.date.localeCompare(a.date));
+  return withCoverDerivatives([...local, ...yuque].sort((a, b) => b.date.localeCompare(a.date)));
+}
+
+/**
+ * 把封面指向 `scripts/generate-cover-thumbs.mjs` 生成的派生图。
+ *
+ * 语雀原图是 960px / 中位 100KB,而路线页最大只渲染到 132px —— 直接用原图等于
+ * 按 9 倍像素传输。派生图不入库(构建时生成),所以这里逐个查存在性:没生成时
+ * 回退原图,dev 首次启动或 CI 漏跑都不会瞎掉。
+ */
+function withCoverDerivatives(journals: RouteJournal[]): RouteJournal[] {
+  const publicDir = fileURLToPath(new URL('../../public', import.meta.url));
+  const resolve = (cover: string, variant: 'thumb' | 'card'): string | undefined => {
+    const slash = cover.lastIndexOf('/');
+    if (slash < 0) return undefined;
+    const dir = cover.slice(0, slash);
+    const name = cover.slice(slash + 1).replace(/\.[^.]+$/, '');
+    const url = `${dir}/${variant}/${name}.webp`;
+    return existsSync(join(publicDir, url)) ? url : undefined;
+  };
+  return journals.map((j) => {
+    if (!j.coverImage) return j;
+    return {
+      ...j,
+      coverThumb: resolve(j.coverImage, 'thumb') ?? j.coverImage,
+      coverCard: resolve(j.coverImage, 'card') ?? j.coverImage,
+    };
+  });
 }

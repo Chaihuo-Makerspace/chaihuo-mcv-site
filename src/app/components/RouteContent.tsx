@@ -22,6 +22,8 @@ interface SerializedJournal {
   city: string;
   href?: string;
   coverImage?: string;
+  coverThumb?: string;
+  coverCard?: string;
 }
 
 interface Props {
