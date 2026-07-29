@@ -12,6 +12,7 @@ export interface RiverJournal {
   status: string;
   city: string;
   href?: string;
+  hasPage?: boolean;
   coverImage?: string;
   coverThumb?: string;
 }
@@ -116,7 +117,8 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
             const lit = j.city === selectedId;
             const armed = j.slug === armedSlug;
             const cityLabel = labelById.get(j.city) ?? j.city;
-            const href = j.href ?? localePath(`/journals/${j.slug}`, locale);
+            const href =
+              j.href ?? (j.hasPage ? localePath(`/journals/${j.slug}`, locale) : undefined);
             return (
               <a
                 key={`${j.city}-${j.slug}`}
@@ -124,14 +126,14 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
                 {...(armed && j.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 data-story-city={j.city}
                 aria-current={armed ? 'true' : undefined}
-                title={`${cityLabel} · ${armed ? (t['route.river.open'] ?? '打开日记') : (t['route.river.locate'] ?? '定位到该城')}`}
+                title={`${cityLabel} · ${armed && href ? (t['route.river.open'] ?? '打开日记') : (t['route.river.locate'] ?? '定位到该城')}`}
                 onClick={(e) => {
                   if (armed) return;
                   e.preventDefault();
                   setArmedSlug(j.slug);
                   if (!lit) onSelect(cityLabel);
                 }}
-                className={`group absolute top-4 w-[104px] bg-surface-card transition-opacity duration-300 ${
+                className={`group absolute top-4 w-[104px] bg-surface-card cursor-pointer transition-opacity duration-300 ${
                   lit ? '' : 'opacity-40 hover:opacity-100'
                 }`}
                 style={{ left: layout.xs[i], zIndex: lit ? 40 : i }}
@@ -157,7 +159,7 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
                     {cityLabel}
                   </span>
                   <span>{j.date.slice(5)}</span>
-                  {armed ? (
+                  {armed && href ? (
                     <ArrowUpRight className="ml-auto h-3 w-3 text-brand-dark" />
                   ) : (
                     <MapPin

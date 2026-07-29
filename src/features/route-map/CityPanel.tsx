@@ -25,6 +25,7 @@ interface SerializedJournal {
   status: string;
   city: string;
   href?: string;
+  hasPage?: boolean;
   coverImage?: string;
   coverThumb?: string;
   coverCard?: string;
@@ -211,32 +212,42 @@ export default function CityPanel({
           {/* 关联日记:首篇大图 + 其余紧凑行。原来 N 篇 = N 张同款卡 + N 个同款黄按钮。 */}
           {lead && (
             <div className="mb-5">
-              <a
-                href={lead.href ?? localePath(`/journals/${lead.slug}`, locale)}
-                {...(lead.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="group block overflow-hidden rounded-xl border border-neutral-200 hover:border-neutral-400 transition-colors duration-200"
-              >
-                {lead.coverImage && (
-                  <img
-                    src={lead.coverCard ?? lead.coverImage}
-                    alt=""
-                    width={360}
-                    height={128}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-32 w-full object-cover"
-                  />
-                )}
-                <div className="p-3">
-                  <p className="text-[13px] font-semibold leading-snug text-neutral-900">
-                    {lead.title}
-                  </p>
-                  <p className="mt-1 flex items-center gap-1 text-[10px] tabular-nums text-neutral-500">
-                    {lead.date}
-                    <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                  </p>
-                </div>
-              </a>
+              {(() => {
+                const leadHref =
+                  lead.href ??
+                  (lead.hasPage ? localePath(`/journals/${lead.slug}`, locale) : undefined);
+                const LeadTag = (leadHref ? 'a' : 'div') as 'a';
+                return (
+                  <LeadTag
+                    href={leadHref}
+                    {...(lead.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    className="group block overflow-hidden rounded-xl border border-neutral-200 hover:border-neutral-400 transition-colors duration-200"
+                  >
+                    {lead.coverImage && (
+                      <img
+                        src={lead.coverCard ?? lead.coverImage}
+                        alt=""
+                        width={360}
+                        height={128}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-32 w-full object-cover"
+                      />
+                    )}
+                    <div className="p-3">
+                      <p className="text-[13px] font-semibold leading-snug text-neutral-900">
+                        {lead.title}
+                      </p>
+                      <p className="mt-1 flex items-center gap-1 text-[10px] tabular-nums text-neutral-500">
+                        {lead.date}
+                        {leadHref && (
+                          <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                        )}
+                      </p>
+                    </div>
+                  </LeadTag>
+                );
+              })()}
 
               {rest.length > 0 && (
                 <>
@@ -247,36 +258,44 @@ export default function CityPanel({
                     )}
                   </p>
                   <ul className="-mx-2">
-                    {rest.map((j) => (
-                      <li key={j.slug}>
-                        <a
-                          href={j.href ?? localePath(`/journals/${j.slug}`, locale)}
-                          {...(j.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                          className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-neutral-100 transition-colors duration-200"
-                        >
-                          {j.coverImage && (
-                            <img
-                              src={j.coverThumb ?? j.coverImage}
-                              alt=""
-                              width={44}
-                              height={32}
-                              loading="lazy"
-                              decoding="async"
-                              className="h-8 w-11 flex-none rounded object-cover"
-                            />
-                          )}
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-[10px] tabular-nums text-neutral-500">
-                              {j.date}
+                    {rest.map((j) => {
+                      const href =
+                        j.href ??
+                        (j.hasPage ? localePath(`/journals/${j.slug}`, locale) : undefined);
+                      const RowTag = (href ? 'a' : 'div') as 'a';
+                      return (
+                        <li key={j.slug}>
+                          <RowTag
+                            href={href}
+                            {...(j.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                            className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-neutral-100 transition-colors duration-200"
+                          >
+                            {j.coverImage && (
+                              <img
+                                src={j.coverThumb ?? j.coverImage}
+                                alt=""
+                                width={44}
+                                height={32}
+                                loading="lazy"
+                                decoding="async"
+                                className="h-8 w-11 flex-none rounded object-cover"
+                              />
+                            )}
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-[10px] tabular-nums text-neutral-500">
+                                {j.date}
+                              </span>
+                              <span className="line-clamp-2 text-[11.5px] leading-snug text-neutral-700 group-hover:text-neutral-900">
+                                {j.title}
+                              </span>
                             </span>
-                            <span className="line-clamp-2 text-[11.5px] leading-snug text-neutral-700 group-hover:text-neutral-900">
-                              {j.title}
-                            </span>
-                          </span>
-                          <ArrowUpRight className="h-3 w-3 flex-none text-neutral-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                        </a>
-                      </li>
-                    ))}
+                            {href && (
+                              <ArrowUpRight className="h-3 w-3 flex-none text-neutral-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                            )}
+                          </RowTag>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </>
               )}
