@@ -138,16 +138,28 @@ function candidateOffsets(c: ProjectedCity, mode: LabelMode): LabelOffset[] {
   return mode === 'projection' ? projectionCandidates(c) : mapCandidates(c);
 }
 
+export interface PlaceLabelsOptions {
+  /**
+   * Boxes the solver must treat as already occupied — photo pins on the route
+   * map. Labels then route around the pins instead of landing under them.
+   */
+  seed?: Rect[];
+  /** Stop ids that carry their name elsewhere (e.g. inside a pin caption). */
+  skip?: Set<string>;
+}
+
 export function placeLabels(
   cities: ProjectedCity[],
   preferredSide: 'below' | 'above' = 'below',
+  options: PlaceLabelsOptions = {},
 ): Map<string, LabelOffset | null> {
   const mode: LabelMode = preferredSide === 'above' ? 'projection' : 'map';
+  const skip = options.skip;
   const ordered = cities
-    .filter((c) => c.showLabel)
+    .filter((c) => c.showLabel && !skip?.has(c.id))
     .sort((a, b) => priority(b) - priority(a) || a.order - b.order);
   const dotBoxes = cities.map((c) => ({ id: c.id, rect: padded(dotBox(c), 1) }));
-  const placed: Rect[] = [];
+  const placed: Rect[] = [...(options.seed ?? [])];
   const result = new Map<string, LabelOffset | null>();
 
   for (const city of ordered) {

@@ -56,8 +56,11 @@ const READ_FIELD_LOG_EN = 'Read field log'; // mirrors t['route.action.readField
 // showing "待补充" to readers.
 const PLACEHOLDER_RE = /待补充|to be updated/i;
 const scrub = (s: string) => (PLACEHOLDER_RE.test(s) ? '' : s);
-// 自动生成的套话句（check-arrival.mjs 模板）——不含任何现场信息,整句剔除
-const FILLER_RE = /路线图.{0,6}记录该城市节点|route map now records this city stop/i;
+// 自动生成的套话句（check-arrival.mjs 模板）——不含任何现场信息,整句剔除。
+// 英文侧还有一句 "The detailed field note will be updated later."：它不含
+// "to be updated" 字样,过不了 PLACEHOLDER_RE,过去会直接印在 /en 面板上。
+const FILLER_RE =
+  /路线图.{0,6}记录该城市节点|route map now records this city stop|field note will be updated later/i;
 // Summaries may mix real sentences with filler/placeholder sentences
 // ("…详细现场记录待补充。") — drop only those sentences.
 const scrubSentences = (s: string) =>

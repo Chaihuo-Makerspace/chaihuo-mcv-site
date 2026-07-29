@@ -70,10 +70,12 @@ test.describe('maplibre /route', () => {
     await expect(markers).toHaveCount(stopCount);
 
     // Clicking a marker selects that city and the CityPanel (an <article>) shows it.
-    // force: true is required because the MapLibre GL container div can intercept
-    // pointer events on the marker buttons.
+    // Dispatch the event on the element instead of a positional click: at the
+    // national zoom used on a phone, 深圳/广州/阳江 project 6–14px apart, so their
+    // touch targets overlap and a real click always lands on whichever marker is
+    // topmost. (route-map-coordinates.spec.ts dispatches for the same reason.)
     const shenzhen = mapContainer.locator('.mlc-marker[data-city-label="深圳"]');
-    await shenzhen.click({ force: true });
+    await shenzhen.dispatchEvent('click');
     // CityPanel (motion.article) is rendered in both desktop and mobile slots;
     // use .first() to avoid strict-mode violations when both articles exist in the DOM.
     const panel = page.getByRole('article');
