@@ -37,6 +37,8 @@ interface TimelineSegment {
   crewId: string;
   name: string;
   image: string;
+  avatarThumb: string;
+  avatarCard: string;
   startDate: string;
   endDate: string | null;
   handoffName: string | null;

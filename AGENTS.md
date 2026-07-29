@@ -15,6 +15,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 - `pnpm visual` — capture desktop/mobile screenshots and verify visual substance, overflow, and runtime errors
 - `pnpm harness` — run `pnpm check` and the full Playwright harness
 - `pnpm run images:covers` — regenerate Yuque cover derivatives (208px/480px WebP); runs automatically inside `pnpm dev` and `pnpm build`
+- `pnpm run images:avatars` — regenerate people avatar derivatives (64px/256px WebP); runs automatically inside `pnpm dev` and `pnpm build`
 - `pnpm build` — run checks, generate cover derivatives, then production build (Node standalone)
 - `pnpm build:astro` — raw Astro build without the pre-build check wrapper
 - `pnpm preview` — preview production build locally
@@ -130,6 +131,8 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 **改装手记 "查看全部":** Links to external Yuque page: `https://www.yuque.com/chaihuo-mcv/home`.
 
 **Yuque cover derivatives:** synced covers are 960px originals (~100KB median, 5MB total) but the route page renders them at 36–132px. `scripts/generate-cover-thumbs.mjs` (sharp) writes `public/yuque-journals/thumb/` (208px) and `card/` (480px) WebP derivatives. They are **gitignored and rebuilt at build time**, so the Yuque sync workflow still needs no dependency install. `withCoverDerivatives()` in `src/lib/journals.ts` checks each file with `existsSync` and falls back to the original, so a missing derivative degrades instead of 404-ing.
+
+**People avatar derivatives:** a few `public/people` photos are camera originals (up to 2MB) but render at 32–128px in the home `RoleTimeline`. `scripts/generate-people-avatars.mjs` (sharp) writes `public/people/avatars/64/` and `avatars/256/` WebP derivatives — gitignored and rebuilt at dev/build time. `withAvatarDerivatives()` in `src/lib/people.ts` resolves them with an `existsSync` fallback to the original; call it in `.astro` frontmatter only (at build time `import.meta.url` points into `dist/server`, so it also tries `process.cwd()/public`). Aspect ratio is preserved (no square crop) because the ye-kaiwei avatar transform is tuned against the portrait original.
 
 **Yuque journal sync:** `Sync Yuque Journals` GitHub Actions workflow syncs visible, publicly accessible Yuque `DOC` entries from `https://www.yuque.com/mouseart/mcv` once per day and via manual dispatch. It commits `src/data/yuque-journals.json` and `public/yuque-journals/*` changes back to `main`, which then triggers Jenkins deploy. DOC entries that appear in the Yuque TOC but return 401/403 are skipped until public access is restored.
 

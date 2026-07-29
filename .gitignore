@@ -74,3 +74,6 @@ docs/superpowers/
 # Generated cover derivatives (rebuilt by `pnpm run images:covers`)
 public/yuque-journals/thumb/
 public/yuque-journals/card/
+
+# Generated avatar derivatives (rebuilt by `pnpm run images:avatars`)
+public/people/avatars/

@@ -8,6 +8,8 @@ interface Segment {
   crewId: string;
   name: string;
   image: string;
+  avatarThumb: string; // 64px WebP — 车道 32px 头像(@2x)
+  avatarCard: string; // 256px WebP — "在车上"最大 128px 头像(@2x)
   bio?: string;
   startDate: string;
   endDate: string | null; // null = ongoing
@@ -490,8 +492,10 @@ export default function RoleTimeline({
                                   {/* Avatar at segment start */}
                                   <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full overflow-hidden ring-2 ring-white bg-neutral-100 z-10">
                                     <img
-                                      src={seg.image}
+                                      src={seg.avatarThumb}
                                       alt={seg.name}
+                                      width={32}
+                                      height={32}
                                       className="w-full h-full object-cover"
                                       style={
                                         seg.crewId === 'ye-kaiwei'
@@ -579,8 +583,10 @@ export default function RoleTimeline({
                           className={`rounded-full overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 ${avatarClass}`}
                         >
                           <img
-                            src={member.image}
+                            src={member.avatarCard}
                             alt={member.name}
+                            width={128}
+                            height={128}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             style={
                               member.crewId === 'ye-kaiwei'

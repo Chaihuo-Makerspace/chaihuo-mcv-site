@@ -11,6 +11,7 @@ import { loadLocalizedStops } from '@/features/route-map/stops-loader';
 import home from '@/i18n/home';
 import type { Locale } from '@/i18n/index';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { withAvatarDerivatives } from '@/lib/people';
 
 const locale = (Astro.currentLocale ?? 'zh') as Locale;
 const t = home[locale];
@@ -25,30 +26,32 @@ const memberDisplayName = (id: string | undefined) => {
   return locale === 'en' ? m.name_en || m.name : m.name;
 };
 
-const segments = boardingsData
-  .map((b) => {
-    const member = memberById.get(b.crewId);
-    if (!member) return null;
-    const handoffToId = (b.disembarkedAt as { handoffTo?: string } | null)?.handoffTo;
-    return {
-      id: b.id,
-      role: b.role,
-      crewId: member.id,
-      name: locale === 'en' ? member.name_en || member.name : member.name,
-      image: member.image,
-      bio: locale === 'en' ? member.bio_en || member.bio || '' : member.bio || '',
-      startDate: b.boardedAt.date,
-      endDate: b.disembarkedAt?.date ?? null,
-      handoffName: memberDisplayName(handoffToId),
-      startLocation: locale === 'en' ? b.boardedAt.location_en : b.boardedAt.location,
-      endLocation: b.disembarkedAt
-        ? locale === 'en'
-          ? b.disembarkedAt.location_en
-          : b.disembarkedAt.location
-        : null,
-    };
-  })
-  .filter((x): x is NonNullable<typeof x> => x !== null);
+const segments = withAvatarDerivatives(
+  boardingsData
+    .map((b) => {
+      const member = memberById.get(b.crewId);
+      if (!member) return null;
+      const handoffToId = (b.disembarkedAt as { handoffTo?: string } | null)?.handoffTo;
+      return {
+        id: b.id,
+        role: b.role,
+        crewId: member.id,
+        name: locale === 'en' ? member.name_en || member.name : member.name,
+        image: member.image,
+        bio: locale === 'en' ? member.bio_en || member.bio || '' : member.bio || '',
+        startDate: b.boardedAt.date,
+        endDate: b.disembarkedAt?.date ?? null,
+        handoffName: memberDisplayName(handoffToId),
+        startLocation: locale === 'en' ? b.boardedAt.location_en : b.boardedAt.location,
+        endLocation: b.disembarkedAt
+          ? locale === 'en'
+            ? b.disembarkedAt.location_en
+            : b.disembarkedAt.location
+          : null,
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null),
+);
 
 const ROLE_ORDER = ['领队', '技术担当', '媒体担当', '场景担当'];
 const roles = ROLE_ORDER.map((r) => {
