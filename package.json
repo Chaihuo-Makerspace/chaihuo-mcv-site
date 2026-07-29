@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "pnpm run images:covers && pnpm run images:avatars && astro dev",
-    "build": "pnpm run check && pnpm run images:covers && pnpm run images:avatars && astro build",
+    "dev": "pnpm run images:covers && pnpm run images:avatars && pnpm run images:heroes && pnpm run images:deconstruct && astro dev",
+    "build": "pnpm run check && pnpm run images:covers && pnpm run images:avatars && pnpm run images:heroes && pnpm run images:deconstruct && astro build",
     "build:astro": "astro build",
     "check": "pnpm run lint && pnpm run check:content && pnpm run check:astro",
     "lint": "biome check .",
@@ -21,7 +21,9 @@
     "start": "node ./dist/server/entry.mjs",
     "prepare": "simple-git-hooks",
     "images:covers": "node scripts/generate-cover-thumbs.mjs",
-    "images:avatars": "node scripts/generate-people-avatars.mjs"
+    "images:avatars": "node scripts/generate-people-avatars.mjs",
+    "images:heroes": "node scripts/generate-hero-variants.mjs",
+    "images:deconstruct": "node scripts/generate-deconstruct-thumbs.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.0.2",

@@ -9,11 +9,11 @@ import {
   placeLabels,
   projectCities,
 } from './projection';
-import { isRouteOnlyCity, type RouteCity } from './types';
+import { isRouteOnlyCity, type ProjectableStop } from './types';
 import { PROVINCE_VISITED } from './visited-provinces';
 
 interface Props {
-  cities: RouteCity[];
+  cities: ProjectableStop[];
   ariaLabel?: string;
 }
 

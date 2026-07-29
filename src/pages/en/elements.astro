@@ -11,5 +11,5 @@ const t = elementsDict[locale];
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
-  <ElementsContent client:load locale={locale} t={t} />
+  <ElementsContent client:idle locale={locale} t={t} />
 </BaseLayout>

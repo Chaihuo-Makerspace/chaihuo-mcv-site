@@ -76,6 +76,7 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
       gtag('config', 'G-27XRD69LSR');
     </script>
     <ClientRouter />
+    <slot name="head" />
   </head>
   <body class="min-h-screen bg-surface text-neutral-900">
     <Navigation client:load pathname={pathname} locale={locale} transition:persist />

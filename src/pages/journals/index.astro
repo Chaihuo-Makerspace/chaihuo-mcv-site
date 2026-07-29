@@ -20,14 +20,35 @@ const journalsCollection = await getAllJournals({ includeDrafts: false });
 
 // Map all journals to localized formats
 const localizedJournals = journalsCollection.map((entry) => localizeJournal(entry, cities, locale));
+
+// Island payload: the filter dropdown and placeholder telemetry popover only
+// read these fields — full Stop data (events/people/coords) stays server-side.
+const islandCities = cities.map((c) => ({
+  id: c.id,
+  label: c.label,
+  altitude: c.altitude,
+  terrain: c.terrain,
+  challenge: c.challenge,
+}));
+
+// Journal cards render id/slug/title/date/city/href/coverImage only (updatedAt dropped)
+const yuqueCards = yuqueJournalsData.journals.map((j) => ({
+  id: j.id,
+  slug: j.slug,
+  title: j.title,
+  date: j.date,
+  city: j.city,
+  href: j.href,
+  coverImage: j.coverImage,
+}));
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
   <JournalsContent
-    client:load
-    cities={cities}
+    client:idle
+    cities={islandCities}
     journals={localizedJournals}
-    yuqueJournals={yuqueJournalsData.journals}
+    yuqueJournals={yuqueCards}
     locale={locale}
     t={t}
   />

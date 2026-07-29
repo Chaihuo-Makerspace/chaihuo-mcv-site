@@ -70,6 +70,8 @@ interface NoteEntry {
   image: string;
   tags: string[];
   yuqueUrl?: string;
+  width?: number;
+  height?: number;
 }
 
 interface Props {
@@ -213,7 +215,9 @@ export default function DeconstructContent({
               src="/deconstruct/vehicle-tech-map.webp"
               alt={t['hero.imageAlt']}
               className="w-full h-auto"
-              loading="eager"
+              loading="lazy"
+              width={2000}
+              height={1620}
             />
           </motion.div>
 
@@ -628,7 +632,14 @@ export default function DeconstructContent({
                   className="group block cursor-pointer"
                 >
                   <div className="aspect-[16/10] overflow-hidden">
-                    <img src={note.image} alt={note.title} className="w-full h-full object-cover" />
+                    <img
+                      src={note.image}
+                      alt={note.title}
+                      loading="lazy"
+                      width={note.width}
+                      height={note.height}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="p-4">
                     <h4 className="text-sm font-semibold text-neutral-900 mb-1.5 line-clamp-1 group-hover:text-brand transition-colors duration-200">
