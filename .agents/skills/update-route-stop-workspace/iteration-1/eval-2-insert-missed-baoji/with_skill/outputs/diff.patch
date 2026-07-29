@@ -1,0 +1,338 @@
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/AGENTS.md with_skill/repo/AGENTS.md
+--- pristine/AGENTS.md	2026-07-28 12:53:53
++++ with_skill/repo/AGENTS.md	2026-07-28 14:18:06
+@@ -159,11 +159,13 @@
+ - Route map now extends from Karamay to Urumqi, with Urumqi highlighted as the latest visited stop.
+ - Tracker Allen location updates can be checked through `pnpm update:city`; enabling hourly GitHub Actions requires a GitHub credential with `workflow` scope.
+ - Route map now extends from Urumqi to Hami, with Hami highlighted as the latest visited stop.
++- Route map now includes Baoji (宝鸡) as a missed industry stop between Yulin (Shaanxi) and Xi'an, inserted at order 37 with Xi'an shifted to order 38, and route copy updated to 38 cities.
+ 
+ ## Changelog
+ 
+ | Date | Branch | Description |
+ | --- | --- | --- |
++| 2026-07-28 | main | Inserted the missed Baoji (宝鸡) stop between Yulin (Shaanxi) and Xi'an as order 37 (industry, visited 2026-07-23), shifted Xi'an to order 38, and updated route copy to 21 provinces and 38 cities. |
+ | 2026-07-09 | fix/yuque-first-image-cover | Replaced blank Yuque covers with article images, fixed compact journal date sorting, enabled 10-minute automatic sync, and merged into main. |
+ | 2026-07-08 | fix/yuque-journal-sync | Restored Yuque journal sync by removing the failing dependency install, refreshed 3 public journal cards, skipped inaccessible 401/403 docs, and merged into main. |
+ | 2026-07-02 | feature/location-auto-update | Added the Tracker Allen location update script, added Hami as stop 27, updated route copy to 28 cities, and merged into main. |
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/scripts/location-city-aliases.json with_skill/repo/scripts/location-city-aliases.json
+--- pristine/scripts/location-city-aliases.json	2026-07-13 10:48:38
++++ with_skill/repo/scripts/location-city-aliases.json	2026-07-28 14:17:38
+@@ -88,5 +88,17 @@
+     "label": "嘉峪关",
+     "label_en": "Jiayuguan",
+     "province": "甘肃省"
++  },
++  "宝鸡": {
++    "id": "baoji",
++    "label": "宝鸡",
++    "label_en": "Baoji",
++    "province": "陕西省"
++  },
++  "宝鸡市": {
++    "id": "baoji",
++    "label": "宝鸡",
++    "label_en": "Baoji",
++    "province": "陕西省"
+   }
+ }
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/app/components/HomeContent.tsx with_skill/repo/src/app/components/HomeContent.tsx
+--- pristine/src/app/components/HomeContent.tsx	2026-07-28 13:39:03
++++ with_skill/repo/src/app/components/HomeContent.tsx	2026-07-28 14:17:11
+@@ -341,7 +341,7 @@
+                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
+                     {t['telemetry.planProvinces']}
+                   </div>
+-                  <div className="text-base font-bold text-neutral-900 mt-1">21 省 37 城</div>
++                  <div className="text-base font-bold text-neutral-900 mt-1">21 省 38 城</div>
+                 </div>
+               </motion.div>
+ 
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/app/components/RouteContent.tsx with_skill/repo/src/app/components/RouteContent.tsx
+--- pristine/src/app/components/RouteContent.tsx	2026-07-13 10:48:38
++++ with_skill/repo/src/app/components/RouteContent.tsx	2026-07-28 14:17:11
+@@ -68,7 +68,7 @@
+   };
+ 
+   const pageTitle = getT('route.pageTitle', '行程路线');
+-  const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 21 省 26 城。');
++  const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 21 省 38 城。');
+   const backHref = locale === 'zh' ? '/' : '/en';
+ 
+   return (
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/37-baoji.en.md with_skill/repo/src/content/stops/37-baoji.en.md
+--- pristine/src/content/stops/37-baoji.en.md	1970-01-01 08:00:00
++++ with_skill/repo/src/content/stops/37-baoji.en.md	2026-07-28 14:15:31
+@@ -0,0 +1,30 @@
++# Baoji
++
++## Telemetry
++
++- Terrain: Located at the western end of the Guanzhong Plain, Baoji is crossed by the Wei River and hemmed in by the Qinling Mountains to the south and loess tablelands to the north; the urban area stretches in a belt along the Wei River valley.
++- Step: Located on China's second terrain step, in the transition zone between the Qinling Mountains and the Wei River Plain, with terrain descending from south to north.
++- Climate: Warm-temperate, semi-humid continental monsoon climate with four distinct seasons, hot rainy summers, and cold dry winters; representative urban elevation is about 600 metres.
++- Challenge: Midsummer heat, humid river-valley air, and short intense rainfall place sustained demands on vehicle cooling, energy management, and equipment waterproofing.
++
++## Activities
++
++- To be updated
++
++## Event
++
++The mobile lab has arrived in Baoji, Shaanxi, and the route map now records this city stop. The detailed field note will be updated later.
++
++## Expedition Log
++
++### World
++
++To be updated
++
++### Fire
++
++To be updated
++
++### Frontier
++
++To be updated
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/37-baoji.md with_skill/repo/src/content/stops/37-baoji.md
+--- pristine/src/content/stops/37-baoji.md	1970-01-01 08:00:00
++++ with_skill/repo/src/content/stops/37-baoji.md	2026-07-28 14:15:31
+@@ -0,0 +1,47 @@
++---
++id: baoji
++order: 37
++visited: true
++label: 宝鸡
++label_en: Baoji
++province: 陕西省
++lng: 107.14
++lat: 34.36
++altitude: "600"
++relationType: industry
++themes:
++  - industry
++event:
++  date: "2026.07.23"
++---
++
++# 宝鸡
++
++## 在地遥测
++
++- 地形: 位于关中平原西端，渭河穿城而过，南依秦岭、北靠黄土台塬，城区沿渭河河谷呈带状展开。
++- 阶梯: 中国地势第二级阶梯，处于秦岭山地与渭河平原的过渡地带，地势南高北低。
++- 气候: 暖温带半湿润大陆性季风气候，四季分明，夏季炎热多雨、冬季寒冷干燥；城区代表海拔约 600 米。
++- 极境挑战: 盛夏高温、河谷湿热与短时强降雨，对车辆散热、能源管理及设备防水提出持续要求。
++
++## 在地共创
++
++- 待补充
++
++## 现场记
++
++基地车已抵达陕西宝鸡，路线图记录该城市节点。详细现场记录待补充。
++
++## 远征日志
++
++### 新世界
++
++待补充
++
++### 火种
++
++待补充
++
++### 越界
++
++待补充
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/37-xian.en.md with_skill/repo/src/content/stops/37-xian.en.md
+--- pristine/src/content/stops/37-xian.en.md	2026-07-28 13:14:26
++++ with_skill/repo/src/content/stops/37-xian.en.md	1970-01-01 08:00:00
+@@ -1,30 +0,0 @@
+-# Xi'an
+-
+-## Telemetry
+-
+-- Terrain: Located in the central Guanzhong Plain, Xi'an is bordered by the Wei River to the north and the Qinling Mountains to the south; its urban area is dominated by alluvial plains and loess tablelands, generally descending from southeast to northwest.
+-- Step: Located on the eastern edge of China's second terrain step in the Guanzhong Basin, where the Qinling Mountains and the Wei River Plain form a clear geographic boundary.
+-- Climate: Warm-temperate, semi-humid continental monsoon climate with four distinct seasons, hot rainy summers, and cold dry winters; representative urban elevation is about 400 metres.
+-- Challenge: Midsummer heat, short intense rainfall, and the urban heat-island effect place sustained demands on vehicle cooling, energy management, equipment waterproofing, and crew hydration.
+-
+-## Activities
+-
+-- To be updated
+-
+-## Event
+-
+-The mobile lab has arrived in Xi'an, Shaanxi, and the route map now records this city stop. The detailed field note will be updated later.
+-
+-## Expedition Log
+-
+-### World
+-
+-To be updated
+-
+-### Fire
+-
+-To be updated
+-
+-### Frontier
+-
+-To be updated
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/37-xian.md with_skill/repo/src/content/stops/37-xian.md
+--- pristine/src/content/stops/37-xian.md	2026-07-28 13:14:26
++++ with_skill/repo/src/content/stops/37-xian.md	1970-01-01 08:00:00
+@@ -1,47 +0,0 @@
+----
+-id: xian
+-order: 37
+-visited: true
+-label: 西安
+-label_en: Xi'an
+-province: 陕西省
+-lng: 108.9398
+-lat: 34.3416
+-altitude: "400"
+-relationType: community
+-themes:
+-  - maker
+-event:
+-  date: "2026.07.24"
+----
+-
+-# 西安
+-
+-## 在地遥测
+-
+-- 地形: 位于关中平原中部，北临渭河、南依秦岭，城区以渭河冲积平原和黄土台塬为主，整体地势由东南向西北倾斜。
+-- 阶梯: 位于中国地势第二级阶梯东缘的关中盆地，秦岭山地与渭河平原在市域内界线分明。
+-- 气候: 暖温带半湿润大陆性季风气候，四季分明，夏季炎热多雨、冬季寒冷干燥；城区代表海拔约 400 米。
+-- 极境挑战: 盛夏高温、短时强降雨与城市热岛效应，对车辆散热、能源管理、设备防水及人员补水提出持续要求。
+-
+-## 在地共创
+-
+-- 待补充
+-
+-## 现场记
+-
+-基地车已抵达陕西西安，路线图记录该城市节点。详细现场记录待补充。
+-
+-## 远征日志
+-
+-### 新世界
+-
+-待补充
+-
+-### 火种
+-
+-待补充
+-
+-### 越界
+-
+-待补充
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/38-xian.en.md with_skill/repo/src/content/stops/38-xian.en.md
+--- pristine/src/content/stops/38-xian.en.md	1970-01-01 08:00:00
++++ with_skill/repo/src/content/stops/38-xian.en.md	2026-07-28 13:14:26
+@@ -0,0 +1,30 @@
++# Xi'an
++
++## Telemetry
++
++- Terrain: Located in the central Guanzhong Plain, Xi'an is bordered by the Wei River to the north and the Qinling Mountains to the south; its urban area is dominated by alluvial plains and loess tablelands, generally descending from southeast to northwest.
++- Step: Located on the eastern edge of China's second terrain step in the Guanzhong Basin, where the Qinling Mountains and the Wei River Plain form a clear geographic boundary.
++- Climate: Warm-temperate, semi-humid continental monsoon climate with four distinct seasons, hot rainy summers, and cold dry winters; representative urban elevation is about 400 metres.
++- Challenge: Midsummer heat, short intense rainfall, and the urban heat-island effect place sustained demands on vehicle cooling, energy management, equipment waterproofing, and crew hydration.
++
++## Activities
++
++- To be updated
++
++## Event
++
++The mobile lab has arrived in Xi'an, Shaanxi, and the route map now records this city stop. The detailed field note will be updated later.
++
++## Expedition Log
++
++### World
++
++To be updated
++
++### Fire
++
++To be updated
++
++### Frontier
++
++To be updated
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/38-xian.md with_skill/repo/src/content/stops/38-xian.md
+--- pristine/src/content/stops/38-xian.md	1970-01-01 08:00:00
++++ with_skill/repo/src/content/stops/38-xian.md	2026-07-28 14:15:55
+@@ -0,0 +1,47 @@
++---
++id: xian
++order: 38
++visited: true
++label: 西安
++label_en: Xi'an
++province: 陕西省
++lng: 108.9398
++lat: 34.3416
++altitude: "400"
++relationType: community
++themes:
++  - maker
++event:
++  date: "2026.07.24"
++---
++
++# 西安
++
++## 在地遥测
++
++- 地形: 位于关中平原中部，北临渭河、南依秦岭，城区以渭河冲积平原和黄土台塬为主，整体地势由东南向西北倾斜。
++- 阶梯: 位于中国地势第二级阶梯东缘的关中盆地，秦岭山地与渭河平原在市域内界线分明。
++- 气候: 暖温带半湿润大陆性季风气候，四季分明，夏季炎热多雨、冬季寒冷干燥；城区代表海拔约 400 米。
++- 极境挑战: 盛夏高温、短时强降雨与城市热岛效应，对车辆散热、能源管理、设备防水及人员补水提出持续要求。
++
++## 在地共创
++
++- 待补充
++
++## 现场记
++
++基地车已抵达陕西西安，路线图记录该城市节点。详细现场记录待补充。
++
++## 远征日志
++
++### 新世界
++
++待补充
++
++### 火种
++
++待补充
++
++### 越界
++
++待补充
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/i18n/route.ts with_skill/repo/src/i18n/route.ts
+--- pristine/src/i18n/route.ts	2026-07-28 13:14:26
++++ with_skill/repo/src/i18n/route.ts	2026-07-28 14:16:38
+@@ -4,7 +4,7 @@
+   zh: {
+     // Page metadata
+     'route.pageTitle': '行程路线',
+-    'route.pageDesc': '跟随柴火基地车，穿越中国 21 省 37 城。',
++    'route.pageDesc': '跟随柴火基地车，穿越中国 21 省 38 城。',
+     // Status and labels
+     'route.status.visited': '已抵达',
+     'route.status.planned': '计划中',
+@@ -43,7 +43,7 @@
+   },
+   en: {
+     'route.pageTitle': 'Journey Route',
+-    'route.pageDesc': 'Follow Chaihuo MCV across 21 provinces and 37 cities in China.',
++    'route.pageDesc': 'Follow Chaihuo MCV across 21 provinces and 38 cities in China.',
+     'route.status.visited': 'Visited',
+     'route.status.planned': 'Planned',
+     'route.status.origin': 'Origin',

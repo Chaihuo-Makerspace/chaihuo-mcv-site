@@ -1,0 +1,236 @@
+{
+  "metadata": {
+    "skill_name": "update-team-member",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-07-28T06:24:50Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "team.json contains a li-lan entry with name/name_en/bio/bio_en/role_en all present and image /people/li-lan.webp",
+          "passed": true,
+          "evidence": "{\"id\":\"li-lan\",\"name\":\"\u674e\u5c9a\",\"name_en\":\"Li Lan\",\"role\":\"\u5a92\u4f53\u62c5\u5f53\",\"role_en\":\"Media Lead\",\"bio\":\"\u7eaa\u5f55\u7247\u5bfc\u6f14\uff0c\u8d1f\u8d23\u6cbf\u9014\u5f71\u50cf\u4e0e\u6545\u4e8b\u8bb0\u5f55\u3002\",\"bio_en\":\"Documentary filmmaker capturing the journey.\",\"image\":\"/people/li-lan.webp\"}"
+        },
+        {
+          "text": "role is exactly \u5a92\u4f53\u62c5\u5f53 and role_en matches the role_en used by other \u5a92\u4f53\u62c5\u5f53 members",
+          "passed": true,
+          "evidence": "role=\u5a92\u4f53\u62c5\u5f53 role_en=Media Lead peers=Media Lead,Media Lead,Media Lead,Media Lead,Media Lead,Media Lead"
+        },
+        {
+          "text": "boardings.json has a segment with crewId li-lan, boardedAt 2026-07-27 \u897f\u5b89, and no disembarkedAt",
+          "passed": true,
+          "evidence": "{\"id\":\"b18\",\"crewId\":\"li-lan\",\"role\":\"\u5a92\u4f53\u62c5\u5f53\",\"boardedAt\":{\"date\":\"2026-07-27\",\"location\":\"\u897f\u5b89\",\"location_en\":\"Xi'an\"},\"disembarkedAt\":null}"
+        },
+        {
+          "text": "public/people/li-lan.webp exists and is 800x800 webp",
+          "passed": true,
+          "evidence": "800x800"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "boardings.json segment b15 (he-zhiwei) gains disembarkedAt 2026-07-28 \u897f\u5b89 with handoffTo wang-kaiwen",
+          "passed": true,
+          "evidence": "{\"date\":\"2026-07-28\",\"location\":\"\u897f\u5b89\",\"location_en\":\"Xi'an\",\"handoffTo\":\"wang-kaiwen\"}"
+        },
+        {
+          "text": "team.json contains wang-kaiwen with _en fields; role \u6280\u672f\u62c5\u5f53 and role_en consistent with other \u6280\u672f\u62c5\u5f53 members",
+          "passed": true,
+          "evidence": "{\"id\":\"wang-kaiwen\",\"name\":\"\u738b\u51ef\u6587\",\"name_en\":\"Wang Kaiwen\",\"role\":\"\u6280\u672f\u62c5\u5f53\",\"role_en\":\"Tech Lead\",\"bio\":\"\u786c\u4ef6\u5de5\u7a0b\u5e08\uff0c\u8d1f\u8d23\u8f66\u8f7d\u8bbe\u5907\u7ef4\u62a4\u3002\",\"bio_en\":\"Hardware engineer maintaining onboard equipment.\",\"image\":\"/people/wang-kaiwen.webp\"}"
+        },
+        {
+          "text": "a new boardings segment for wang-kaiwen exists with disembarkedAt null",
+          "passed": true,
+          "evidence": "{\"id\":\"b18\",\"crewId\":\"wang-kaiwen\",\"role\":\"\u6280\u672f\u62c5\u5f53\",\"boardedAt\":{\"date\":\"2026-07-28\",\"location\":\"\u897f\u5b89\",\"location_en\":\"Xi'an\"},\"disembarkedAt\":null}"
+        },
+        {
+          "text": "public/people/wang-kaiwen.webp exists and is 800x800 webp",
+          "passed": true,
+          "evidence": "800x800"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "team.json contains a li-lan entry with name/name_en/bio/bio_en/role_en all present and image /people/li-lan.webp",
+          "passed": false,
+          "evidence": "{\"id\":\"li-lan\",\"name\":\"\u674e\u5c9a\",\"name_en\":\"Li Lan\",\"role\":\"\u5a92\u4f53\u62c5\u5f53\",\"role_en\":\"Media Lead\",\"bio\":\"\u7eaa\u5f55\u7247\u5bfc\u6f14\uff0c\u8d1f\u8d23\u6cbf\u9014\u5f71\u50cf\u4e0e\u6545\u4e8b\u8bb0\u5f55\u3002\",\"bio_en\":\"Documentary filmmaker capturing the journey.\",\"image\":\"/people/li-lan.jpg\"}"
+        },
+        {
+          "text": "role is exactly \u5a92\u4f53\u62c5\u5f53 and role_en matches the role_en used by other \u5a92\u4f53\u62c5\u5f53 members",
+          "passed": true,
+          "evidence": "role=\u5a92\u4f53\u62c5\u5f53 role_en=Media Lead peers=Media Lead,Media Lead,Media Lead,Media Lead,Media Lead,Media Lead"
+        },
+        {
+          "text": "boardings.json has a segment with crewId li-lan, boardedAt 2026-07-27 \u897f\u5b89, and no disembarkedAt",
+          "passed": true,
+          "evidence": "{\"id\":\"b18\",\"crewId\":\"li-lan\",\"role\":\"\u5a92\u4f53\u62c5\u5f53\",\"boardedAt\":{\"date\":\"2026-07-27\",\"location\":\"\u897f\u5b89\",\"location_en\":\"Xi'an\"},\"disembarkedAt\":null}"
+        },
+        {
+          "text": "public/people/li-lan.webp exists and is 800x800 webp",
+          "passed": false,
+          "evidence": "NaNxNaN"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "boardings.json segment b15 (he-zhiwei) gains disembarkedAt 2026-07-28 \u897f\u5b89 with handoffTo wang-kaiwen",
+          "passed": true,
+          "evidence": "{\"date\":\"2026-07-28\",\"location\":\"\u897f\u5b89\",\"location_en\":\"Xi'an\",\"handoffTo\":\"wang-kaiwen\"}"
+        },
+        {
+          "text": "team.json contains wang-kaiwen with _en fields; role \u6280\u672f\u62c5\u5f53 and role_en consistent with other \u6280\u672f\u62c5\u5f53 members",
+          "passed": true,
+          "evidence": "{\"id\":\"wang-kaiwen\",\"name\":\"\u738b\u51ef\u6587\",\"name_en\":\"Wang Kaiwen\",\"role\":\"\u6280\u672f\u62c5\u5f53\",\"role_en\":\"Tech Lead\",\"bio\":\"\u786c\u4ef6\u5de5\u7a0b\u5e08\uff0c\u8d1f\u8d23\u8f66\u8f7d\u8bbe\u5907\u7ef4\u62a4\u3002\",\"bio_en\":\"Hardware engineer maintaining onboard equipment.\",\"image\":\"/people/wang-kaiwen.png\"}"
+        },
+        {
+          "text": "a new boardings segment for wang-kaiwen exists with disembarkedAt null",
+          "passed": true,
+          "evidence": "{\"id\":\"b18\",\"crewId\":\"wang-kaiwen\",\"role\":\"\u6280\u672f\u62c5\u5f53\",\"boardedAt\":{\"date\":\"2026-07-28\",\"location\":\"\u897f\u5b89\",\"location_en\":\"Xi'an\"},\"disembarkedAt\":null}"
+        },
+        {
+          "text": "public/people/wang-kaiwen.webp exists and is 800x800 webp",
+          "passed": false,
+          "evidence": "NaNxNaN"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1,
+        "max": 1
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.7,
+        "stddev": 0.1414,
+        "min": 0.6,
+        "max": 0.8
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.30",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

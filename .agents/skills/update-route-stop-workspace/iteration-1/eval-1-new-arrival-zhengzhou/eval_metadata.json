@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "new-arrival-zhengzhou",
+  "prompt": "基地车 2026-07-27 到郑州了(河南省,约 113.65°E 34.76°N,海拔约110米)。把郑州加到路线地图上(已到达,教育站,主题 science+maker),该同步的地方都同步掉,保持网站各处和地图一致,最后跑校验。",
+  "assertions": [
+    "src/content/stops/38-zhengzhou.md and 38-zhengzhou.en.md exist with valid frontmatter (order 38, visited true, lng/lat, label/label_en) and H1 matching label/label_en",
+    "河南省 added to PROVINCE_VISITED in src/features/route-map/visited-provinces.ts",
+    "PROVINCE_SHORT in src/features/route-map/route-legs.ts gains a 河南省 entry (zh 豫, en code, enFull Henan)",
+    "city/province count copy updated consistently in src/i18n/route.ts (zh and en) and the hardcoded count in src/app/components/HomeContent.tsx",
+    "scripts/location-city-aliases.json gains 郑州/郑州市 mapping to the new stop id",
+    "node scripts/validate-site.mjs passes in the edited copy"
+  ]
+}

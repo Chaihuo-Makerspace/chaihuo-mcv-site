@@ -1,0 +1,34 @@
+{
+  "skill_name": "update-route-stop",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-arrival-zhengzhou",
+      "prompt": "基地车 2026-07-27 到郑州了(河南省,约 113.65°E 34.76°N,海拔约110米)。把郑州加到路线地图上(已到达,教育站,主题 science+maker),该同步的地方都同步掉,保持网站各处和地图一致,最后跑校验。",
+      "expected_output": "新增 38-zhengzhou.md + .en.md(H1==label),visited-provinces.ts 加河南省,route-legs.ts PROVINCE_SHORT 加河南条目,三处 N 省 N 城文案一致更新,location-city-aliases.json 加郑州映射,validate-site 通过",
+      "files": [],
+      "assertions": [
+        "src/content/stops/38-zhengzhou.md and 38-zhengzhou.en.md exist with valid frontmatter (order 38, visited true, lng/lat, label/label_en) and H1 matching label/label_en",
+        "河南省 added to PROVINCE_VISITED in src/features/route-map/visited-provinces.ts",
+        "PROVINCE_SHORT in src/features/route-map/route-legs.ts gains a 河南省 entry (zh 豫, en code, enFull Henan)",
+        "city/province count copy updated consistently in src/i18n/route.ts (zh and en) and the hardcoded count in src/app/components/HomeContent.tsx",
+        "scripts/location-city-aliases.json gains 郑州/郑州市 mapping to the new stop id",
+        "node scripts/validate-site.mjs passes in the edited copy"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "insert-missed-baoji",
+      "prompt": "整理行程发现漏记了一站:车在榆林(陕西)之后、西安之前停靠过宝鸡(陕西省,约 107.14°E 34.36°N,海拔约600米,2026年7月23日,industry 站,主题 industry,已到达)。把它补进路线地图,注意别打乱现有站点的编号,该同步的都同步,跑校验。",
+      "expected_output": "新增 37-baoji.md + .en.md,原 37-xian 更名为 38-xian(order 38),order 连续 0..38,省份不重复添加,文案城市数同步,validate-site 通过",
+      "files": [],
+      "assertions": [
+        "src/content/stops/37-baoji.md and 37-baoji.en.md exist (order 37, visited true) with H1 matching label/label_en",
+        "former 37-xian.md/.en.md renamed to 38-xian.md/.en.md with frontmatter order updated to 38, and all stop orders remain contiguous 0..38 with filenames matching NN-id",
+        "陕西省 NOT duplicated in visited-provinces.ts (already present)",
+        "city count copy updated consistently in src/i18n/route.ts (zh and en) and HomeContent.tsx",
+        "node scripts/validate-site.mjs passes in the edited copy"
+      ]
+    }
+  ]
+}

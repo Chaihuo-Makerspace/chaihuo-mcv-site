@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "add-member-li-lan",
+  "prompt": "我们团队来了个新成员,帮忙加到官网上:李岚(Li Lan),媒体担当,2026年7月27日在西安登车,现在还在车上。bio 中文:纪录片导演,负责沿途影像与故事记录。英文:Documentary filmmaker capturing the journey. 照片在 inbox/li-lan-photo.jpg(相机原图,很大),处理成合适的头像再上架。改完跑一下校验。",
+  "assertions": [
+    "team.json contains a li-lan entry with name/name_en/bio/bio_en/role_en all present and image /people/li-lan.webp",
+    "role is exactly 媒体担当 and role_en matches the role_en used by other 媒体担当 members",
+    "boardings.json has a segment with crewId li-lan, boardedAt 2026-07-27 西安, and no disembarkedAt",
+    "public/people/li-lan.webp exists and is 800x800 webp",
+    "node scripts/validate-site.mjs passes in the edited copy"
+  ]
+}
