@@ -61,7 +61,6 @@ const route: Record<Locale, Record<string, string>> = {
     'route.river.locate': '定位到该城',
     'route.river.open': '打开日记',
     'route.river.hint': '点暗色卡片先定位到那座城',
-    'route.river.gap': '{from} → {to} · {days} 天',
     // City panel
     'route.panel.cityIndex': '第 {n} 城',
     'route.panel.day': '第 {n} 天',
@@ -122,7 +121,6 @@ const route: Record<Locale, Record<string, string>> = {
     'route.river.locate': 'Locate this stop',
     'route.river.open': 'Open journal',
     'route.river.hint': 'Click a dimmed card to locate that stop first',
-    'route.river.gap': '{from} → {to} · {days} days',
     'route.panel.cityIndex': 'Stop {n}',
     'route.panel.day': 'Day {n}',
     'route.journals.more': '{n} more',
