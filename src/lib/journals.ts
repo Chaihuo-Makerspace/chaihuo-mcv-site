@@ -87,6 +87,8 @@ export interface RouteJournal {
   status: string;
   city: string;
   href?: string;
+  /** 已发布的本地日记才有站内详情页 /journals/[slug] */
+  hasPage?: boolean;
   coverImage?: string;
   /** 208px WebP — 故事流卡片与地图照片钉 */
   coverThumb?: string;
@@ -97,17 +99,27 @@ export interface RouteJournal {
 // "基地车日记｜2026.05.22｜基地车首保…" / "基地车日记|2026.0727 西安理工…" → 去头
 const YUQUE_TITLE_PREFIX = /^基地车日记\s*[|｜]\s*[\d.\-–/]+\s*[|｜]?\s*/;
 
-/** 本地日记 + 语雀日记（同城同日去重，本地优先），供路线页城市面板使用。 */
+/** 本地日记 + 语雀日记（同城同日去重：已发布本地稿优先，placeholder 让位语雀）。 */
 export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<RouteJournal[]> {
-  const local = (await getAllJournals()).map((j) => {
-    const l = localizeJournal(j, cities, locale);
-    return { slug: l.slug, title: l.title, date: l.date, status: l.status as string, city: l.city };
-  });
-  const localKeys = new Set(local.map((j) => `${j.city}@${j.date}`));
   const stopIds = new Set(cities.map((c) => c.id));
+  const yuquePool = yuqueJournalsData.journals.filter((j) => j.date && stopIds.has(j.city));
+  const yuqueKeys = new Set(yuquePool.map((j) => `${j.city}@${j.date}`));
+  // placeholder 没有详情页;语雀已有同城同日正式稿时让位,否则留下做不可点的记录
+  const local = (await getAllJournals())
+    .map((j) => localizeJournal(j, cities, locale))
+    .filter((l) => l.status === 'published' || !yuqueKeys.has(`${l.city}@${l.date}`))
+    .map((l) => ({
+      slug: l.slug,
+      title: l.title,
+      date: l.date,
+      status: l.status as string,
+      city: l.city,
+      hasPage: l.status === 'published',
+    }));
+  const localKeys = new Set(local.map((j) => `${j.city}@${j.date}`));
   const yuque: RouteJournal[] = [];
-  for (const j of yuqueJournalsData.journals) {
-    if (!j.date || !stopIds.has(j.city) || localKeys.has(`${j.city}@${j.date}`)) continue;
+  for (const j of yuquePool) {
+    if (localKeys.has(`${j.city}@${j.date}`)) continue;
     yuque.push({
       slug: j.slug,
       title: j.title.replace(YUQUE_TITLE_PREFIX, ''),
