@@ -196,7 +196,7 @@ export default function ExpeditionRidge({
               fontSize={9.5}
               fill="var(--neutral-500)"
             >
-              {(t['route.ridge.gap'] ?? '{days} 天，零篇日记（{from} → {to}）')
+              {(t['route.ridge.gap'] ?? '{from} → {to} · {days} 天')
                 .replace('{days}', String(gap.days))
                 .replace('{from}', gap.from.city.label)
                 .replace('{to}', gap.to.city.label)}
