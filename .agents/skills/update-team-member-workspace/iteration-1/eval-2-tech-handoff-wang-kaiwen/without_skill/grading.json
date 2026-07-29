@@ -1,0 +1,37 @@
+{
+  "eval_id": 2,
+  "eval_name": "tech-handoff-wang-kaiwen",
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "boardings.json segment b15 (he-zhiwei) gains disembarkedAt 2026-07-28 西安 with handoffTo wang-kaiwen",
+      "passed": true,
+      "evidence": "{\"date\":\"2026-07-28\",\"location\":\"西安\",\"location_en\":\"Xi'an\",\"handoffTo\":\"wang-kaiwen\"}"
+    },
+    {
+      "text": "team.json contains wang-kaiwen with _en fields; role 技术担当 and role_en consistent with other 技术担当 members",
+      "passed": true,
+      "evidence": "{\"id\":\"wang-kaiwen\",\"name\":\"王凯文\",\"name_en\":\"Wang Kaiwen\",\"role\":\"技术担当\",\"role_en\":\"Tech Lead\",\"bio\":\"硬件工程师，负责车载设备维护。\",\"bio_en\":\"Hardware engineer maintaining onboard equipment.\",\"image\":\"/people/wang-kaiwen.png\"}"
+    },
+    {
+      "text": "a new boardings segment for wang-kaiwen exists with disembarkedAt null",
+      "passed": true,
+      "evidence": "{\"id\":\"b18\",\"crewId\":\"wang-kaiwen\",\"role\":\"技术担当\",\"boardedAt\":{\"date\":\"2026-07-28\",\"location\":\"西安\",\"location_en\":\"Xi'an\"},\"disembarkedAt\":null}"
+    },
+    {
+      "text": "public/people/wang-kaiwen.webp exists and is 800x800 webp",
+      "passed": false,
+      "evidence": "NaNxNaN"
+    },
+    {
+      "text": "node scripts/validate-site.mjs passes in the edited copy",
+      "passed": true,
+      "evidence": "validate-site passed"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

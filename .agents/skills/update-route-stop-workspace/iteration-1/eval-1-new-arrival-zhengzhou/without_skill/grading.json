@@ -1,0 +1,42 @@
+{
+  "eval_id": 1,
+  "eval_name": "new-arrival-zhengzhou",
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "src/content/stops/38-zhengzhou.md and 38-zhengzhou.en.md exist with valid frontmatter (order 38, visited true, lng/lat, label/label_en) and H1 matching label/label_en",
+      "passed": true,
+      "evidence": "38-zhengzhou pair OK"
+    },
+    {
+      "text": "河南省 added to PROVINCE_VISITED in src/features/route-map/visited-provinces.ts",
+      "passed": true,
+      "evidence": "河南省 present"
+    },
+    {
+      "text": "PROVINCE_SHORT in src/features/route-map/route-legs.ts gains a 河南省 entry (zh 豫, en code, enFull Henan)",
+      "passed": false,
+      "evidence": "no 河南省 entry in PROVINCE_SHORT"
+    },
+    {
+      "text": "city/province count copy updated consistently in src/i18n/route.ts (zh and en) and the hardcoded count in src/app/components/HomeContent.tsx",
+      "passed": true,
+      "evidence": "copy=21省38城 (en 21/38, home 21/38), actual non-routeOnly stops=38"
+    },
+    {
+      "text": "scripts/location-city-aliases.json gains 郑州/郑州市 mapping to the new stop id",
+      "passed": false,
+      "evidence": "no 郑州 alias"
+    },
+    {
+      "text": "node scripts/validate-site.mjs passes in the edited copy",
+      "passed": true,
+      "evidence": "validate-site passed"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "total": 6,
+    "pass_rate": 0.6666666666666666
+  }
+}

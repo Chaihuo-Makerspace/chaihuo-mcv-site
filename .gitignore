@@ -40,7 +40,6 @@ Deepseek/
 
 # AI agent skill files
 .agent/
-.agents/
 .adal/
 .antigravitycli/
 .augment/

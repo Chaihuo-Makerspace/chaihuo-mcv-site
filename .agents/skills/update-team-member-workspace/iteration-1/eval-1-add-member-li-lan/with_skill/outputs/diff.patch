@@ -1,0 +1,40 @@
+Binary files pristine/public/people/li-lan.webp and with_skill/repo/public/people/li-lan.webp differ
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/data/boardings.json with_skill/repo/src/data/boardings.json
+--- pristine/src/data/boardings.json	2026-07-28 13:14:26
++++ with_skill/repo/src/data/boardings.json	2026-07-28 14:16:16
+@@ -240,5 +240,16 @@
+       "location_en": "Xi'an"
+     },
+     "disembarkedAt": null
++  },
++  {
++    "id": "b18",
++    "crewId": "li-lan",
++    "role": "媒体担当",
++    "boardedAt": {
++      "date": "2026-07-27",
++      "location": "西安",
++      "location_en": "Xi'an"
++    },
++    "disembarkedAt": null
+   }
+ ]
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/data/team.json with_skill/repo/src/data/team.json
+--- pristine/src/data/team.json	2026-07-28 13:14:26
++++ with_skill/repo/src/data/team.json	2026-07-28 14:16:16
+@@ -157,5 +157,15 @@
+     "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+     "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
+     "image": "/people/zibo-chen.webp"
++  },
++  {
++    "id": "li-lan",
++    "name": "李岚",
++    "name_en": "Li Lan",
++    "role": "媒体担当",
++    "role_en": "Media Lead",
++    "bio": "纪录片导演，负责沿途影像与故事记录。",
++    "bio_en": "Documentary filmmaker capturing the journey.",
++    "image": "/people/li-lan.webp"
+   }
+ ]

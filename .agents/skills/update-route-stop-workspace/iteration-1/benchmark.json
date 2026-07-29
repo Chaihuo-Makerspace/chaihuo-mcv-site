@@ -1,0 +1,246 @@
+{
+  "metadata": {
+    "skill_name": "update-route-stop",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-07-28T06:24:50Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "src/content/stops/38-zhengzhou.md and 38-zhengzhou.en.md exist with valid frontmatter (order 38, visited true, lng/lat, label/label_en) and H1 matching label/label_en",
+          "passed": true,
+          "evidence": "38-zhengzhou pair OK"
+        },
+        {
+          "text": "\u6cb3\u5357\u7701 added to PROVINCE_VISITED in src/features/route-map/visited-provinces.ts",
+          "passed": true,
+          "evidence": "\u6cb3\u5357\u7701 present"
+        },
+        {
+          "text": "PROVINCE_SHORT in src/features/route-map/route-legs.ts gains a \u6cb3\u5357\u7701 entry (zh \u8c6b, en code, enFull Henan)",
+          "passed": true,
+          "evidence": "PROVINCE_SHORT has \u6cb3\u5357\u7701 entry"
+        },
+        {
+          "text": "city/province count copy updated consistently in src/i18n/route.ts (zh and en) and the hardcoded count in src/app/components/HomeContent.tsx",
+          "passed": true,
+          "evidence": "copy=21\u770138\u57ce (en 21/38, home 21/38), actual non-routeOnly stops=38"
+        },
+        {
+          "text": "scripts/location-city-aliases.json gains \u90d1\u5dde/\u90d1\u5dde\u5e02 mapping to the new stop id",
+          "passed": true,
+          "evidence": "alias present"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "src/content/stops/37-baoji.md and 37-baoji.en.md exist (order 37, visited true) with H1 matching label/label_en",
+          "passed": true,
+          "evidence": "37-baoji pair OK"
+        },
+        {
+          "text": "former 37-xian.md/.en.md renamed to 38-xian.md/.en.md with frontmatter order updated to 38, and all stop orders remain contiguous 0..38 with filenames matching NN-id",
+          "passed": true,
+          "evidence": "xian renamed=true order=38; orders contiguous 0..38 (39 stops)"
+        },
+        {
+          "text": "\u9655\u897f\u7701 NOT duplicated in visited-provinces.ts (already present)",
+          "passed": true,
+          "evidence": "\u9655\u897f\u7701 appears 1x"
+        },
+        {
+          "text": "city count copy updated consistently in src/i18n/route.ts (zh and en) and HomeContent.tsx",
+          "passed": true,
+          "evidence": "copy=21\u770138\u57ce (en 21/38, home 21/38), actual non-routeOnly stops=38"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 4,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "src/content/stops/38-zhengzhou.md and 38-zhengzhou.en.md exist with valid frontmatter (order 38, visited true, lng/lat, label/label_en) and H1 matching label/label_en",
+          "passed": true,
+          "evidence": "38-zhengzhou pair OK"
+        },
+        {
+          "text": "\u6cb3\u5357\u7701 added to PROVINCE_VISITED in src/features/route-map/visited-provinces.ts",
+          "passed": true,
+          "evidence": "\u6cb3\u5357\u7701 present"
+        },
+        {
+          "text": "PROVINCE_SHORT in src/features/route-map/route-legs.ts gains a \u6cb3\u5357\u7701 entry (zh \u8c6b, en code, enFull Henan)",
+          "passed": false,
+          "evidence": "no \u6cb3\u5357\u7701 entry in PROVINCE_SHORT"
+        },
+        {
+          "text": "city/province count copy updated consistently in src/i18n/route.ts (zh and en) and the hardcoded count in src/app/components/HomeContent.tsx",
+          "passed": true,
+          "evidence": "copy=21\u770138\u57ce (en 21/38, home 21/38), actual non-routeOnly stops=38"
+        },
+        {
+          "text": "scripts/location-city-aliases.json gains \u90d1\u5dde/\u90d1\u5dde\u5e02 mapping to the new stop id",
+          "passed": false,
+          "evidence": "no \u90d1\u5dde alias"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "src/content/stops/37-baoji.md and 37-baoji.en.md exist (order 37, visited true) with H1 matching label/label_en",
+          "passed": true,
+          "evidence": "37-baoji pair OK"
+        },
+        {
+          "text": "former 37-xian.md/.en.md renamed to 38-xian.md/.en.md with frontmatter order updated to 38, and all stop orders remain contiguous 0..38 with filenames matching NN-id",
+          "passed": true,
+          "evidence": "xian renamed=true order=38; orders contiguous 0..38 (39 stops)"
+        },
+        {
+          "text": "\u9655\u897f\u7701 NOT duplicated in visited-provinces.ts (already present)",
+          "passed": true,
+          "evidence": "\u9655\u897f\u7701 appears 1x"
+        },
+        {
+          "text": "city count copy updated consistently in src/i18n/route.ts (zh and en) and HomeContent.tsx",
+          "passed": true,
+          "evidence": "copy=21\u770138\u57ce (en 21/38, home 21/38), actual non-routeOnly stops=38"
+        },
+        {
+          "text": "node scripts/validate-site.mjs passes in the edited copy",
+          "passed": true,
+          "evidence": "validate-site passed"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1,
+        "max": 1
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8333,
+        "stddev": 0.2357,
+        "min": 0.6667,
+        "max": 1
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.17",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

@@ -1,0 +1,139 @@
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/scripts/lib/yuque-journal-sync.mjs without_skill/repo/scripts/lib/yuque-journal-sync.mjs
+--- pristine/scripts/lib/yuque-journal-sync.mjs	2026-07-28 13:14:26
++++ without_skill/repo/scripts/lib/yuque-journal-sync.mjs	2026-07-28 14:20:43
+@@ -1,6 +1,7 @@
+ const YUQUE_ORIGIN = 'https://www.yuque.com';
+ 
+ const CITY_KEYWORDS = [
++  ['zhengzhou', ['郑州']],
+   ['xian', ['西安']],
+   ['yulin-shaanxi', ['榆林']],
+   ['chengdu', ['成都', 'C-SCHOOL', 'BOSA', '麓湖']],
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/app/components/HomeContent.tsx without_skill/repo/src/app/components/HomeContent.tsx
+--- pristine/src/app/components/HomeContent.tsx	2026-07-28 13:39:03
++++ without_skill/repo/src/app/components/HomeContent.tsx	2026-07-28 14:20:03
+@@ -341,7 +341,7 @@
+                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
+                     {t['telemetry.planProvinces']}
+                   </div>
+-                  <div className="text-base font-bold text-neutral-900 mt-1">21 省 37 城</div>
++                  <div className="text-base font-bold text-neutral-900 mt-1">21 省 38 城</div>
+                 </div>
+               </motion.div>
+ 
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/38-zhengzhou.en.md without_skill/repo/src/content/stops/38-zhengzhou.en.md
+--- pristine/src/content/stops/38-zhengzhou.en.md	1970-01-01 08:00:00
++++ without_skill/repo/src/content/stops/38-zhengzhou.en.md	2026-07-28 14:19:46
+@@ -0,0 +1,30 @@
++# Zhengzhou
++
++## Telemetry
++
++- Terrain: To be updated
++- Step: To be updated
++- Climate: To be updated
++- Challenge: To be updated
++
++## Activities
++
++- To be updated
++
++## Event
++
++The location tracker detected that the mobile lab arrived in Zhengzhou. The detailed field note will be updated later.
++
++## Expedition Log
++
++### World
++
++To be updated
++
++### Fire
++
++To be updated
++
++### Frontier
++
++To be updated
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/38-zhengzhou.md without_skill/repo/src/content/stops/38-zhengzhou.md
+--- pristine/src/content/stops/38-zhengzhou.md	1970-01-01 08:00:00
++++ without_skill/repo/src/content/stops/38-zhengzhou.md	2026-07-28 14:19:45
+@@ -0,0 +1,48 @@
++---
++id: zhengzhou
++order: 38
++visited: true
++label: 郑州
++label_en: Zhengzhou
++province: 河南省
++lng: 113.65
++lat: 34.76
++altitude: "110"
++relationType: education
++themes:
++  - science
++  - maker
++event:
++  date: "2026.07.27"
++---
++
++# 郑州
++
++## 在地遥测
++
++- 地形: 待补充
++- 阶梯: 待补充
++- 气候: 待补充
++- 极境挑战: 待补充
++
++## 在地共创
++
++- 待补充
++
++## 现场记
++
++定位器检测到基地车抵达郑州，路线图已自动记录该城市节点。详细现场记录待补充。
++
++## 远征日志
++
++### 新世界
++
++待补充
++
++### 火种
++
++待补充
++
++### 越界
++
++待补充
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/features/route-map/visited-provinces.ts without_skill/repo/src/features/route-map/visited-provinces.ts
+--- pristine/src/features/route-map/visited-provinces.ts	2026-07-28 13:14:26
++++ without_skill/repo/src/features/route-map/visited-provinces.ts	2026-07-28 14:20:03
+@@ -9,4 +9,5 @@
+   '甘肃省',
+   '宁夏回族自治区',
+   '陕西省',
++  '河南省',
+ ];
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/i18n/route.ts without_skill/repo/src/i18n/route.ts
+--- pristine/src/i18n/route.ts	2026-07-28 13:14:26
++++ without_skill/repo/src/i18n/route.ts	2026-07-28 14:20:31
+@@ -4,7 +4,7 @@
+   zh: {
+     // Page metadata
+     'route.pageTitle': '行程路线',
+-    'route.pageDesc': '跟随柴火基地车，穿越中国 21 省 37 城。',
++    'route.pageDesc': '跟随柴火基地车，穿越中国 21 省 38 城。',
+     // Status and labels
+     'route.status.visited': '已抵达',
+     'route.status.planned': '计划中',
+@@ -43,7 +43,7 @@
+   },
+   en: {
+     'route.pageTitle': 'Journey Route',
+-    'route.pageDesc': 'Follow Chaihuo MCV across 21 provinces and 37 cities in China.',
++    'route.pageDesc': 'Follow Chaihuo MCV across 21 provinces and 38 cities in China.',
+     'route.status.visited': 'Visited',
+     'route.status.planned': 'Planned',
+     'route.status.origin': 'Origin',

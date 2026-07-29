@@ -1,0 +1,33 @@
+{
+  "skill_name": "update-team-member",
+  "evals": [
+    {
+      "id": 1,
+      "name": "add-member-li-lan",
+      "prompt": "我们团队来了个新成员,帮忙加到官网上:李岚(Li Lan),媒体担当,2026年7月27日在西安登车,现在还在车上。bio 中文:纪录片导演,负责沿途影像与故事记录。英文:Documentary filmmaker capturing the journey. 照片在 inbox/li-lan-photo.jpg(相机原图,很大),处理成合适的头像再上架。改完跑一下校验。",
+      "expected_output": "team.json 新增 li-lan 条目(三个 _en 字段齐全,role 与现有媒体担当一致),boardings.json 新增无 disembarkedAt 的片段,public/people/li-lan.webp 为 800x800,validate-site 通过",
+      "files": ["inbox/li-lan-photo.jpg"],
+      "assertions": [
+        "team.json contains a li-lan entry with name/name_en/bio/bio_en/role_en all present and image /people/li-lan.webp",
+        "role is exactly 媒体担当 and role_en matches the role_en used by other 媒体担当 members",
+        "boardings.json has a segment with crewId li-lan, boardedAt 2026-07-27 西安, and no disembarkedAt",
+        "public/people/li-lan.webp exists and is 800x800 webp",
+        "node scripts/validate-site.mjs passes in the edited copy"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "tech-handoff-wang-kaiwen",
+      "prompt": "何志威(he-zhiwei)今天(2026-07-28)在西安下车了,技术担当的工作交接给新成员王凯文(Wang Kaiwen),ta 现在还在车上。bio:硬件工程师,负责车载设备维护 / Hardware engineer maintaining onboard equipment. 照片 inbox/wang-kaiwen.png。更新网站并跑校验。",
+      "expected_output": "b15 片段补 disembarkedAt(2026-07-28 西安,handoffTo wang-kaiwen),team.json 新增 wang-kaiwen(role_en 与其他技术担当一致),新增当前在车片段,头像 800x800 webp,validate-site 通过",
+      "files": ["inbox/wang-kaiwen.png"],
+      "assertions": [
+        "boardings.json segment b15 (he-zhiwei) gains disembarkedAt 2026-07-28 西安 with handoffTo wang-kaiwen",
+        "team.json contains wang-kaiwen with _en fields; role 技术担当 and role_en consistent with other 技术担当 members",
+        "a new boardings segment for wang-kaiwen exists with disembarkedAt null",
+        "public/people/wang-kaiwen.webp exists and is 800x800 webp",
+        "node scripts/validate-site.mjs passes in the edited copy"
+      ]
+    }
+  ]
+}

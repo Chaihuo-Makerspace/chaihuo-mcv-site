@@ -1,13 +1,8 @@
-import { ChevronLeft, MapPin } from 'lucide-react';
+import { ChevronLeft, MapPin, PanelRightOpen } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CityPanel, countThemes, MapLibreCanvas, ThemeFilter } from '@/features/route-map';
-import ExpeditionRidge from '@/features/route-map/ExpeditionRidge';
-import {
-  buildTimeline,
-  countJournalsByCity,
-  expeditionStats,
-} from '@/features/route-map/expedition-timeline';
+import { buildTimeline, expeditionStats } from '@/features/route-map/expedition-timeline';
 import type { MapViewMode } from '@/features/route-map/MapLibreCanvas';
 import StoryRiver from '@/features/route-map/StoryRiver';
 import type { ThemeType } from '@/features/route-map/theme';
@@ -33,13 +28,15 @@ interface Props {
   t: Record<string, string>;
 }
 
-// Desktop: full-viewport map. Keep the route clear of the left rail (320 + margin)
-// and, when it is open, the right CityPanel card (360 + margin). With no panel
-// the right inset collapses — otherwise the map is shoved left and 400px of
-// empty sea sits where east China should be. The ridge/river band lives outside
-// the map box, so no extra bottom inset is needed.
-const FIT_PADDING_WITH_PANEL = { top: 120, bottom: 40, left: 380, right: 400 };
-const FIT_PADDING_NO_PANEL = { top: 120, bottom: 40, left: 380, right: 56 };
+// Desktop: full-width map under a slim topbar. Keep the route clear of the
+// floating view/theme chip group at the top-left and, when it is open, the
+// right CityPanel card (360 + margin). A collapsed panel is only a 48px strip,
+// so the map reclaims the space; with no panel the right inset collapses too —
+// otherwise the map is shoved left and 400px of empty sea sits where east China
+// should be. The river band lives outside the map box, so no extra bottom inset.
+const FIT_PADDING_WITH_PANEL = { top: 130, bottom: 40, left: 56, right: 400 };
+const FIT_PADDING_COLLAPSED = { top: 130, bottom: 40, left: 56, right: 80 };
+const FIT_PADDING_NO_PANEL = { top: 130, bottom: 40, left: 56, right: 56 };
 
 export default function RouteContent({ cities, journals, locale = 'zh', t }: Props) {
   const sortedCities = useMemo(() => [...cities].sort((a, b) => a.order - b.order), [cities]);
@@ -49,19 +46,20 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   );
 
   const timeline = useMemo(() => buildTimeline(sortedCities), [sortedCities]);
-  const journalCounts = useMemo(() => countJournalsByCity(journals), [journals]);
   const stats = useMemo(
     () => expeditionStats(sortedCities, journals, timeline),
     [sortedCities, journals, timeline],
   );
 
-  // Default to the latest visited city (visited === true and largest order)
   const lastVisited = useMemo(
     () => [...visibleCities].reverse().find((c) => c.visited) ?? null,
     [visibleCities],
   );
 
-  const [selectedCityKey, setSelectedCityKey] = useState<string | null>(lastVisited?.label ?? null);
+  // Panel starts closed: the map's current-position pulse carries "where are
+  // we now"; the panel opens on pin/marker/river click.
+  const [selectedCityKey, setSelectedCityKey] = useState<string | null>(null);
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   const [activeTheme, setActiveTheme] = useState<ThemeType | null>(null);
   const [viewMode, setViewMode] = useState<MapViewMode>('track');
@@ -71,7 +69,11 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
     () => visibleCities.find((c) => c.label === selectedCityKey) ?? null,
     [visibleCities, selectedCityKey],
   );
-  const fitPadding = selectedCity ? FIT_PADDING_WITH_PANEL : FIT_PADDING_NO_PANEL;
+  const fitPadding = !selectedCity
+    ? FIT_PADDING_NO_PANEL
+    : isPanelCollapsed
+      ? FIT_PADDING_COLLAPSED
+      : FIT_PADDING_WITH_PANEL;
 
   // Mobile Drawer expanded state
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
@@ -90,10 +92,14 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
 
   const handleCitySelect = useCallback((key: string) => {
     setSelectedCityKey(key);
+    setIsPanelCollapsed(false);
     // Auto expand drawer on mobile when clicking a city
     setIsDrawerExpanded(true);
   }, []);
-  const clearSelection = useCallback(() => setSelectedCityKey(null), []);
+  const clearSelection = useCallback(() => {
+    setSelectedCityKey(null);
+    setIsPanelCollapsed(false);
+  }, []);
 
   const getT = (key: string, fallback: string) => t[key] ?? fallback;
 
@@ -107,6 +113,8 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 24 省 42 城。');
   const backHref = locale === 'zh' ? '/' : '/en';
 
+  // All five numbers are derived from the stops + journals — nothing here is
+  // hand-maintained copy that can drift out of date.
   const statItems: { value: string; label: string }[] = [
     {
       value: stats.days ? String(stats.days) : '—',
@@ -124,6 +132,10 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
       value: String(stats.journals),
       label: getT('route.stats.journals', '篇日记'),
     },
+    {
+      value: Math.round(stats.maxAltitude).toLocaleString('en-US'),
+      label: getT('route.stats.maxAlt', '最高海拔(m)'),
+    },
   ];
 
   const viewModes: { id: MapViewMode; label: string }[] = [
@@ -131,34 +143,100 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
     { id: 'vision', label: getT('route.view.vision', '愿景') },
   ];
 
+  // 视图模式互斥:一次只讲一件事。愿景模式里马年线才第一次看得清。
+  const viewToggle = (
+    <>
+      {/* biome-ignore lint/a11y/useSemanticElements: 这是视图切换按钮组,不是表单字段集;<fieldset> 会带来错误的表单语义 */}
+      <div
+        className="flex gap-1.5"
+        role="group"
+        aria-label={getT('route.view.ariaGroup', '地图视图模式')}
+      >
+        {viewModes.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            aria-pressed={viewMode === m.id}
+            title={m.id === 'vision' ? getT('route.view.visionHint', '') : undefined}
+            onClick={() => setViewMode(m.id)}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-200 cursor-pointer ${
+              viewMode === m.id
+                ? 'border-neutral-900 bg-neutral-900 text-white'
+                : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900'
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {viewMode === 'vision' && (
+        <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
+          {getT('route.view.visionHint', '2026 全年路程走成一匹马')}
+        </p>
+      )}
+
+      {viewMode === 'track' && (
+        <div className="mt-2">
+          <ThemeFilter counts={themeCounts} active={activeTheme} onSelect={setActiveTheme} t={t} />
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="relative bg-neutral-50 lg:flex lg:h-screen lg:flex-col lg:overflow-hidden">
+      {/* ── Desktop topbar: page identity + derived numbers in one slim row
+          under the site nav. Replaces the floating 320px left rail, so the map
+          spans the full width. Mobile keeps the in-flow header card below. ── */}
+      <header className="hidden lg:flex lg:items-baseline lg:gap-6 lg:px-6 lg:pt-20 lg:pb-2 lg:border-b lg:border-neutral-200 lg:bg-surface-card lg:z-20">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h1 className="whitespace-nowrap text-lg font-extrabold tracking-tight text-neutral-900">
+            {pageTitle}
+          </h1>
+          <p className="truncate text-xs font-medium text-neutral-500">{pageDesc}</p>
+        </div>
+        <dl className="ml-auto flex flex-none items-baseline gap-6">
+          {statItems.map((s) => (
+            <div key={s.label} className="flex items-baseline gap-1.5">
+              <dd className="text-sm font-extrabold tabular-nums leading-none text-neutral-900">
+                {s.value}
+              </dd>
+              <dt className="text-[10px] leading-tight text-neutral-500">{s.label}</dt>
+            </div>
+          ))}
+        </dl>
+        <a
+          href={backHref}
+          className="inline-flex flex-none items-center gap-1 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-bold text-neutral-600 shadow-sm transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+          <span>{getT('route.action.backHome', '返回首页')}</span>
+        </a>
+      </header>
+
       <div className="relative lg:min-h-0 lg:flex-1">
-        {/* ── Left rail: page identity + derived numbers + view switch + theme lens.
-            Mobile: an in-flow card above the map. Desktop: floats over the map's
-            empty west side instead of covering the route through the middle. ── */}
-        <header className="relative z-20 mt-20 mx-4 mb-2 rounded-2xl border border-neutral-200/70 bg-surface-card/85 backdrop-blur-md shadow-lg p-4 sm:mx-6 lg:absolute lg:top-24 lg:left-6 lg:mx-0 lg:mt-0 lg:mb-0 lg:w-[320px]">
+        {/* ── Mobile in-flow header card (desktop uses the topbar above) ── */}
+        <header className="relative z-20 mx-4 mt-20 mb-2 rounded-2xl border border-neutral-200/70 bg-surface-card/85 p-4 shadow-lg backdrop-blur-md sm:mx-6 lg:hidden">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-xl md:text-2xl font-extrabold text-neutral-900 tracking-tight">
+              <h1 className="text-xl font-extrabold tracking-tight text-neutral-900 md:text-2xl">
                 {pageTitle}
               </h1>
-              <p className="text-xs text-neutral-500 mt-1 font-medium leading-relaxed">
+              <p className="mt-1 text-xs font-medium leading-relaxed text-neutral-500">
                 {pageDesc}
               </p>
             </div>
             <a
               href={backHref}
-              className="shrink-0 inline-flex items-center gap-1 text-xs font-bold text-neutral-600 hover:text-neutral-900 bg-white border border-neutral-200 shadow-sm hover:bg-neutral-50 px-3 py-1.5 rounded-full transition-colors duration-200 cursor-pointer"
+              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 shadow-sm transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="h-3.5 w-3.5" />
               <span>{getT('route.action.backHome', '返回首页')}</span>
             </a>
           </div>
 
-          {/* All four numbers are derived from the stops + journals — nothing here
-              is hand-maintained copy that can drift out of date. */}
-          <dl className="mt-3 grid grid-cols-4 gap-2 border-y border-neutral-200 py-2.5">
+          <dl className="mt-3 grid grid-cols-5 gap-2 border-y border-neutral-200 py-2.5">
             {statItems.map((s) => (
               <div key={s.label}>
                 <dd className="text-[15px] font-extrabold tabular-nums leading-none text-neutral-900">
@@ -169,51 +247,17 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
             ))}
           </dl>
 
-          {/* 视图模式互斥:一次只讲一件事。愿景模式里马年线才第一次看得清。 */}
-          {/* biome-ignore lint/a11y/useSemanticElements: 这是视图切换按钮组,不是表单字段集;<fieldset> 会带来错误的表单语义 */}
-          <div
-            className="mt-3 flex gap-1.5"
-            role="group"
-            aria-label={getT('route.view.ariaGroup', '地图视图模式')}
-          >
-            {viewModes.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                aria-pressed={viewMode === m.id}
-                title={m.id === 'vision' ? getT('route.view.visionHint', '') : undefined}
-                onClick={() => setViewMode(m.id)}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-200 cursor-pointer ${
-                  viewMode === m.id
-                    ? 'border-neutral-900 bg-neutral-900 text-white'
-                    : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900'
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-
-          {viewMode === 'vision' && (
-            <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
-              {getT('route.view.visionHint', '2026 全年路程走成一匹马')}
-            </p>
-          )}
-
-          {viewMode === 'track' && (
-            <div className="mt-2">
-              <ThemeFilter
-                counts={themeCounts}
-                active={activeTheme}
-                onSelect={setActiveTheme}
-                t={t}
-              />
-            </div>
-          )}
+          <div className="mt-3">{viewToggle}</div>
         </header>
 
+        {/* ── Desktop: view-mode toggle + theme lens as a compact floating chip
+            group at the map's top-left (the rail's controls, nothing else). ── */}
+        <div className="hidden lg:absolute lg:left-6 lg:top-4 lg:z-20 lg:block lg:w-[248px] lg:rounded-2xl lg:border lg:border-neutral-200/70 lg:bg-surface-card/85 lg:p-3 lg:shadow-lg lg:backdrop-blur-md">
+          {viewToggle}
+        </div>
+
         {/* ── Map: mobile = in-flow 45vh below header; desktop = fills the row ── */}
-        <div className="w-full h-[45vh] min-h-[300px] mt-4 lg:mt-0 lg:absolute lg:inset-0 lg:h-auto lg:min-h-0 lg:z-0">
+        <div className="mt-4 h-[45vh] min-h-[300px] w-full lg:absolute lg:inset-0 lg:mt-0 lg:h-auto lg:min-h-0 lg:z-0">
           <MapLibreCanvas
             cities={cities}
             selectedKey={selectedCityKey}
@@ -226,10 +270,11 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
           />
         </div>
 
-        {/* ── Desktop: CityPanel appears on selection and can be dismissed, so the
-            map's east half is not permanently covered. ── */}
-        {selectedCity && (
-          <div className="hidden lg:block lg:absolute lg:top-24 lg:right-6 lg:bottom-6 lg:z-20 lg:w-[360px] lg:overflow-y-auto lg:rounded-2xl lg:bg-surface-card lg:shadow-xl">
+        {/* ── Desktop: CityPanel appears on selection and can be dismissed or
+            collapsed to a 48px strip, so the map's east half is not permanently
+            covered. ── */}
+        {selectedCity && !isPanelCollapsed && (
+          <div className="hidden lg:absolute lg:bottom-6 lg:right-6 lg:top-4 lg:z-20 lg:block lg:w-[360px] lg:overflow-y-auto lg:rounded-2xl lg:bg-surface-card lg:shadow-xl">
             <CityPanel
               city={selectedCity}
               cities={visibleCities}
@@ -240,40 +285,47 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
               hero={false}
               onSelectCity={handleCitySelect}
               onClose={clearSelection}
+              onCollapse={() => setIsPanelCollapsed(true)}
               journals={journals}
               timeline={timeline}
             />
           </div>
         )}
+        {selectedCity && isPanelCollapsed && (
+          <div className="hidden lg:absolute lg:bottom-6 lg:right-6 lg:top-4 lg:z-20 lg:flex lg:w-12 lg:flex-col lg:items-center lg:gap-3 lg:rounded-2xl lg:border lg:border-neutral-200/70 lg:bg-surface-card lg:py-3 lg:shadow-xl">
+            <button
+              type="button"
+              onClick={() => setIsPanelCollapsed(false)}
+              aria-label={getT('route.action.expand', '展开面板')}
+              title={getT('route.action.expand', '展开面板')}
+              className="rounded-full p-1 text-neutral-400 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer"
+            >
+              <PanelRightOpen className="h-4 w-4" />
+            </button>
+            <span className="select-none text-xs font-bold tracking-widest text-neutral-700 [writing-mode:vertical-rl]">
+              {selectedCity.label}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* ── Bottom band: the journey's other two axes — time/altitude/story
-          density, and every story in the order it happened. ── */}
+      {/* ── Bottom band: every story in the order — and at the time — it
+          happened. ── */}
       <div className="relative z-10 mt-4 border-t border-neutral-200 bg-surface-card pt-3 pb-2 lg:mt-0 lg:flex-none">
-        <ExpeditionRidge
+        <StoryRiver
+          journals={journals}
           cities={visibleCities}
-          timeline={timeline}
-          journalCounts={journalCounts}
           selectedId={selectedCity?.id ?? null}
           onSelect={handleCitySelect}
           t={t}
+          locale={locale}
         />
-        <div className="mt-2 border-t border-neutral-200 pt-3">
-          <StoryRiver
-            journals={journals}
-            cities={visibleCities}
-            selectedId={selectedCity?.id ?? null}
-            onSelect={handleCitySelect}
-            t={t}
-            locale={locale}
-          />
-        </div>
       </div>
 
       {/* ── Mobile: bottom drawer (desktop uses the floating card above) ── */}
       {selectedCity && !isDesktop && (
         <motion.div
-          className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-surface-card/95 backdrop-blur-md border-t border-neutral-300 rounded-t-3xl shadow-2xl flex flex-col overflow-hidden"
+          className="fixed inset-x-0 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-3xl border-t border-neutral-300 bg-surface-card/95 shadow-2xl backdrop-blur-md lg:hidden"
           style={{ height: '75vh' }}
           variants={drawerVariants}
           animate={isDrawerExpanded ? 'expanded' : 'peek'}
@@ -296,7 +348,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
             role="button"
             tabIndex={0}
             aria-expanded={isDrawerExpanded}
-            className="w-full flex flex-col justify-between py-3 px-6 border-b border-neutral-300/50 cursor-pointer flex-shrink-0"
+            className="flex w-full flex-shrink-0 cursor-pointer flex-col justify-between border-b border-neutral-300/50 px-6 py-3"
             onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -306,16 +358,16 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
             }}
           >
             {/* Central pill handle */}
-            <div className="w-12 h-1.5 bg-neutral-300 rounded-full mx-auto mb-3" />
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-neutral-300" />
 
             {/* Peek Content Bar */}
-            <div className="flex items-center justify-between w-full h-[60px]">
+            <div className="flex h-[60px] w-full items-center justify-between">
               <div className="text-left">
-                <h4 className="text-xl font-bold text-neutral-900 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-brand" />
+                <h4 className="flex items-center gap-1.5 text-xl font-bold text-neutral-900">
+                  <MapPin className="h-4 w-4 text-brand" />
                   <span>{selectedCity.label}</span>
                 </h4>
-                <p className="text-xs text-neutral-500 tabular-nums font-medium mt-0.5">
+                <p className="mt-0.5 text-xs font-medium tabular-nums text-neutral-500">
                   {[
                     timeline.get(selectedCity.id)?.day
                       ? (t['route.panel.day'] ?? '第 {n} 天').replace(
@@ -333,19 +385,19 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
               {/* Status indicator chip */}
               <div>
                 {selectedCity.isOrigin ? (
-                  <span className="inline-flex text-[10px] tracking-wider text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded font-semibold border border-neutral-300/50">
+                  <span className="inline-flex rounded border border-neutral-300/50 bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-700">
                     {getT('route.status.origin', '出发点')}
                   </span>
                 ) : selectedCity.label === lastVisited?.label ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] tracking-wider text-brand-foreground bg-brand px-2.5 py-1 rounded font-bold">
+                  <span className="inline-flex items-center gap-1 rounded bg-brand px-2.5 py-1 text-[10px] font-bold tracking-wider text-brand-foreground">
                     {getT('route.status.latest', '最新')}
                   </span>
                 ) : selectedCity.visited ? (
-                  <span className="inline-flex text-[10px] tracking-wider text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded font-semibold border border-neutral-300/50">
+                  <span className="inline-flex rounded border border-neutral-300/50 bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-700">
                     {getT('route.status.visited', '已抵达')}
                   </span>
                 ) : (
-                  <span className="inline-flex text-[10px] tracking-wider text-neutral-500 bg-neutral-50 px-2.5 py-1 rounded font-semibold border border-neutral-100">
+                  <span className="inline-flex rounded border border-neutral-100 bg-neutral-50 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-500">
                     {getT('route.status.planned', '计划中')}
                   </span>
                 )}

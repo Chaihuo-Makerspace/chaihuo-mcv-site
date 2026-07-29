@@ -9,7 +9,7 @@ import { isRouteOnlyCity } from './types';
  * This module normalises those to ISO dates, fills the gaps by interpolating
  * between the nearest dated neighbours (flagged `guessed` so the UI can show a
  * dashed tick instead of claiming a date it doesn't have), and derives the
- * day-N counter the CityPanel and the ridge both read.
+ * day-N counter the CityPanel reads.
  */
 
 export interface StopTime {

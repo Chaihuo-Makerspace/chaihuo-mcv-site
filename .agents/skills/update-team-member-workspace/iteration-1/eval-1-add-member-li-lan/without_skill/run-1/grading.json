@@ -1,0 +1,37 @@
+{
+  "eval_id": 1,
+  "eval_name": "add-member-li-lan",
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "team.json contains a li-lan entry with name/name_en/bio/bio_en/role_en all present and image /people/li-lan.webp",
+      "passed": false,
+      "evidence": "{\"id\":\"li-lan\",\"name\":\"李岚\",\"name_en\":\"Li Lan\",\"role\":\"媒体担当\",\"role_en\":\"Media Lead\",\"bio\":\"纪录片导演，负责沿途影像与故事记录。\",\"bio_en\":\"Documentary filmmaker capturing the journey.\",\"image\":\"/people/li-lan.jpg\"}"
+    },
+    {
+      "text": "role is exactly 媒体担当 and role_en matches the role_en used by other 媒体担当 members",
+      "passed": true,
+      "evidence": "role=媒体担当 role_en=Media Lead peers=Media Lead,Media Lead,Media Lead,Media Lead,Media Lead,Media Lead"
+    },
+    {
+      "text": "boardings.json has a segment with crewId li-lan, boardedAt 2026-07-27 西安, and no disembarkedAt",
+      "passed": true,
+      "evidence": "{\"id\":\"b18\",\"crewId\":\"li-lan\",\"role\":\"媒体担当\",\"boardedAt\":{\"date\":\"2026-07-27\",\"location\":\"西安\",\"location_en\":\"Xi'an\"},\"disembarkedAt\":null}"
+    },
+    {
+      "text": "public/people/li-lan.webp exists and is 800x800 webp",
+      "passed": false,
+      "evidence": "NaNxNaN"
+    },
+    {
+      "text": "node scripts/validate-site.mjs passes in the edited copy",
+      "passed": true,
+      "evidence": "validate-site passed"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

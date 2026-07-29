@@ -1,0 +1,55 @@
+Binary files pristine/public/people/wang-kaiwen.png and without_skill/repo/public/people/wang-kaiwen.png differ
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/data/boardings.json without_skill/repo/src/data/boardings.json
+--- pristine/src/data/boardings.json	2026-07-28 13:14:26
++++ without_skill/repo/src/data/boardings.json	2026-07-28 14:15:17
+@@ -217,7 +217,12 @@
+       "location": "西安",
+       "location_en": "Xi'an"
+     },
+-    "disembarkedAt": null
++    "disembarkedAt": {
++      "date": "2026-07-28",
++      "location": "西安",
++      "location_en": "Xi'an",
++      "handoffTo": "wang-kaiwen"
++    }
+   },
+   {
+     "id": "b16",
+@@ -236,6 +241,17 @@
+     "role": "技术担当",
+     "boardedAt": {
+       "date": "2026-07-26",
++      "location": "西安",
++      "location_en": "Xi'an"
++    },
++    "disembarkedAt": null
++  },
++  {
++    "id": "b18",
++    "crewId": "wang-kaiwen",
++    "role": "技术担当",
++    "boardedAt": {
++      "date": "2026-07-28",
+       "location": "西安",
+       "location_en": "Xi'an"
+     },
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/data/team.json without_skill/repo/src/data/team.json
+--- pristine/src/data/team.json	2026-07-28 13:14:26
++++ without_skill/repo/src/data/team.json	2026-07-28 14:14:35
+@@ -157,5 +157,15 @@
+     "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+     "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
+     "image": "/people/zibo-chen.webp"
++  },
++  {
++    "id": "wang-kaiwen",
++    "name": "王凯文",
++    "name_en": "Wang Kaiwen",
++    "role": "技术担当",
++    "role_en": "Tech Lead",
++    "bio": "硬件工程师，负责车载设备维护。",
++    "bio_en": "Hardware engineer maintaining onboard equipment.",
++    "image": "/people/wang-kaiwen.png"
+   }
+ ]

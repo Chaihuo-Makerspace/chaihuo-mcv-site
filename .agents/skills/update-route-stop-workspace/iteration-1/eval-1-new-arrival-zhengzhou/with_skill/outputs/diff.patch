@@ -1,0 +1,189 @@
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/AGENTS.md with_skill/repo/AGENTS.md
+--- pristine/AGENTS.md	2026-07-28 12:53:53
++++ with_skill/repo/AGENTS.md	2026-07-28 14:17:31
+@@ -159,11 +159,13 @@
+ - Route map now extends from Karamay to Urumqi, with Urumqi highlighted as the latest visited stop.
+ - Tracker Allen location updates can be checked through `pnpm update:city`; enabling hourly GitHub Actions requires a GitHub credential with `workflow` scope.
+ - Route map now extends from Urumqi to Hami, with Hami highlighted as the latest visited stop.
++- Route map now extends from Xi'an to Zhengzhou, with Zhengzhou highlighted as the latest visited stop and Henan added to the visited provinces.
+ 
+ ## Changelog
+ 
+ | Date | Branch | Description |
+ | --- | --- | --- |
++| 2026-07-28 | main | Added Zhengzhou (郑州) as stop 38, marked it visited with Henan province fill and route legs shorthand, and updated route copy to 38 cities. |
+ | 2026-07-09 | fix/yuque-first-image-cover | Replaced blank Yuque covers with article images, fixed compact journal date sorting, enabled 10-minute automatic sync, and merged into main. |
+ | 2026-07-08 | fix/yuque-journal-sync | Restored Yuque journal sync by removing the failing dependency install, refreshed 3 public journal cards, skipped inaccessible 401/403 docs, and merged into main. |
+ | 2026-07-02 | feature/location-auto-update | Added the Tracker Allen location update script, added Hami as stop 27, updated route copy to 28 cities, and merged into main. |
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/scripts/location-city-aliases.json with_skill/repo/scripts/location-city-aliases.json
+--- pristine/scripts/location-city-aliases.json	2026-07-13 10:48:38
++++ with_skill/repo/scripts/location-city-aliases.json	2026-07-28 14:17:31
+@@ -88,5 +88,17 @@
+     "label": "嘉峪关",
+     "label_en": "Jiayuguan",
+     "province": "甘肃省"
++  },
++  "郑州": {
++    "id": "zhengzhou",
++    "label": "郑州",
++    "label_en": "Zhengzhou",
++    "province": "河南省"
++  },
++  "郑州市": {
++    "id": "zhengzhou",
++    "label": "郑州",
++    "label_en": "Zhengzhou",
++    "province": "河南省"
+   }
+ }
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/app/components/HomeContent.tsx with_skill/repo/src/app/components/HomeContent.tsx
+--- pristine/src/app/components/HomeContent.tsx	2026-07-28 13:39:03
++++ with_skill/repo/src/app/components/HomeContent.tsx	2026-07-28 14:17:07
+@@ -341,7 +341,7 @@
+                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
+                     {t['telemetry.planProvinces']}
+                   </div>
+-                  <div className="text-base font-bold text-neutral-900 mt-1">21 省 37 城</div>
++                  <div className="text-base font-bold text-neutral-900 mt-1">21 省 38 城</div>
+                 </div>
+               </motion.div>
+ 
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/app/components/RouteContent.tsx with_skill/repo/src/app/components/RouteContent.tsx
+--- pristine/src/app/components/RouteContent.tsx	2026-07-13 10:48:38
++++ with_skill/repo/src/app/components/RouteContent.tsx	2026-07-28 14:17:07
+@@ -68,7 +68,7 @@
+   };
+ 
+   const pageTitle = getT('route.pageTitle', '行程路线');
+-  const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 21 省 26 城。');
++  const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 21 省 38 城。');
+   const backHref = locale === 'zh' ? '/' : '/en';
+ 
+   return (
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/38-zhengzhou.en.md with_skill/repo/src/content/stops/38-zhengzhou.en.md
+--- pristine/src/content/stops/38-zhengzhou.en.md	1970-01-01 08:00:00
++++ with_skill/repo/src/content/stops/38-zhengzhou.en.md	2026-07-28 14:16:07
+@@ -0,0 +1,30 @@
++# Zhengzhou
++
++## Telemetry
++
++- Terrain: Located on the western edge of the Eastern Henan Plain along the south bank of the Yellow River, Zhengzhou rests against the foothills of the Songshan Mountains to the west and opens onto the Huanghuaihai alluvial plain to the east; its flat urban terrain descends gently from southwest to northeast.
++- Step: Located on China's third terrain step, at the eastern edge of the transition zone between the second and third steps, where the Qinling–Taihang mountain systems give way to the North China Plain.
++- Climate: Warm-temperate continental monsoon climate with four distinct seasons, hot rainy summers, and cold dry winters; representative urban elevation is about 110 metres.
++- Challenge: Midsummer heat and humidity with short, intense convective rainfall place sustained demands on vehicle cooling, energy management, equipment moisture protection, and crew hydration.
++
++## Activities
++
++- To be updated
++
++## Event
++
++The mobile lab has arrived in Zhengzhou, Henan, and the route map now records this city stop. The detailed field note will be updated later.
++
++## Expedition Log
++
++### World
++
++To be updated
++
++### Fire
++
++To be updated
++
++### Frontier
++
++To be updated
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/content/stops/38-zhengzhou.md with_skill/repo/src/content/stops/38-zhengzhou.md
+--- pristine/src/content/stops/38-zhengzhou.md	1970-01-01 08:00:00
++++ with_skill/repo/src/content/stops/38-zhengzhou.md	2026-07-28 14:16:07
+@@ -0,0 +1,48 @@
++---
++id: zhengzhou
++order: 38
++visited: true
++label: 郑州
++label_en: Zhengzhou
++province: 河南省
++lng: 113.65
++lat: 34.76
++altitude: "110"
++relationType: education
++themes:
++  - science
++  - maker
++event:
++  date: "2026.07.27"
++---
++
++# 郑州
++
++## 在地遥测
++
++- 地形: 位于黄河南岸的豫东平原西缘，西依嵩山余脉、东接黄淮海冲积平原，城区地势平坦开阔，整体由西南向东北缓倾。
++- 阶梯: 位于中国地势第三级阶梯，地处第二、三级阶梯过渡带东缘，是秦岭—太行山系向华北平原过渡的枢纽地带。
++- 气候: 暖温带大陆性季风气候，四季分明，夏季炎热多雨、冬季寒冷干燥；城区代表海拔约 110 米。
++- 极境挑战: 盛夏高温高湿与短时强对流降雨，对车辆散热、能源管理、设备防潮及人员补水提出持续要求。
++
++## 在地共创
++
++- 待补充
++
++## 现场记
++
++基地车已抵达河南郑州，路线图记录该城市节点。详细现场记录待补充。
++
++## 远征日志
++
++### 新世界
++
++待补充
++
++### 火种
++
++待补充
++
++### 越界
++
++待补充
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/features/route-map/route-legs.ts with_skill/repo/src/features/route-map/route-legs.ts
+--- pristine/src/features/route-map/route-legs.ts	2026-07-28 13:43:05
++++ with_skill/repo/src/features/route-map/route-legs.ts	2026-07-28 14:16:30
+@@ -21,6 +21,7 @@
+   宁夏回族自治区: { zh: '宁', en: 'NX', enFull: 'Ningxia' },
+   陕西省: { zh: '陕', en: 'SX', enFull: 'Shaanxi' },
+   新疆维吾尔自治区: { zh: '新', en: 'XJ', enFull: 'Xinjiang' },
++  河南省: { zh: '豫', en: 'HA', enFull: 'Henan' },
+ };
+ 
+ // Event dates come in loose formats: "2026.04.22", "2026.04.24 / 04.25", "2026.05.05–07".
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/features/route-map/visited-provinces.ts with_skill/repo/src/features/route-map/visited-provinces.ts
+--- pristine/src/features/route-map/visited-provinces.ts	2026-07-28 13:14:26
++++ with_skill/repo/src/features/route-map/visited-provinces.ts	2026-07-28 14:16:30
+@@ -9,4 +9,5 @@
+   '甘肃省',
+   '宁夏回族自治区',
+   '陕西省',
++  '河南省',
+ ];
+diff -ruN --exclude node_modules --exclude .astro --exclude .content --exclude check.log --exclude NOTES.md pristine/src/i18n/route.ts with_skill/repo/src/i18n/route.ts
+--- pristine/src/i18n/route.ts	2026-07-28 13:14:26
++++ with_skill/repo/src/i18n/route.ts	2026-07-28 14:16:49
+@@ -4,7 +4,7 @@
+   zh: {
+     // Page metadata
+     'route.pageTitle': '行程路线',
+-    'route.pageDesc': '跟随柴火基地车，穿越中国 21 省 37 城。',
++    'route.pageDesc': '跟随柴火基地车，穿越中国 21 省 38 城。',
+     // Status and labels
+     'route.status.visited': '已抵达',
+     'route.status.planned': '计划中',
+@@ -43,7 +43,7 @@
+   },
+   en: {
+     'route.pageTitle': 'Journey Route',
+-    'route.pageDesc': 'Follow Chaihuo MCV across 21 provinces and 37 cities in China.',
++    'route.pageDesc': 'Follow Chaihuo MCV across 21 provinces and 38 cities in China.',
+     'route.status.visited': 'Visited',
+     'route.status.planned': 'Planned',
+     'route.status.origin': 'Origin',

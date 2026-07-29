@@ -5,6 +5,7 @@ import {
   Cpu,
   Image as ImageIcon,
   MapPin,
+  PanelRightClose,
   Users,
   X,
 } from 'lucide-react';
@@ -32,10 +33,11 @@ interface SerializedJournal {
 /**
  * One stop's story.
  *
- * The elevation profile that used to live here moved to the full-width ridge
- * (ExpeditionRidge) — a 100px chart inside a card could not carry a 4m→4120m
- * journey. What stays is what only this stop can say: where it sits in the
- * chain, what happened there, and the field challenge in its own words.
+ * The full-width ridge (ExpeditionRidge) that briefly carried the elevation
+ * profile was removed on 2026-07-29 — redundant with the time-true story
+ * river. Altitude survives as a headline stat and in this panel's meta line.
+ * What stays here is what only this stop can say: where it sits in the chain,
+ * what happened there, and the field challenge in its own words.
  */
 export default function CityPanel({
   city,
@@ -47,6 +49,7 @@ export default function CityPanel({
   hero = false,
   onSelectCity,
   onClose,
+  onCollapse,
   journals,
   timeline,
 }: {
@@ -59,6 +62,8 @@ export default function CityPanel({
   hero?: boolean;
   onSelectCity?: (label: string) => void;
   onClose?: () => void;
+  /** Desktop only: shrink the panel to a vertical strip, keeping the city selected. */
+  onCollapse?: () => void;
   journals?: SerializedJournal[];
   timeline?: Map<string, StopTime>;
 }) {
@@ -156,15 +161,30 @@ export default function CityPanel({
             >
               {city.label}
             </h3>
-            {onClose && (
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label={getT('route.action.close', '关闭')}
-                className="-mr-1 rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition-colors duration-200 cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
+            {(onCollapse || onClose) && (
+              <div className="-mr-1 flex items-center gap-0.5">
+                {onCollapse && (
+                  <button
+                    type="button"
+                    onClick={onCollapse}
+                    aria-label={getT('route.action.collapse', '收起面板')}
+                    title={getT('route.action.collapse', '收起面板')}
+                    className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition-colors duration-200 cursor-pointer"
+                  >
+                    <PanelRightClose className="h-4 w-4" />
+                  </button>
+                )}
+                {onClose && (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label={getT('route.action.close', '关闭')}
+                    className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition-colors duration-200 cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             )}
           </div>
           <p className="mt-1 text-[11.5px] tabular-nums text-neutral-500">

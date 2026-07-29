@@ -1,0 +1,37 @@
+{
+  "eval_id": 2,
+  "eval_name": "insert-missed-baoji",
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "src/content/stops/37-baoji.md and 37-baoji.en.md exist (order 37, visited true) with H1 matching label/label_en",
+      "passed": true,
+      "evidence": "37-baoji pair OK"
+    },
+    {
+      "text": "former 37-xian.md/.en.md renamed to 38-xian.md/.en.md with frontmatter order updated to 38, and all stop orders remain contiguous 0..38 with filenames matching NN-id",
+      "passed": true,
+      "evidence": "xian renamed=true order=38; orders contiguous 0..38 (39 stops)"
+    },
+    {
+      "text": "陕西省 NOT duplicated in visited-provinces.ts (already present)",
+      "passed": true,
+      "evidence": "陕西省 appears 1x"
+    },
+    {
+      "text": "city count copy updated consistently in src/i18n/route.ts (zh and en) and HomeContent.tsx",
+      "passed": true,
+      "evidence": "copy=21省38城 (en 21/38, home 21/38), actual non-routeOnly stops=38"
+    },
+    {
+      "text": "node scripts/validate-site.mjs passes in the edited copy",
+      "passed": true,
+      "evidence": "validate-site passed"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1
+  }
+}
