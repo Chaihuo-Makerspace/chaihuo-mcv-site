@@ -1,7 +1,7 @@
 ---
 id: linfen
 order: 38
-visited: false
+visited: true
 label: 临汾
 label_en: Linfen
 province: 山西省
@@ -11,6 +11,8 @@ altitude: "450"
 relationType: education
 themes:
   - maker
+event:
+  date: "2026.07.30"
 ---
 
 # 临汾
