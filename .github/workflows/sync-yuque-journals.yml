@@ -24,8 +24,11 @@ jobs:
       - name: Sync Yuque journal cards
         run: node scripts/sync-yuque-journals.mjs
 
+      - name: Mark planned route stops as visited from synced journals
+        run: node scripts/update-route-stops-from-journals.mjs
+
       - name: Commit synced data
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: sync yuque journals'
-          file_pattern: src/data/yuque-journals.json public/yuque-journals/*
+          file_pattern: src/data/yuque-journals.json public/yuque-journals/* src/content/stops/*.md
