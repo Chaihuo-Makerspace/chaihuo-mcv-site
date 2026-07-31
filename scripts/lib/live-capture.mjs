@@ -183,6 +183,10 @@ export async function captureOnce(config, logFn = log) {
     return 'offline';
   }
 
+  // 以发起抓拍请求的时刻为准：摄像头在车联网上拍照+回传要好几秒，
+  // 用下载完成时刻会比画面 OSD 时间慢，跨分钟时页面上就对不上了。
+  const capturedAt = new Date();
+
   const data = await authedPost(config, '/device/capture', { deviceSerial: config.deviceSerial });
   const picUrl = data?.picUrl;
   if (!picUrl) throw new Error('抓拍接口未返回 picUrl');
@@ -208,7 +212,6 @@ export async function captureOnce(config, logFn = log) {
   const archiveDir = path.join(config.dataDir, 'archive');
   mkdirSync(archiveDir, { recursive: true });
 
-  const capturedAt = new Date();
   const file = `${archiveName(capturedAt)}.jpg`;
   writeFileSync(path.join(archiveDir, file), jpeg);
 
