@@ -1,0 +1,234 @@
+import {
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import path from 'node:path';
+
+// 萤石云开放平台。抓拍走云 API（不直连摄像头），设备离线是常态而非故障。
+const EZVIZ_BASE = 'https://open.ys7.com/api/lapp';
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+const HTTP_TIMEOUT_MS = 60_000;
+// token 有效期约 7 天，剩余不足 1 天时提前刷新
+const TOKEN_REFRESH_MARGIN_MS = 24 * 60 * 60 * 1000;
+// 10001/10002: token 不存在或已过期 —— 刷新后重试一次
+const TOKEN_ERROR_CODES = new Set([10_001, 10_002]);
+
+export function loadConfig(env = process.env) {
+  const required = ['EZVIZ_APP_KEY', 'EZVIZ_APP_SECRET', 'EZVIZ_DEVICE_SERIAL'];
+  const missing = required.filter((name) => !String(env[name] ?? '').trim());
+  if (missing.length > 0) {
+    throw new Error(`缺少环境变量：${missing.join(', ')}`);
+  }
+  return {
+    appKey: env.EZVIZ_APP_KEY.trim(),
+    appSecret: env.EZVIZ_APP_SECRET.trim(),
+    deviceSerial: env.EZVIZ_DEVICE_SERIAL.trim(),
+    dataDir: path.resolve(env.LIVE_DATA_DIR ?? './data/live'),
+    keepDays: Number(env.LIVE_KEEP_DAYS ?? 30),
+  };
+}
+
+export function log(message) {
+  console.log(`[live-capture] ${new Date().toISOString()} ${message}`);
+}
+
+async function apiPost(endpoint, params) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HTTP_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${EZVIZ_BASE}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(params),
+      signal: controller.signal,
+    });
+    const data = await response.json();
+    // 注意：萤石返回的 code 有时是字符串 "200"，统一转数字再比较
+    const code = Number(data.code);
+    if (code !== 200) {
+      const error = new Error(`萤石 API ${endpoint} 返回 code=${data.code} msg=${data.msg}`);
+      error.code = code;
+      throw error;
+    }
+    return data.data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function tokenCachePath(config) {
+  return path.join(config.dataDir, '.token.json');
+}
+
+function readCachedToken(config) {
+  try {
+    const cached = JSON.parse(readFileSync(tokenCachePath(config), 'utf8'));
+    if (
+      typeof cached.accessToken === 'string' &&
+      Number(cached.expireTime) > Date.now() + TOKEN_REFRESH_MARGIN_MS
+    ) {
+      return cached.accessToken;
+    }
+  } catch {
+    // 无缓存或缓存损坏则重新申请
+  }
+  return null;
+}
+
+export async function getToken(config) {
+  const cached = readCachedToken(config);
+  if (cached) return cached;
+  const data = await apiPost('/token/get', { appKey: config.appKey, appSecret: config.appSecret });
+  mkdirSync(config.dataDir, { recursive: true });
+  writeFileSync(
+    tokenCachePath(config),
+    JSON.stringify({ accessToken: data.accessToken, expireTime: data.expireTime }),
+  );
+  log('已刷新萤石 accessToken');
+  return data.accessToken;
+}
+
+/** 调需要 token 的接口；token 失效时刷新并重试一次 */
+async function authedPost(config, endpoint, params) {
+  let token = await getToken(config);
+  try {
+    return await apiPost(endpoint, { accessToken: token, ...params });
+  } catch (error) {
+    if (!TOKEN_ERROR_CODES.has(error.code)) throw error;
+    unlinkSync(tokenCachePath(config));
+    token = await getToken(config);
+    return apiPost(endpoint, { accessToken: token, ...params });
+  }
+}
+
+export async function isDeviceOnline(config) {
+  // 设备少，一页足够；找不到目标设备按离线处理
+  const list = await authedPost(config, '/device/list', { pageStart: '0', pageSize: '50' });
+  const device = (list ?? []).find((item) => item.deviceSerial === config.deviceSerial);
+  return device !== undefined && device.status === 1;
+}
+
+/** 校验并按 EOI 截断 JPEG。萤石 OSS 有时在 FFD9 后补零填充，截掉再存。 */
+function trimToJpeg(buffer) {
+  if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) return null;
+  const windowStart = Math.max(2, buffer.length - 1024);
+  for (let i = buffer.length - 2; i >= windowStart; i -= 1) {
+    if (buffer[i] === 0xff && buffer[i + 1] === 0xd9) return buffer.subarray(0, i + 2);
+  }
+  return null;
+}
+
+/** 从 JPEG 二进制里读 SOF 标记拿宽高（不做解码，仅为页面 width/height 属性） */
+export function jpegDimensions(buffer) {
+  let offset = 2; // 跳过 SOI (FF D8)
+  while (offset + 9 < buffer.length) {
+    if (buffer[offset] !== 0xff) return null;
+    const marker = buffer[offset + 1];
+    const length = buffer.readUInt16BE(offset + 2);
+    if (
+      (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) ||
+      marker === 0xc2
+    ) {
+      return { height: buffer.readUInt16BE(offset + 5), width: buffer.readUInt16BE(offset + 7) };
+    }
+    offset += 2 + length;
+  }
+  return null;
+}
+
+/** 车辆本地时间（Asia/Shanghai）的归档文件名：YYYYMMDD-HHmmss */
+function archiveName(date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+  const get = (type) => parts.find((p) => p.type === type)?.value ?? '00';
+  return `${get('year')}${get('month')}${get('day')}-${get('hour')}${get('minute')}${get('second')}`;
+}
+
+function cleanArchive(config, logFn) {
+  const archiveDir = path.join(config.dataDir, 'archive');
+  const cutoff = new Date(Date.now() - config.keepDays * 24 * 60 * 60 * 1000);
+  const cutoffName = archiveName(cutoff);
+  let removed = 0;
+  for (const file of readdirSync(archiveDir)) {
+    if (!/^\d{8}-\d{6}\.jpg$/.test(file)) continue;
+    if (file < `${cutoffName}.jpg`) {
+      unlinkSync(path.join(archiveDir, file));
+      removed += 1;
+    }
+  }
+  if (removed > 0) logFn(`已清理 ${removed} 张 ${config.keepDays} 天前的历史照片`);
+}
+
+/**
+ * 抓拍一轮。
+ * 返回 'captured'（存盘成功）或 'offline'（设备离线/不在列表，安静跳过）。
+ * 其他错误（网络、API、文件校验）向上抛出，由调用方记录。
+ */
+export async function captureOnce(config, logFn = log) {
+  const online = await isDeviceOnline(config);
+  if (!online) {
+    logFn('设备离线（车辆未开工），本轮跳过');
+    return 'offline';
+  }
+
+  const data = await authedPost(config, '/device/capture', { deviceSerial: config.deviceSerial });
+  const picUrl = data?.picUrl;
+  if (!picUrl) throw new Error('抓拍接口未返回 picUrl');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HTTP_TIMEOUT_MS);
+  let buffer;
+  try {
+    const response = await fetch(picUrl, { signal: controller.signal });
+    if (!response.ok) throw new Error(`下载抓拍图失败：HTTP ${response.status}`);
+    buffer = Buffer.from(await response.arrayBuffer());
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (buffer.length > MAX_IMAGE_BYTES) {
+    throw new Error(`抓拍图超过大小上限（${buffer.length} 字节）`);
+  }
+  const jpeg = trimToJpeg(buffer);
+  if (!jpeg) throw new Error('下载结果不是完整 JPEG');
+  const dimensions = jpegDimensions(jpeg) ?? { width: 1280, height: 720 };
+
+  const archiveDir = path.join(config.dataDir, 'archive');
+  mkdirSync(archiveDir, { recursive: true });
+
+  const capturedAt = new Date();
+  const file = `${archiveName(capturedAt)}.jpg`;
+  writeFileSync(path.join(archiveDir, file), jpeg);
+
+  // latest.jpg 覆盖写（先写临时文件再 rename，避免 web 读到半截文件）
+  const latestTmp = path.join(config.dataDir, '.latest.tmp.jpg');
+  writeFileSync(latestTmp, jpeg);
+  renameSync(latestTmp, path.join(config.dataDir, 'latest.jpg'));
+
+  const meta = {
+    capturedAt: capturedAt.toISOString(),
+    file: `archive/${file}`,
+    bytes: jpeg.length,
+    width: dimensions.width,
+    height: dimensions.height,
+  };
+  writeFileSync(path.join(config.dataDir, 'latest.json'), JSON.stringify(meta, null, 2));
+
+  cleanArchive(config, logFn);
+  logFn(
+    `抓拍成功：archive/${file}（${dimensions.width}x${dimensions.height}，${jpeg.length} 字节）`,
+  );
+  return 'captured';
+}
