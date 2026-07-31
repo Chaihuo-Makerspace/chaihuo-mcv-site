@@ -16,8 +16,15 @@ let config;
 try {
   config = loadConfig();
 } catch (error) {
-  console.error(`[live-capture] ${error.message}`);
-  process.exit(1);
+  if (once) {
+    console.error(`[live-capture] ${error.message}`);
+    process.exit(1);
+  }
+  // 常驻模式：缺凭证不退出（避免容器崩溃循环拖垮 compose 部署），
+  // 挂起等待；配置好凭证后 docker compose up -d 重建容器即生效。
+  console.error(`[live-capture] ${error.message} —— capture 挂起等待配置，web 不受影响`);
+  setInterval(() => {}, 2_147_483_647);
+  await new Promise(() => {});
 }
 
 async function runRound() {
