@@ -38,6 +38,20 @@ test.describe('route smoke', () => {
     });
   }
 
+  test('unknown routes render the 404 page with a 404 status', async ({ page }) => {
+    await installHarnessGuards(page);
+
+    const zh = await page.goto('/this-page-does-not-exist', { waitUntil: 'domcontentloaded' });
+    expect(zh?.status()).toBe(404);
+    await expect(page.locator('h1')).toBeVisible();
+    expect(await page.locator('html').getAttribute('lang')).toBe('zh-CN');
+
+    const en = await page.goto('/en/this-page-does-not-exist', { waitUntil: 'domcontentloaded' });
+    expect(en?.status()).toBe(404);
+    await expect(page.locator('h1')).toBeVisible();
+    expect(await page.locator('html').getAttribute('lang')).toBe('en');
+  });
+
   test('legacy documentation routes redirect to journals', async ({ page }) => {
     await installHarnessGuards(page);
 
