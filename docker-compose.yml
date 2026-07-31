@@ -14,14 +14,19 @@ services:
     restart: unless-stopped
 
   # 基地车摄像头定时抓拍 worker：同一镜像，跑循环脚本。
-  # 凭证只给这个容器；web 容器只读图片，接触不到萤石密钥。
+  # 凭证通过服务器 shell 环境或项目目录 .env 注入（${VAR:-} 缺省为空，
+  # 未配置时 capture 挂起等待，不影响 web 部署）。凭证只给这个容器。
   # 手动触发一次：docker compose exec capture node scripts/live-capture-loop.mjs --once
   capture:
     build: .
     command: node scripts/live-capture-loop.mjs
-    env_file: .env.live
     environment:
       - LIVE_DATA_DIR=/data/live
+      - EZVIZ_APP_KEY=${EZVIZ_APP_KEY:-}
+      - EZVIZ_APP_SECRET=${EZVIZ_APP_SECRET:-}
+      - EZVIZ_DEVICE_SERIAL=${EZVIZ_DEVICE_SERIAL:-}
+      - LIVE_INTERVAL_MINUTES=${LIVE_INTERVAL_MINUTES:-3}
+      - LIVE_KEEP_DAYS=${LIVE_KEEP_DAYS:-30}
     volumes:
       - ./data/live:/data/live
     restart: unless-stopped
