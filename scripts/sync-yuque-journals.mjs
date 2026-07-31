@@ -1,3 +1,4 @@
+import { appendFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,14 +56,55 @@ async function main() {
   };
 
   await mkdir(path.dirname(outputPath), { recursive: true });
+  const previousSlugs = await readExistingSlugs(outputPath);
   const wrote = await writeJsonIfMateriallyChanged(outputPath, payload);
   if (wrote) {
+    const added = withCovers.filter((entry) => !previousSlugs.has(entry.slug));
+    emitGithubOutput('summary', syncSummary(added));
     console.log(
       `Synced ${withCovers.length} Yuque journal cards to ${path.relative(root, outputPath)}.`,
     );
   } else {
     console.log(`Yuque journal cards are already up to date (${withCovers.length} cards).`);
   }
+}
+
+async function readExistingSlugs(filePath) {
+  try {
+    const existing = JSON.parse(await readFile(filePath, 'utf8'));
+    return new Set((existing.journals ?? []).map((journal) => journal.slug));
+  } catch {
+    return new Set();
+  }
+}
+
+// One-line summary for the workflow's commit message, e.g.
+// "新增基地车日记《2026.07.30｜隰县→临汾》" or "新增 4 篇基地车日记《A》《B》《C》等".
+function syncSummary(added) {
+  if (added.length === 0) return '更新基地车日记内容';
+  const titles = added
+    .slice(0, 3)
+    .map((entry) => `《${shortTitle(entry.title)}》`)
+    .join('');
+  if (added.length === 1) return `新增基地车日记${titles}`;
+  return `新增 ${added.length} 篇基地车日记${titles}${added.length > 3 ? '等' : ''}`;
+}
+
+// Titles arrive as "基地车日记｜2026.07.30｜隰县→临汾" — keep the part that
+// tells you where the vehicle actually is.
+function shortTitle(title) {
+  return (title ?? '')
+    .replace(/^基地车日记[｜|]\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function emitGithubOutput(key, value) {
+  if (!process.env.GITHUB_OUTPUT) return;
+  appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `${key}=${String(value).replace(/[\r\n]+/g, ' ')}\n`,
+  );
 }
 
 async function fetchCover(url, slug, bookId) {

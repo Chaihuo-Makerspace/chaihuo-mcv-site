@@ -22,13 +22,37 @@ jobs:
           node-version-file: .node-version
 
       - name: Sync Yuque journal cards
+        id: sync
         run: node scripts/sync-yuque-journals.mjs
 
       - name: Mark planned route stops as visited from synced journals
+        id: stops
         run: node scripts/update-route-stops-from-journals.mjs
+
+      # Both scripts report what they did as a `summary` output; the commit
+      # message is simply what changed, e.g.
+      # "新增基地车日记《2026.07.30｜隰县→临汾》 · 基地车抵达临汾".
+      # Falls back to a generic message when neither step has details
+      # (e.g. cover-only changes).
+      - name: Compose commit message
+        id: msg
+        env:
+          SYNC: ${{ steps.sync.outputs.summary }}
+          STOPS: ${{ steps.stops.outputs.summary }}
+        run: |
+          parts=()
+          [ -n "$SYNC" ] && parts+=("$SYNC")
+          [ -n "$STOPS" ] && parts+=("$STOPS")
+          if [ ${#parts[@]} -eq 0 ]; then
+            msg="同步基地车日记"
+          else
+            msg="$(printf '%s · ' "${parts[@]}")"
+            msg="${msg% · }"
+          fi
+          echo "message=$msg" >> "$GITHUB_OUTPUT"
 
       - name: Commit synced data
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: 'chore: sync yuque journals'
+          commit_message: ${{ steps.msg.outputs.message }}
           file_pattern: src/data/yuque-journals.json public/yuque-journals/* src/content/stops/*.md

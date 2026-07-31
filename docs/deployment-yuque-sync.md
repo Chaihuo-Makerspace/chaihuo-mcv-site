@@ -11,7 +11,7 @@ path for `mcv.chaihuo.org`.
 1. Yuque book updates at `https://www.yuque.com/mouseart/mcv`.
 2. GitHub Actions workflow `Sync Yuque Journals` runs every 10 minutes or by manual dispatch.
 3. The workflow runs `node scripts/sync-yuque-journals.mjs`.
-4. If `src/data/yuque-journals.json` or `public/yuque-journals/*` changes, the workflow commits `chore: sync yuque journals` to `main`.
+4. If `src/data/yuque-journals.json` or `public/yuque-journals/*` changes, the workflow commits to `main` with a message describing what changed, e.g. `新增基地车日记《2026.07.30｜隰县→临汾》 · 基地车抵达临汾` (falls back to `同步基地车日记` when neither step has details, e.g. cover-only changes).
 5. GitHub push webhook notifies Jenkins.
 6. Jenkins job `chaihuo-chaihuo-mcv-site` builds and deploys the Docker service.
 7. `https://mcv.chaihuo.org/journals` serves the new prerendered journal list.

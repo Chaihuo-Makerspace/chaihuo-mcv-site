@@ -11,7 +11,7 @@
 // `pnpm check` on main (and the Docker build). The filler sentences below
 // match FILLER_RE / PLACEHOLDER_RE in src/features/route-map/stops-loader.ts
 // and are scrubbed at load — no placeholder text reaches the UI.
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
@@ -140,6 +140,7 @@ function main() {
   fillUnmatchedFromPlannedLabels(journals ?? [], plannedStops, arrivalByCity);
 
   let changedCount = 0;
+  const changedLabels = [];
   for (const file of stopFiles) {
     const filePath = join(stopsDir, file);
     const text = readFileSync(filePath, 'utf8');
@@ -158,6 +159,7 @@ function main() {
     writeFileSync(filePath, nextText);
     log(`${id}: visited false -> true, event.date = ${dotDate} (${file})`);
     changedCount += 1;
+    changedLabels.push(label);
 
     const enFile = file.replace(/\.md$/, '.en.md');
     const enPath = join(stopsDir, enFile);
@@ -181,6 +183,16 @@ function main() {
     changedCount > 0
       ? `Updated ${changedCount} stop(s).`
       : 'No planned stops matched new journals.',
+  );
+  if (changedLabels.length > 0) emitGithubOutput('summary', `基地车抵达${changedLabels.join('、')}`);
+}
+
+// One-line summary for the workflow's commit message, e.g. "基地车抵达临汾".
+function emitGithubOutput(key, value) {
+  if (!process.env.GITHUB_OUTPUT) return;
+  appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `${key}=${String(value).replace(/[\r\n]+/g, ' ')}\n`,
   );
 }
 
