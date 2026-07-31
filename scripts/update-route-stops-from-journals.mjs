@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 // Flips already-planned route stops (visited: false) to visited: true once a
-// synced Yuque journal confirms the vehicle reached that city. Pure text edit
-// on frontmatter — journal city ids already match stop ids via inferCityId
-// in scripts/lib/yuque-journal-sync.mjs, so this
+// synced Yuque journal confirms the vehicle reached that city. Text edit on
+// frontmatter plus the required body section — journal city ids already match
+// stop ids via inferCityId in scripts/lib/yuque-journal-sync.mjs, so this
 // needs no GPS/tracker credentials, unlike scripts/check-arrival.mjs (which
 // only handles discovering brand-new cities not yet in the stops list).
+//
+// The validator requires a stop with frontmatter `event` to carry a
+// "## 现场记" body section, so flipping visited without adding one breaks
+// `pnpm check` on main (and the Docker build). The filler sentences below
+// match FILLER_RE / PLACEHOLDER_RE in src/features/route-map/stops-loader.ts
+// and are scrubbed at load — no placeholder text reaches the UI.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -49,6 +55,32 @@ function toDotDate(isoDate) {
   return isoDate.replaceAll('-', '.');
 }
 
+// Canonical section order is 遥测 → 共创 → 现场记 → 远征日志 → 照片
+// (en: Telemetry → Activities → Event → Expedition Log → Photos), so the
+// event section must land before any expedition/photos section, not at EOF.
+const EVENT_SECTIONS = {
+  zh: { heading: '## 现场记', after: ['## 远征日志', '## 照片'] },
+  en: { heading: '## Event', after: ['## Expedition Log', '## Photos'] },
+};
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function ensureEventSection(text, locale, sentence) {
+  const { heading, after } = EVENT_SECTIONS[locale];
+  if (new RegExp(`^${escapeRegExp(heading)}\\s*$`, 'm').test(text)) return text;
+
+  const section = `${heading}\n\n${sentence}\n`;
+  const insertAt = after
+    .map((h) => text.indexOf(`\n${h}\n`))
+    .filter((i) => i >= 0)
+    .sort((a, b) => a - b)[0];
+
+  if (insertAt === undefined) return `${text.trimEnd()}\n\n${section}`;
+  return `${text.slice(0, insertAt)}\n\n${section}${text.slice(insertAt + 1)}`;
+}
+
 function parseFrontmatter(text) {
   const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return null;
@@ -60,7 +92,7 @@ function readField(block, field) {
   return match?.[1]?.trim() ?? null;
 }
 
-function applyArrival(text, dotDate) {
+function applyArrival(text, dotDate, label) {
   const frontmatter = parseFrontmatter(text);
   if (!frontmatter) return null;
 
@@ -74,8 +106,12 @@ function applyArrival(text, dotDate) {
     block = block.replace(/^event:\s*$/m, `event:\n  date: "${dotDate}"`);
   }
 
-  return (
-    text.slice(0, frontmatter.startIndex) + `---\n${block}\n---` + text.slice(frontmatter.endIndex)
+  const nextText =
+    text.slice(0, frontmatter.startIndex) + `---\n${block}\n---` + text.slice(frontmatter.endIndex);
+  return ensureEventSection(
+    nextText,
+    'zh',
+    `基地车已抵达${label}，路线图记录该城市节点。详细现场记录待补充。`,
   );
 }
 
@@ -114,8 +150,9 @@ function main() {
     const arrivalDate = id ? arrivalByCity.get(id) : null;
     if (!arrivalDate) continue;
 
+    const label = readField(frontmatter.block, 'label') ?? id;
     const dotDate = toDotDate(arrivalDate);
-    const nextText = applyArrival(text, dotDate);
+    const nextText = applyArrival(text, dotDate, label);
     if (!nextText) continue;
 
     writeFileSync(filePath, nextText);
@@ -125,11 +162,17 @@ function main() {
     const enFile = file.replace(/\.md$/, '.en.md');
     const enPath = join(stopsDir, enFile);
     if (existsSync(enPath)) {
+      // .en.md files carry no frontmatter — only mirror the body section.
+      const labelEn = readField(frontmatter.block, 'label_en') ?? label;
       const enText = readFileSync(enPath, 'utf8');
-      const nextEnText = applyArrival(enText, dotDate);
-      if (nextEnText) {
+      const nextEnText = ensureEventSection(
+        enText,
+        'en',
+        `The mobile lab has arrived in ${labelEn}, and the route map now records this city stop. The detailed field note will be updated later.`,
+      );
+      if (nextEnText !== enText) {
         writeFileSync(enPath, nextEnText);
-        log(`${id}: mirrored to ${enFile}`);
+        log(`${id}: mirrored ## Event to ${enFile}`);
       }
     }
   }
