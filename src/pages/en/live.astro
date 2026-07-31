@@ -1,0 +1,18 @@
+---
+// English mirror of src/pages/live.astro — self-contained per project convention.
+// Unlisted page: not in navigation, noindex, reachable only via direct link.
+import LiveContent from '@/app/components/LiveContent';
+import type { Locale } from '@/i18n/index';
+import liveDict from '@/i18n/live';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { readLiveMeta } from '@/lib/live';
+
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const t = liveDict[locale];
+const meta = readLiveMeta();
+---
+
+<BaseLayout title={t['title']} description={t['description']}>
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  <LiveContent client:load locale={locale} t={t} initialMeta={meta} />
+</BaseLayout>

@@ -7,4 +7,21 @@ services:
       - HOST=0.0.0.0
       - PORT=4321
       - NODE_ENV=production
+      - LIVE_DATA_DIR=/data/live
+    volumes:
+      # 抓拍数据：宿主机目录 bind mount，重建/重启容器不丢，web 只读
+      - ./data/live:/data/live:ro
+    restart: unless-stopped
+
+  # 基地车摄像头定时抓拍 worker：同一镜像，跑循环脚本。
+  # 凭证只给这个容器；web 容器只读图片，接触不到萤石密钥。
+  # 手动触发一次：docker compose exec capture node scripts/live-capture-loop.mjs --once
+  capture:
+    build: .
+    command: node scripts/live-capture-loop.mjs
+    env_file: .env.live
+    environment:
+      - LIVE_DATA_DIR=/data/live
+    volumes:
+      - ./data/live:/data/live
     restart: unless-stopped

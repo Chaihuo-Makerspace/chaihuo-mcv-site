@@ -16,6 +16,9 @@ dist/
 *.local
 .env*
 
+# Live capture data (bind-mounted into containers, persisted on host)
+data/
+
 # OS
 .DS_Store
 Thumbs.db

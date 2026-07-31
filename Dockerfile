@@ -17,6 +17,8 @@ RUN pnpm build
 FROM base AS runtime
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
+# capture 容器以同一镜像运行 scripts/live-capture-loop.mjs
+COPY --from=build /app/scripts ./scripts
 COPY package.json .
 
 ENV HOST=0.0.0.0

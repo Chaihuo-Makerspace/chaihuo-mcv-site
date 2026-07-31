@@ -34,6 +34,15 @@ No unit test framework or linter is configured. Use `pnpm check` as the main non
 
 **Deployment:** Node.js standalone via `@astrojs/node` adapter. Docker (`Dockerfile` + `docker-compose.yml`). GitHub push triggers Jenkins deploy through repository webhook job `chaihuo-chaihuo-mcv-site`.
 
+**Live capture (`/live`):** A second compose service `capture` runs `scripts/live-capture-loop.mjs` from the same image (via `scripts/lib/live-capture.mjs`): every `LIVE_INTERVAL_MINUTES` (default 3) it checks the EZVIZ vehicle camera, captures one JPEG while the vehicle is online, and writes `latest.jpg` / `latest.json` / `archive/` into `./data/live` (bind-mounted into both containers; web reads it `:ro`). Offline is normal — the round is skipped quietly. Archive is pruned after `LIVE_KEEP_DAYS` (default 30). The token is cached in `data/live/.token.json` (7-day validity, refreshed with <1 day left). The camera (`BG9251347` "基地车view") is mounted upright — no rotation needed; frames are stored as-is. `capture` reads credentials from `.env.live` (gitignored, create on the server):
+```
+EZVIZ_APP_KEY=…
+EZVIZ_APP_SECRET=…
+EZVIZ_DEVICE_SERIAL=…
+# optional: LIVE_INTERVAL_MINUTES=3, LIVE_KEEP_DAYS=30
+```
+Manual one-shot: `docker compose exec capture node scripts/live-capture-loop.mjs --once`. The web side (`src/pages/live.astro` + `src/pages/live/latest.jpg.ts` + `src/pages/live/status.json.ts` + `src/lib/live.ts`) only reads `LIVE_DATA_DIR` (default `./data/live`) and never sees the credentials.
+
 **Routing:** Astro file-based routing in `src/pages/`. Chinese is default (no prefix), English under `/en/`:
 - `/` `/en/` → Home (hero carousel, video modal, China route map SVG, mobile lab cards)
 - `/journals` `/en/journals` → Journals (city journal list, filters, detail pages)
@@ -41,6 +50,7 @@ No unit test framework or linter is configured. Use `pnpm check` as the main non
 - `/deconstruct` `/en/deconstruct` → Deconstruct (modification logs, equipment list)
 - `/guide` `/en/guide` → Guide (participation guide, FAQ accordion, team)
 - `/about` `/en/about` → About (Chaihuo history timeline, GSAP scroll-driven)
+- `/live` `/en/live` → Live (unlisted onboard-camera view, SSR, `noindex`; NOT in nav — direct link only)
 
 **React Islands pattern:** Each Astro page renders a `*Content.tsx` React component with `client:load` or `client:visible`. Data is fetched in `.astro` frontmatter (via `getCollection()` or JSON import), localized, then passed as props.
 
@@ -183,6 +193,7 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-07-31 | main | Added unlisted `/live` page (zh/en, SSR, noindex, not in nav) showing the EZVIZ onboard camera's latest frame: new `capture` compose service (`scripts/live-capture-loop.mjs`, same image) snapshots every 3 min while the vehicle is online into bind-mounted `./data/live` (30-day archive prune); web reads via `latest.jpg`/`status.json` endpoints and polls every 60s. EZVIZ notes: API `code` is sometimes a string, and OSS JPEGs may carry zero padding after EOI (trimmed before save). |
 | 2026-07-31 | main | Marked Linfen (临汾, order 38) visited — the Yuque journal 隰县→临汾 (2026-07-30) confirmed arrival; the sync workflow flipped `visited` + `event.date` automatically via the new auto-derived city inference, and the follow-up added 山西省 to `PROVINCE_VISITED` and the required `## 现场记`/`## Event` body sections (validator: a stop with `event` must have 现场记). |
 | 2026-07-29 | main | Restructured /route: deleted ExpeditionRidge (altitude demoted to a 5th topbar stat), replaced the desktop left rail with a slim topbar + floating view/theme chip group, and made the CityPanel default-closed and collapsible to a 48px strip with the map re-fitting its right inset (400/80/56). The StoryRiver keeps an even pitch — the time-true spacing + silent-stretch band variant was rejected in review the same day. |
 | 2026-07-29 | main | Rebuilt /route around story: photo pins on the map, a full-width time/altitude/story-density ridge, and a chronological story river, all sharing one selection. Ported the home map's `placeLabels()` solver to the MapLibre canvas (labels no longer collide in the Sichuan–Tibet cluster), de-yellowed the map, moved the 2026 horse into a `vision` view mode, and reworked the CityPanel (prev/next stop, stop/day/altitude meta, lead cover + compact rows instead of N identical yellow buttons). |
