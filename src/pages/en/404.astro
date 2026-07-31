@@ -1,0 +1,15 @@
+---
+// English mirror of src/pages/404.astro — handles unmatched /en/* paths.
+import NotFoundContent from '@/app/components/NotFoundContent';
+import type { Locale } from '@/i18n/index';
+import notFoundDict from '@/i18n/notfound';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const t = notFoundDict[locale];
+---
+
+<BaseLayout title={t.title} description={t.description}>
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  <NotFoundContent client:load locale={locale} t={t} />
+</BaseLayout>

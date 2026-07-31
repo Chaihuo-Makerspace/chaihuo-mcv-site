@@ -1,0 +1,16 @@
+---
+// Astro 自动把本页用于所有未匹配路由(SSR 下返回 404 状态)。
+// /en/* 的未匹配路径由 src/pages/en/404.astro 接管。
+import NotFoundContent from '@/app/components/NotFoundContent';
+import type { Locale } from '@/i18n/index';
+import notFoundDict from '@/i18n/notfound';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const locale = (Astro.currentLocale ?? 'zh') as Locale;
+const t = notFoundDict[locale];
+---
+
+<BaseLayout title={t.title} description={t.description}>
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  <NotFoundContent client:load locale={locale} t={t} />
+</BaseLayout>
