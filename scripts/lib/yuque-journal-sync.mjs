@@ -1,6 +1,17 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 const YUQUE_ORIGIN = 'https://www.yuque.com';
 
-// 关键词表即归并表：小地名/途经点直接归到路线站点 id。
+const STOPS_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../src/content/stops',
+);
+
+// 手工关键词表只保留别名/归并项：小地名/途经点归到路线站点 id
+// （如 定边→榆林）。站点主名（临汾、太原…）不再登记于此，
+// 由 loadStopCityKeywords() 从 stops 内容集合的 label 自动派生。
 // 顺序即优先级（靠后的站点在前），"A→B" 中转标题归到目的地。
 const CITY_KEYWORDS = [
   ['xian', ['西安']],
@@ -49,14 +60,43 @@ export function parseJournalDate(title) {
   return `${compactMatch[1]}-${compactMatch[2]}-${compactMatch[3]}`;
 }
 
-export function inferCityId(title) {
-  for (const [cityId, keywords] of CITY_KEYWORDS) {
+// 从 stops 内容集合（src/content/stops/*.md）派生站点主名关键词，
+// 按 order 倒序排列，延续“靠后的站点优先、A→B 归目的地”的约定。
+// 新增站点无需再手工登记，同步时自动生效。
+export function loadStopCityKeywords(stopsDir = STOPS_DIR) {
+  let files;
+  try {
+    files = readdirSync(stopsDir);
+  } catch {
+    return [];
+  }
+
+  const stops = [];
+  for (const file of files) {
+    if (!file.endsWith('.md') || file.endsWith('.en.md') || file.startsWith('_')) continue;
+    const frontmatter = readFileSync(path.join(stopsDir, file), 'utf8').match(
+      /^---\r?\n([\s\S]*?)\r?\n---/,
+    );
+    if (!frontmatter) continue;
+    const id = frontmatter[1].match(/^id:\s*(\S+)\s*$/m)?.[1];
+    const label = frontmatter[1].match(/^label:\s*(.+?)\s*$/m)?.[1];
+    const order = Number(frontmatter[1].match(/^order:\s*(\d+)\s*$/m)?.[1] ?? 0);
+    if (id && label) stops.push({ id, label, order });
+  }
+
+  return stops.sort((a, b) => b.order - a.order).map((stop) => [stop.id, [stop.label]]);
+}
+
+export function inferCityId(title, stopKeywords = loadStopCityKeywords()) {
+  // 手工别名表优先（归并规则不可从站点名推导），其后是站点主名。
+  for (const [cityId, keywords] of [...CITY_KEYWORDS, ...stopKeywords]) {
     if (keywords.some((keyword) => title.includes(keyword))) return cityId;
   }
   return 'yuque';
 }
 
 export function normalizeYuqueToc(toc, { namespace }) {
+  const stopKeywords = loadStopCityKeywords();
   return toc
     .filter((entry) => entry.type === 'DOC' && entry.visible !== 0 && entry.url)
     .map((entry) => ({
@@ -64,7 +104,7 @@ export function normalizeYuqueToc(toc, { namespace }) {
       slug: entry.url,
       title: entry.title,
       date: parseJournalDate(entry.title),
-      city: inferCityId(entry.title),
+      city: inferCityId(entry.title, stopKeywords),
       href: `${YUQUE_ORIGIN}/${namespace}/${entry.url}`,
       updatedAt: entry.updated_at ?? entry.content_updated_at ?? null,
       coverImage: entry.cover ?? null,

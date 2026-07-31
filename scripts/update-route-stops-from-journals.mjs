@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Flips already-planned route stops (visited: false) to visited: true once a
 // synced Yuque journal confirms the vehicle reached that city. Pure text edit
-// on frontmatter — journal city ids already match stop ids via the
-// CITY_KEYWORDS merge table in scripts/lib/yuque-journal-sync.mjs, so this
+// on frontmatter — journal city ids already match stop ids via inferCityId
+// in scripts/lib/yuque-journal-sync.mjs, so this
 // needs no GPS/tracker credentials, unlike scripts/check-arrival.mjs (which
 // only handles discovering brand-new cities not yet in the stops list).
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -26,12 +26,12 @@ function earliestArrivalByCity(journals) {
   return byCity;
 }
 
-// CITY_KEYWORDS (scripts/lib/yuque-journal-sync.mjs) only knows cities that
-// were added by hand, so a journal for the very next planned stop lands as
-// city: "yuque" until someone edits that table. Planned stops already carry
-// their real label in frontmatter (they're pre-authored), so fall back to
-// matching the journal title against unvisited stops' labels directly —
-// covers the next hop with zero manual keyword maintenance.
+// inferCityId (scripts/lib/yuque-journal-sync.mjs) now derives stop primary
+// names from the stops collection automatically, so journals for planned
+// stops normally arrive with their real city id. This fallback remains as a
+// safety net for anything that still lands as city: "yuque" (e.g. a title
+// that names a place the keyword tables don't know): match the journal title
+// against unvisited stops' labels directly.
 function fillUnmatchedFromPlannedLabels(journals, plannedStops, byCity) {
   for (const stop of plannedStops) {
     if (byCity.has(stop.id)) continue;
