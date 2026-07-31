@@ -43,6 +43,8 @@ EZVIZ_DEVICE_SERIAL=…
 ```
 Manual one-shot: `docker compose exec capture node scripts/live-capture-loop.mjs --once`. The web side (`src/pages/live.astro` + `src/pages/live/latest.jpg.ts` + `src/pages/live/status.json.ts` + `src/lib/live.ts`) only reads `LIVE_DATA_DIR` (default `./data/live`) and never sees the credentials.
 
+Timing note: the EZVIZ capture round-trip (cloud wakes device → snapshot → OSS upload) takes 2–6s and the API returns only `picUrl`, so `capturedAt` is recorded when the capture request is *sent* (closest available point to the real shot). The page labels it 更新于/Updated — the burned-in OSD timestamp on the frame itself remains the precise capture time.
+
 **Routing:** Astro file-based routing in `src/pages/`. Chinese is default (no prefix), English under `/en/`:
 - `/` `/en/` → Home (hero carousel, video modal, China route map SVG, mobile lab cards)
 - `/journals` `/en/journals` → Journals (city journal list, filters, detail pages)

@@ -52,6 +52,7 @@ pnpm build
 | `/deconstruct` | `/en/deconstruct` | 解构基地车 | 改装手记、装备清单 |
 | `/guide` | `/en/guide` | 上车指南 | 参与指南、FAQ、团队介绍 |
 | `/about` | `/en/about` | 关于柴火 | 柴火历程时间轴（GSAP 滚动驱动） |
+| `/live` | `/en/live` | 实时视角 | 车载摄像头抓拍（游离页：不进导航、noindex，仅直接链接访问） |
 
 ## Architecture
 
