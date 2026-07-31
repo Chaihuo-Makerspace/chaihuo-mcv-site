@@ -10,3 +10,7 @@
 ## Activities
 
 - To be updated
+
+## Event
+
+The mobile lab arrived in Linfen, Shanxi on 2026.07.30 (Xi County → Linfen). The detailed field note will be updated later.
