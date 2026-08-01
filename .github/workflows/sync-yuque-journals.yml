@@ -55,4 +55,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: ${{ steps.msg.outputs.message }}
-          file_pattern: src/data/yuque-journals.json public/yuque-journals/* src/content/stops/*.md
+          file_pattern: src/data/yuque-journals.json src/data/geocode-cache.json public/yuque-journals/* src/content/stops/*.md

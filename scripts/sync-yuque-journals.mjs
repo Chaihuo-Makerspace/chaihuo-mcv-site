@@ -6,6 +6,11 @@ import {
   extractAppData,
   extractCoverFromDocHtml,
   extractFirstImageFromDocContent,
+  extractRouteTokens,
+  inferCityId,
+  loadStopCityKeywords,
+  loadStopCoordinates,
+  nearestStop,
   normalizeYuqueToc,
 } from './lib/yuque-journal-sync.mjs';
 
@@ -15,6 +20,9 @@ const root = path.resolve(__dirname, '..');
 const bookUrl = process.env.YUQUE_BOOK_URL ?? 'https://www.yuque.com/mouseart/mcv';
 const outputPath = path.join(root, 'src/data/yuque-journals.json');
 const imageDir = path.join(root, 'public/yuque-journals');
+// Nominatim 地理编码结果缓存（入库提交）：结果稳定可审查，也避免每 10 分钟
+// 重复请求公共实例。
+const geocodeCachePath = path.join(root, 'src/data/geocode-cache.json');
 const userAgent =
   process.env.YUQUE_USER_AGENT ??
   'Mozilla/5.0 (compatible; ChaihuoMCVSiteSync/1.0; +https://www.chaihuo.org)';
@@ -43,6 +51,22 @@ async function main() {
       };
     })
   ).filter(Boolean);
+
+  // 标题不含任何地名的日记(如《…双车并进北上路…》)会落为 city: "yuque",
+  // 路线自动更新就不会触发。兜底链:正文日期行关键词 → 中转链目的地
+  // 地理编码就近归并。落选的日记很少,串行处理即可。
+  const stopKeywords = loadStopCityKeywords();
+  const stopCoordinates = loadStopCoordinates();
+  const geocodeCache = await readJsonObject(geocodeCachePath);
+  for (const entry of withCovers.filter((item) => item.city === 'yuque')) {
+    const city = await inferCityFromDocBody(entry.slug, bookId, {
+      stopKeywords,
+      stopCoordinates,
+      geocodeCache,
+    });
+    if (city) entry.city = city;
+  }
+  await writeCacheIfChanged(geocodeCachePath, geocodeCache);
 
   const payload = {
     source: {
@@ -102,6 +126,85 @@ function shortTitle(title) {
 function emitGithubOutput(key, value) {
   if (!process.env.GITHUB_OUTPUT) return;
   appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${String(value).replace(/[\r\n]+/g, ' ')}\n`);
+}
+
+// Title-based inference failed (city: "yuque") — try the doc's opening
+// dateline ("2026.08.01 | 晴 | 临汾→洪洞→太原 | …"), which names the cities
+// even when the title is poetic. If keywords still miss, geocode the
+// destination token via Photon and fold it into the nearest route stop.
+// Returns null when still unmatched.
+async function inferCityFromDocBody(slug, bookId, { stopKeywords, stopCoordinates, geocodeCache }) {
+  if (!bookId) return null;
+  try {
+    const docResponse = await fetchJson(docApiUrl(slug, bookId));
+    const opening = String(docResponse.data?.content ?? '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .slice(0, 200);
+    const city = inferCityId(opening, stopKeywords);
+    if (city !== 'yuque') return city;
+
+    const destination = extractRouteTokens(opening).at(-1);
+    if (!destination) return null;
+    const candidates = await geocodePlace(destination, geocodeCache);
+    if (!candidates) return null;
+    // 同名地名会有多个候选(贵州也有个"洪洞"),取离路线站点最近的那个,
+    // 阈值内才归并——宁可落选也不错标。
+    let best = null;
+    for (const point of candidates) {
+      const hit = nearestStop(point.lng, point.lat, stopCoordinates);
+      if (hit && (!best || hit.km < best.km)) best = hit;
+    }
+    if (best) {
+      console.log(`Geocoded "${destination}" -> ${best.id} (${best.km.toFixed(1)}km)`);
+    }
+    return best?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Photon (photon.komoot.io, 基于 OpenStreetMap) 免费无需 key。
+// 不用 Nominatim 公共实例是因为它在本机网络(国内)被 DNS 污染,
+// Photon 本地和 GitHub Actions 都可达;结果写入 cache(含查不到的
+// null),保证多次运行结果稳定。串行调用,频率远低于其 fair-use 限制。
+// 返回全部中国候选点(不做单选),由调用方按路线站点距离消歧。
+async function geocodePlace(name, cache) {
+  if (name in cache) return cache[name];
+  const url = new URL('https://photon.komoot.io/api/');
+  url.searchParams.set('q', name);
+  url.searchParams.set('limit', '5');
+  url.searchParams.set('bbox', '73,18,135,53'); // 中国范围
+  try {
+    const results = await fetchJson(url.toString());
+    const points = (results?.features ?? [])
+      .filter((item) => item.properties?.countrycode === 'CN' && item.geometry?.coordinates)
+      .map((item) => ({
+        lng: Number(item.geometry.coordinates[0]),
+        lat: Number(item.geometry.coordinates[1]),
+      }));
+    cache[name] = points.length > 0 ? points : null;
+  } catch (error) {
+    console.warn(`Photon geocode failed for "${name}": ${error.message}`);
+    cache[name] = null;
+  }
+  return cache[name];
+}
+
+async function readJsonObject(filePath) {
+  try {
+    return JSON.parse(await readFile(filePath, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+async function writeCacheIfChanged(filePath, cache) {
+  const keys = Object.keys(cache);
+  const existing = await readFile(filePath, 'utf8').catch(() => null);
+  if (existing === null && keys.length === 0) return;
+  const text = `${JSON.stringify(cache, null, 2)}\n`;
+  if (existing !== text) await writeFile(filePath, text, 'utf8');
 }
 
 async function fetchCover(url, slug, bookId) {

@@ -60,10 +60,7 @@ export function parseJournalDate(title) {
   return `${compactMatch[1]}-${compactMatch[2]}-${compactMatch[3]}`;
 }
 
-// 从 stops 内容集合（src/content/stops/*.md）派生站点主名关键词，
-// 按 order 倒序排列，延续“靠后的站点优先、A→B 归目的地”的约定。
-// 新增站点无需再手工登记，同步时自动生效。
-export function loadStopCityKeywords(stopsDir = STOPS_DIR) {
+function loadStops(stopsDir) {
   let files;
   try {
     files = readdirSync(stopsDir);
@@ -81,10 +78,56 @@ export function loadStopCityKeywords(stopsDir = STOPS_DIR) {
     const id = frontmatter[1].match(/^id:\s*(\S+)\s*$/m)?.[1];
     const label = frontmatter[1].match(/^label:\s*(.+?)\s*$/m)?.[1];
     const order = Number(frontmatter[1].match(/^order:\s*(\d+)\s*$/m)?.[1] ?? 0);
-    if (id && label) stops.push({ id, label, order });
+    const lng = Number(frontmatter[1].match(/^lng:\s*([-\d.]+)\s*$/m)?.[1]);
+    const lat = Number(frontmatter[1].match(/^lat:\s*([-\d.]+)\s*$/m)?.[1]);
+    if (id && label) stops.push({ id, label, order, lng, lat });
   }
 
-  return stops.sort((a, b) => b.order - a.order).map((stop) => [stop.id, [stop.label]]);
+  return stops.sort((a, b) => b.order - a.order);
+}
+
+// 从 stops 内容集合（src/content/stops/*.md）派生站点主名关键词，
+// 按 order 倒序排列，延续“靠后的站点优先、A→B 归目的地”的约定。
+// 新增站点无需再手工登记，同步时自动生效。
+export function loadStopCityKeywords(stopsDir = STOPS_DIR) {
+  return loadStops(stopsDir).map((stop) => [stop.id, [stop.label]]);
+}
+
+// 站点坐标（同样按 order 倒序），供地理编码兜底就近归并。
+export function loadStopCoordinates(stopsDir = STOPS_DIR) {
+  return loadStops(stopsDir).filter(
+    (stop) => Number.isFinite(stop.lng) && Number.isFinite(stop.lat),
+  );
+}
+
+// 从正文日期行提取 "A→B→C" 中转链，最后一个地名即目的地。
+export function extractRouteTokens(text) {
+  const chain = text.match(/[一-鿿]{2,}(?:\s*→\s*[一-鿿]{2,})+/);
+  if (!chain) return [];
+  return chain[0].split(/\s*→\s*/);
+}
+
+export function haversineKm(lng1, lat1, lng2, lat2) {
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad;
+  const dLng = (lng2 - lng1) * rad;
+  const a =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// 距离阈值内的最近站点；超过 maxKm 视为无法归并（宁可落选也不错标）。
+export function nearestStop(lng, lat, stops, maxKm = 100) {
+  let best = null;
+  for (const stop of stops) {
+    const km = haversineKm(lng, lat, stop.lng, stop.lat);
+    if (km <= maxKm && (!best || km < best.km)) best = { id: stop.id, km };
+  }
+  return best;
+}
+
+export function nearestStopId(lng, lat, stops, maxKm = 100) {
+  return nearestStop(lng, lat, stops, maxKm)?.id ?? null;
 }
 
 export function inferCityId(title, stopKeywords = loadStopCityKeywords()) {
