@@ -184,16 +184,14 @@ function main() {
       ? `Updated ${changedCount} stop(s).`
       : 'No planned stops matched new journals.',
   );
-  if (changedLabels.length > 0) emitGithubOutput('summary', `基地车抵达${changedLabels.join('、')}`);
+  if (changedLabels.length > 0)
+    emitGithubOutput('summary', `基地车抵达${changedLabels.join('、')}`);
 }
 
 // One-line summary for the workflow's commit message, e.g. "基地车抵达临汾".
 function emitGithubOutput(key, value) {
   if (!process.env.GITHUB_OUTPUT) return;
-  appendFileSync(
-    process.env.GITHUB_OUTPUT,
-    `${key}=${String(value).replace(/[\r\n]+/g, ' ')}\n`,
-  );
+  appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${String(value).replace(/[\r\n]+/g, ' ')}\n`);
 }
 
 main();
