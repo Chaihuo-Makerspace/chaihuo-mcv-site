@@ -101,10 +101,7 @@ function shortTitle(title) {
 
 function emitGithubOutput(key, value) {
   if (!process.env.GITHUB_OUTPUT) return;
-  appendFileSync(
-    process.env.GITHUB_OUTPUT,
-    `${key}=${String(value).replace(/[\r\n]+/g, ' ')}\n`,
-  );
+  appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${String(value).replace(/[\r\n]+/g, ' ')}\n`);
 }
 
 async function fetchCover(url, slug, bookId) {
