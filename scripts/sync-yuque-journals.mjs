@@ -53,18 +53,29 @@ async function main() {
   ).filter(Boolean);
 
   // 标题不含任何地名的日记(如《…双车并进北上路…》)会落为 city: "yuque",
-  // 路线自动更新就不会触发。兜底链:正文日期行关键词 → 中转链目的地
+  // 路线自动更新就不会触发。兜底链:正文日期行关键词 → 中转链地名(标题+日期行)
   // 地理编码就近归并。落选的日记很少,串行处理即可。
   const stopKeywords = loadStopCityKeywords();
   const stopCoordinates = loadStopCoordinates();
   const geocodeCache = await readJsonObject(geocodeCachePath);
+  const unmatched = [];
   for (const entry of withCovers.filter((item) => item.city === 'yuque')) {
-    const city = await inferCityFromDocBody(entry.slug, bookId, {
+    const city = await inferCityFromDocBody(entry.slug, entry.title, bookId, {
       stopKeywords,
       stopCoordinates,
       geocodeCache,
     });
-    if (city) entry.city = city;
+    if (city) {
+      entry.city = city;
+    } else {
+      unmatched.push(entry);
+    }
+  }
+  // 未匹配的日记不会出现在 /route —— 明确打日志,并让摘要进 CI 提交信息,
+  // 维护者一眼能看到,而不是静默消失。
+  if (unmatched.length > 0) {
+    console.warn(`[sync] ${unmatched.length} 篇日记未匹配到路线站点(不会出现在 /route):`);
+    for (const entry of unmatched) console.warn(`  - ${entry.title}`);
   }
   await writeCacheIfChanged(geocodeCachePath, geocodeCache);
 
@@ -84,7 +95,7 @@ async function main() {
   const wrote = await writeJsonIfMateriallyChanged(outputPath, payload);
   if (wrote) {
     const added = withCovers.filter((entry) => !previousSlugs.has(entry.slug));
-    emitGithubOutput('summary', syncSummary(added));
+    emitGithubOutput('summary', syncSummary(added, unmatched.length));
     console.log(
       `Synced ${withCovers.length} Yuque journal cards to ${path.relative(root, outputPath)}.`,
     );
@@ -104,14 +115,23 @@ async function readExistingSlugs(filePath) {
 
 // One-line summary for the workflow's commit message, e.g.
 // "新增基地车日记《2026.07.30｜隰县→临汾》" or "新增 4 篇基地车日记《A》《B》《C》等".
-function syncSummary(added) {
-  if (added.length === 0) return '更新基地车日记内容';
-  const titles = added
-    .slice(0, 3)
-    .map((entry) => `《${shortTitle(entry.title)}》`)
-    .join('');
-  if (added.length === 1) return `新增基地车日记${titles}`;
-  return `新增 ${added.length} 篇基地车日记${titles}${added.length > 3 ? '等' : ''}`;
+// 有未匹配站点时追加提示,让 CI 提交信息直接反映"还有日记进不了 /route"。
+function syncSummary(added, unmatchedCount = 0) {
+  let base;
+  if (added.length === 0) {
+    base = '更新基地车日记内容';
+  } else {
+    const titles = added
+      .slice(0, 3)
+      .map((entry) => `《${shortTitle(entry.title)}》`)
+      .join('');
+    base =
+      added.length === 1
+        ? `新增基地车日记${titles}`
+        : `新增 ${added.length} 篇基地车日记${titles}${added.length > 3 ? '等' : ''}`;
+  }
+  if (unmatchedCount > 0) return `${base} · ${unmatchedCount} 篇日记未匹配到站点`;
+  return base;
 }
 
 // Titles arrive as "基地车日记｜2026.07.30｜隰县→临汾" — keep the part that
@@ -131,37 +151,56 @@ function emitGithubOutput(key, value) {
 // Title-based inference failed (city: "yuque") — try the doc's opening
 // dateline ("2026.08.01 | 晴 | 临汾→洪洞→太原 | …"), which names the cities
 // even when the title is poetic. If keywords still miss, geocode the
-// destination token via Photon and fold it into the nearest route stop.
-// Returns null when still unmatched.
-async function inferCityFromDocBody(slug, bookId, { stopKeywords, stopCoordinates, geocodeCache }) {
+// route-chain tokens from the dateline AND the title (destination first,
+// then earlier transit points) via Photon and fold each into the nearest
+// route stop within 100km. Returns null when still unmatched.
+async function inferCityFromDocBody(
+  slug,
+  title,
+  bookId,
+  { stopKeywords, stopCoordinates, geocodeCache },
+) {
   if (!bookId) return null;
   try {
     const docResponse = await fetchJson(docApiUrl(slug, bookId));
     const opening = String(docResponse.data?.content ?? '')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
-      .slice(0, 200);
+      .slice(0, 400);
     const city = inferCityId(opening, stopKeywords);
     if (city !== 'yuque') return city;
 
-    const destination = extractRouteTokens(opening).at(-1);
-    if (!destination) return null;
-    const candidates = await geocodePlace(destination, geocodeCache);
-    if (!candidates) return null;
-    // 同名地名会有多个候选(贵州也有个"洪洞"),取离路线站点最近的那个,
-    // 阈值内才归并——宁可落选也不错标。
-    let best = null;
-    for (const point of candidates) {
-      const hit = nearestStop(point.lng, point.lat, stopCoordinates);
-      if (hit && (!best || hit.km < best.km)) best = hit;
+    // 中转链 token 合并去重,目的地优先(数组尾部是目的地),依次尝试
+    // 地理编码就近归并——之前的实现只试日期行的最后一个 token,标题里的
+    // 地名(如《…洪洞…》)则完全没有地理编码兜底。
+    const tokens = [
+      ...new Set([...extractRouteTokens(opening), ...extractRouteTokens(title ?? '')]),
+    ];
+    for (const token of tokens.reverse()) {
+      const hit = await geocodeToNearestStop(token, stopCoordinates, geocodeCache);
+      if (hit) {
+        console.log(`Geocoded "${token}" -> ${hit.id} (${hit.km.toFixed(1)}km)`);
+        return hit.id;
+      }
     }
-    if (best) {
-      console.log(`Geocoded "${destination}" -> ${best.id} (${best.km.toFixed(1)}km)`);
-    }
-    return best?.id ?? null;
+    return null;
   } catch {
     return null;
   }
+}
+
+// 地理编码某地名,取离路线站点最近且在 100km 阈值内的命中。同名多地
+// 候选(贵州也有个"洪洞")由距离消歧,超阈值视为不可归并——宁可继续
+// 尝试下一个 token 或落选,也不错标。
+async function geocodeToNearestStop(name, stopCoordinates, geocodeCache) {
+  const candidates = await geocodePlace(name, geocodeCache);
+  if (!candidates) return null;
+  let best = null;
+  for (const point of candidates) {
+    const hit = nearestStop(point.lng, point.lat, stopCoordinates);
+    if (hit && (!best || hit.km < best.km)) best = hit;
+  }
+  return best;
 }
 
 // Photon (photon.komoot.io, 基于 OpenStreetMap) 免费无需 key。
@@ -200,10 +239,15 @@ async function readJsonObject(filePath) {
 }
 
 async function writeCacheIfChanged(filePath, cache) {
-  const keys = Object.keys(cache);
-  const existing = await readFile(filePath, 'utf8').catch(() => null);
-  if (existing === null && keys.length === 0) return;
   const text = `${JSON.stringify(cache, null, 2)}\n`;
+  const existing = await readFile(filePath, 'utf8').catch(() => null);
+  // 缓存为空也要确保文件存在:CI 的 git-auto-commit file_pattern 引用该
+  // 路径,文件缺失会让 `git add` 报 pathspec 错误,整个同步运行失败,
+  // 抓到的日记永远提交不上去。
+  if (existing === null) {
+    await writeFile(filePath, text, 'utf8');
+    return;
+  }
   if (existing !== text) await writeFile(filePath, text, 'utf8');
 }
 
