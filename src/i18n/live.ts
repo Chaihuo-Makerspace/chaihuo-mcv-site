@@ -17,6 +17,14 @@ const live: Record<Locale, Record<string, string>> = {
     'offline.note': '车辆未开工，摄像头离线中。开工上线后每 3 分钟自动更新。',
     'empty.note': '还没有抓拍记录。车辆开工上线后，这里会自动出现画面。',
     'image.alt': '普罗米修斯号车载摄像头最新画面',
+    'gallery.title': '历史抓拍',
+    'gallery.empty': '暂无历史抓拍。车辆开工期间每 3 分钟留档一张，保留最近 30 天。',
+    'gallery.count': '{n} 张',
+    'gallery.download': '下载原图',
+    'gallery.close': '关闭',
+    'gallery.prev': '上一张',
+    'gallery.next': '下一张',
+    'gallery.imageAlt': '拍摄于 {time} 的车载抓拍画面',
   },
   en: {
     title: 'Live View',
@@ -37,6 +45,15 @@ const live: Record<Locale, Record<string, string>> = {
     'empty.note':
       'No captures yet. Frames will appear here automatically once the vehicle is running.',
     'image.alt': 'Latest frame from the Prometheus onboard camera',
+    'gallery.title': 'Captures',
+    'gallery.empty':
+      'No archived captures yet. While the vehicle is running, a frame is archived every 3 minutes and kept for the last 30 days.',
+    'gallery.count': '{n} photos',
+    'gallery.download': 'Download',
+    'gallery.close': 'Close',
+    'gallery.prev': 'Previous',
+    'gallery.next': 'Next',
+    'gallery.imageAlt': 'Onboard frame captured at {time}',
   },
 };
 

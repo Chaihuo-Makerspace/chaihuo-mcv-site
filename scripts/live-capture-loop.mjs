@@ -4,6 +4,7 @@
 //   node scripts/live-capture-loop.mjs          每 LIVE_INTERVAL_MINUTES（默认 3）分钟一轮
 // 车辆熄火时摄像头离线，离线轮安静跳过，不算失败。
 import { captureOnce, loadConfig, log } from './lib/live-capture.mjs';
+import { backfillThumbs } from './lib/live-thumbs.mjs';
 
 const once = process.argv.slice(2).includes('--once');
 const intervalMinutes = Number(process.env.LIVE_INTERVAL_MINUTES ?? 3);
@@ -39,6 +40,13 @@ if (once) {
   await runRound();
 } else {
   log(`启动，每 ${intervalMinutes} 分钟抓拍一轮，数据目录 ${config.dataDir}`);
+  // 启动时补齐存量原图缺的缩略图（增量，已存在的跳过）；失败只 log 不阻断主循环
+  try {
+    const filled = await backfillThumbs(config.dataDir, log);
+    if (filled > 0) log(`缩略图回填完成：补齐 ${filled} 张`);
+  } catch (error) {
+    console.error(`[live-capture] 缩略图回填失败（不影响抓拍）：${error.message}`);
+  }
   await runRound();
   setInterval(runRound, intervalMinutes * 60 * 1000);
 }
