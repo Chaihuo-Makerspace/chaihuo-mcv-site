@@ -59,11 +59,12 @@ const home: Record<Locale, Record<string, string>> = {
     'lab.title': '移动的AI实验室',
     'lab.subtitle': '一个可移动的AI实验室，集成边缘算力、数字加工与实验场景能力',
     'lab.aiTitle': 'AI 边缘算力',
-    'lab.aiDesc': '搭载高性能边缘计算设备，在离线环境下运行AI模型，实时处理数据和提供智能服务。',
+    'lab.aiDesc': '车上装了边缘服务器，没网也能跑 AI 模型。照片和传感器数据就地处理，不用等云端。',
     'lab.fabTitle': '数字加工中心',
-    'lab.fabDesc': '配备3D打印机、激光切割、CNC等数字制造工具，快速将创意转化为实物原型。',
+    'lab.fabDesc': '3D 打印机、激光切割机、CNC，从想法到能摸到的东西，几小时而不是几周。',
     'lab.spaceTitle': '开放实验空间',
-    'lab.spaceDesc': '提供协作工作区域，支持当地社区参与，共同探索技术与生活的结合点。',
+    'lab.spaceDesc':
+      '车里有工作台，能坐下几个人。开到哪就请当地人上车看看、试试、聊聊，他们比我们更懂什么技术有用。',
 
     'cta.label': '旅途日记',
     'cta.title': '一站一篇，记录路上真实发生的事',
@@ -133,13 +134,13 @@ const home: Record<Locale, Record<string, string>> = {
       'A mobile lab integrating edge computing, digital fabrication, and open experimentation',
     'lab.aiTitle': 'AI Edge Computing',
     'lab.aiDesc':
-      'Equipped with high-performance edge devices to run AI models offline, processing data and delivering intelligent services in real time.',
+      'The van carries edge servers that run AI models without an internet connection. Photos and sensor data are processed on the spot.',
     'lab.fabTitle': 'Digital Fabrication Center',
     'lab.fabDesc':
-      'Featuring 3D printers, laser cutters, CNC machines and more, rapidly turning ideas into physical prototypes.',
+      '3D printers, a laser cutter, a CNC machine. From an idea to something you can hold in hours, not weeks.',
     'lab.spaceTitle': 'Open Lab Space',
     'lab.spaceDesc':
-      'Providing collaborative workspace that engages local communities in exploring the intersection of technology and life.',
+      'A workbench that seats a few people. We pull into a village, invite people aboard to look, try, and talk. They know better what technology is actually useful.',
 
     'cta.label': 'Journals',
     'cta.title': 'One entry per stop, documenting what actually happened on the road',

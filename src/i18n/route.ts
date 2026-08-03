@@ -4,7 +4,7 @@ const route: Record<Locale, Record<string, string>> = {
   zh: {
     // Page metadata
     'route.pageTitle': '行程路线',
-    'route.pageDesc': '跟随柴火基地车，穿越中国 24 省 42 城。',
+    'route.pageDesc': '柴火基地车在中国地图上走过的路。',
     // Status and labels
     'route.status.visited': '已抵达',
     'route.status.planned': '计划中',
@@ -71,7 +71,7 @@ const route: Record<Locale, Record<string, string>> = {
   },
   en: {
     'route.pageTitle': 'Journey Route',
-    'route.pageDesc': 'Follow Chaihuo MCV across 24 provinces and 42 cities in China.',
+    'route.pageDesc': 'The route Chaihuo MCV has driven across China.',
     'route.status.visited': 'Visited',
     'route.status.planned': 'Planned',
     'route.status.origin': 'Origin',

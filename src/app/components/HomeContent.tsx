@@ -371,7 +371,9 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                     {t['telemetry.planProvinces']}
                   </div>
-                  <div className="text-base font-bold text-neutral-900 mt-1">24 省 42 城</div>
+                  <div className="text-base font-bold text-neutral-900 mt-1">
+                    {visitedCount}/{cities.length} 城
+                  </div>
                 </div>
               </motion.div>
 

@@ -110,7 +110,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   };
 
   const pageTitle = getT('route.pageTitle', '行程路线');
-  const pageDesc = getT('route.pageDesc', '跟随柴火基地车，穿越中国 24 省 42 城。');
+  const pageDesc = getT('route.pageDesc', '柴火基地车在中国地图上走过的路。');
   const backHref = locale === 'zh' ? '/' : '/en';
 
   // All five numbers are derived from the stops + journals — nothing here is
@@ -121,7 +121,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
       label: getT('route.stats.days', '天在路上'),
     },
     {
-      value: stats.visitedKm.toLocaleString('en-US'),
+      value: `${stats.visitedKm}+`,
       label: getT('route.stats.km', '公里'),
     },
     {
