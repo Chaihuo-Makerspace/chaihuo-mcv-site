@@ -86,3 +86,6 @@ public/heroes/mobile/
 
 # Generated solution thumbs (rebuilt by `pnpm run images:deconstruct`)
 public/deconstruct/solutions/thumb/
+
+# 本地 git worktree 隔离工作区
+.worktrees/
