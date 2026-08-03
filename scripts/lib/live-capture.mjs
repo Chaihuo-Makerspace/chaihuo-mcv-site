@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
-import { ensureThumb, removeThumb } from './live-thumbs.mjs';
+import { ARCHIVE_JPG_RE, ensureThumb, removeThumb } from './live-thumbs.mjs';
 
 // 萤石云开放平台。抓拍走云 API（不直连摄像头），设备离线是常态而非故障。
 const EZVIZ_BASE = 'https://open.ys7.com/api/lapp';
@@ -163,7 +163,7 @@ function cleanArchive(config, logFn) {
   const cutoffName = archiveName(cutoff);
   let removed = 0;
   for (const file of readdirSync(archiveDir)) {
-    if (!/^\d{8}-\d{6}\.jpg$/.test(file)) continue;
+    if (!ARCHIVE_JPG_RE.test(file)) continue;
     if (file < `${cutoffName}.jpg`) {
       unlinkSync(path.join(archiveDir, file));
       removeThumb(config.dataDir, file);

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 export interface LiveMeta {
@@ -31,4 +31,42 @@ export function readLiveMeta(): LiveMeta | null {
   } catch {
     return null;
   }
+}
+
+const ARCHIVE_JPG_RE = /^\d{8}-\d{6}\.jpg$/;
+
+/** archive 目录下的文件名（过滤非归档文件并排序）；目录不存在/不可读返回空数组 */
+function readArchiveFiles(): string[] {
+  try {
+    return readdirSync(path.join(liveDataDir(), 'archive')).filter((f) => ARCHIVE_JPG_RE.test(f));
+  } catch {
+    // 30 天滚动清理可能让目录短暂消失，按空处理
+    return [];
+  }
+}
+
+/** archive 里有哪些天：按天分组计数，最新在前 */
+export function listArchiveDays(): { day: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const file of readArchiveFiles()) {
+    const day = file.slice(0, 8);
+    counts.set(day, (counts.get(day) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([day, count]) => ({ day, count }))
+    .sort((a, b) => (a.day < b.day ? 1 : -1));
+}
+
+/** 某天的归档按小时分组：小时组与组内文件均按时间正序；day 不合法返回空数组 */
+export function listArchiveDay(day: string): { hour: string; files: string[] }[] {
+  if (!/^\d{8}$/.test(day)) return [];
+  const grouped = new Map<string, string[]>();
+  for (const file of readArchiveFiles().sort()) {
+    if (file.slice(0, 8) !== day) continue;
+    const hour = file.slice(9, 11);
+    const list = grouped.get(hour);
+    if (list) list.push(file);
+    else grouped.set(hour, [file]);
+  }
+  return [...grouped.entries()].map(([hour, files]) => ({ hour, files }));
 }
