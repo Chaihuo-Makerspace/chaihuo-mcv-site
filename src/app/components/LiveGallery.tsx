@@ -75,7 +75,11 @@ export default function LiveGallery({ locale = 'zh', t }: LiveGalleryProps) {
     (async () => {
       try {
         const response = await fetch('/live/archive/days.json', { cache: 'no-store' });
-        if (!response.ok) return;
+        // 非 200 与网络异常一样静默降级为空态
+        if (!response.ok) {
+          if (!cancelled) setDays([]);
+          return;
+        }
         const data: { days?: DayEntry[] } = await response.json();
         if (cancelled) return;
         const list = data.days ?? [];
