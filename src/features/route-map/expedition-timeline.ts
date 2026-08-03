@@ -1,3 +1,4 @@
+import config from '@/data/expedition-config.json';
 import type { Stop } from './stops-loader';
 import { isRouteOnlyCity } from './types';
 
@@ -86,7 +87,7 @@ export interface ExpeditionStats {
   visitedCities: number;
   journals: number;
   maxAltitude: number;
-  /** Great-circle km along the visited legs. */
+  /** 实际道路里程 (km). */
   visitedKm: number;
 }
 
@@ -100,7 +101,7 @@ function greatCircleKm(a: Stop, b: Stop): number {
   return 2 * R_KM * Math.asin(Math.sqrt(h));
 }
 
-/** Headline numbers for the left rail — all derived, none hand-maintained. */
+/** Headline numbers for the topbar — data-driven. */
 export function expeditionStats(
   cities: Stop[],
   journals: { city: string }[],
@@ -110,11 +111,15 @@ export function expeditionStats(
   const visited = visible.filter((c) => c.visited);
   const lastVisited = visited[visited.length - 1];
 
-  // Distance follows the drawn route, so it includes routeOnly return legs.
-  const all = [...cities].sort((a, b) => a.order - b.order);
-  let visitedKm = 0;
-  for (let i = 0; i < all.length - 1; i++) {
-    if (all[i].visited && all[i + 1].visited) visitedKm += greatCircleKm(all[i], all[i + 1]);
+  // 实际道路里程（优先取配置值，无配置时回退到大圆弧近似）
+  let visitedKm: number;
+  if (config.actualRoadKm) {
+    visitedKm = config.actualRoadKm;
+  } else {
+    visitedKm = 0;
+    for (let i = 1; i < visited.length; i++) {
+      visitedKm += greatCircleKm(visited[i - 1], visited[i]);
+    }
   }
 
   return {
@@ -123,6 +128,6 @@ export function expeditionStats(
     visitedCities: visited.length,
     journals: journals.length,
     maxAltitude: Math.max(0, ...visible.map((c) => parseFloat(c.altitude) || 0)),
-    visitedKm: Math.round(visitedKm),
+    visitedKm,
   };
 }
