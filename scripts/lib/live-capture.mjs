@@ -7,6 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
+import { ensureThumb, removeThumb } from './live-thumbs.mjs';
 
 // 萤石云开放平台。抓拍走云 API（不直连摄像头），设备离线是常态而非故障。
 const EZVIZ_BASE = 'https://open.ys7.com/api/lapp';
@@ -165,6 +166,7 @@ function cleanArchive(config, logFn) {
     if (!/^\d{8}-\d{6}\.jpg$/.test(file)) continue;
     if (file < `${cutoffName}.jpg`) {
       unlinkSync(path.join(archiveDir, file));
+      removeThumb(config.dataDir, file);
       removed += 1;
     }
   }
@@ -214,6 +216,13 @@ export async function captureOnce(config, logFn = log) {
 
   const file = `${archiveName(capturedAt)}.jpg`;
   writeFileSync(path.join(archiveDir, file), jpeg);
+
+  // 缩略图失败只告警：原图已存，可由启动时的 backfillThumbs 补齐
+  try {
+    await ensureThumb(config.dataDir, file);
+  } catch (error) {
+    logFn(`缩略图生成失败（不影响抓拍）：archive/${file} —— ${error.message}`);
+  }
 
   // latest.jpg 覆盖写（先写临时文件再 rename，避免 web 读到半截文件）
   const latestTmp = path.join(config.dataDir, '.latest.tmp.jpg');
