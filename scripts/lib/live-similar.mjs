@@ -2,8 +2,11 @@
 // 车辆停着不动时摄像头画面几乎不变，web 端按分组把连拍的相似帧折叠展示。
 //   data/live/archive-index.json
 //   { "days": { "20260803": [{ "file": "20260803-145433.jpg", "group": 0 }, ...] } }
-// 判定规则：新图与当天上一张已索引图的 dHash 汉明距离 < 阈值 → 同组（沿用上一张的
-// group），否则 group+1；group 天内从 0 递增。阈值默认 5，可用 LIVE_SIMILAR_THRESHOLD 覆盖。
+// 判定规则：新图与当前组的锚点（组内第一张）的 dHash 汉明距离 < 阈值 → 同组，
+// 否则 group+1；group 天内从 0 递增。与锚点而非上一张比对是为了防止链式漂移
+// （入夜/天亮每帧只差几个 bit，与上一张比会把整晚并成一组）。阈值默认 15
+// （实测：夜间灯光噪点下相邻帧 P75≈7，阈值 5 只能折一半；15 时静止场景 224→32 组，
+// 行驶日画面真实变化仍能正确断组），可用 LIVE_SIMILAR_THRESHOLD 覆盖。
 // 与 latest.jpg 一样先写临时文件再 rename，避免 web 读到半截文件。
 import {
   existsSync,
@@ -17,7 +20,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { ARCHIVE_JPG_RE } from './live-thumbs.mjs';
 
-const DEFAULT_SIMILAR_THRESHOLD = 5;
+const DEFAULT_SIMILAR_THRESHOLD = 15;
 
 export function indexPath(dataDir) {
   return path.join(dataDir, 'archive-index.json');
@@ -96,12 +99,13 @@ export async function addToIndex(dataDir, file, buffer, threshold = similarThres
   let group = 0;
   if (entries.length > 0) {
     const last = entries[entries.length - 1];
-    const lastHash = await hashOfFile(dataDir, last.file);
-    // 上一张原图已不在（被清理/手动删除）时无法比对，按新场景开新组
+    // 与当前组的锚点（组内第一张）比对；锚点原图已不在时退化为与上一张比对，
+    // 都不在（被清理/手动删除）则按新场景开新组
+    const anchor = entries.find((entry) => entry.group === last.group);
+    const anchorHash = anchor ? await hashOfFile(dataDir, anchor.file) : null;
+    const refHash = anchorHash ?? (await hashOfFile(dataDir, last.file));
     group =
-      lastHash !== null && hammingDistance(hash, lastHash) < threshold
-        ? last.group
-        : last.group + 1;
+      refHash !== null && hammingDistance(hash, refHash) < threshold ? last.group : last.group + 1;
   }
   entries.push({ file, group });
   index.days[day] = entries;
@@ -126,7 +130,7 @@ export function removeFromIndex(dataDir, files) {
 
 /**
  * 启动回填：对 archive 里有但索引里缺的天逐天补算分组，返回补齐的天数。
- * 按文件名时间序逐张与上一张比对；每处理完一天就原子写一次，
+ * 按文件名时间序逐张与当前组锚点（组内第一张）比对；每处理完一天就原子写一次，
  * 中断后下次启动从未补的天继续。单天失败只 log 并继续。
  */
 export async function backfillIndex(dataDir, threshold = similarThreshold(), logFn = console.log) {
@@ -145,14 +149,16 @@ export async function backfillIndex(dataDir, threshold = similarThreshold(), log
     if (index.days[day]) continue;
     try {
       const entries = [];
-      let prevHash = null;
+      let anchorHash = null;
       let group = -1;
       for (const file of files.sort()) {
         const hash = await hashOfFile(dataDir, file);
         if (hash === null) continue;
-        if (prevHash === null || hammingDistance(hash, prevHash) >= threshold) group += 1;
+        if (anchorHash === null || hammingDistance(hash, anchorHash) >= threshold) {
+          group += 1;
+          anchorHash = hash;
+        }
         entries.push({ file, group });
-        prevHash = hash;
       }
       if (entries.length > 0) {
         index.days[day] = entries;
