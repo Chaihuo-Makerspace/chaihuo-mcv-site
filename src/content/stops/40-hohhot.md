@@ -1,7 +1,7 @@
 ---
 id: hohhot
 order: 40
-visited: false
+visited: true
 label: 呼和浩特
 label_en: Hohhot
 province: 内蒙古自治区
@@ -11,6 +11,8 @@ altitude: "1050"
 relationType: community
 themes:
   - science
+event:
+  date: "2026.08.04"
 ---
 
 # 呼和浩特
@@ -25,3 +27,7 @@ themes:
 ## 在地共创
 
 - 待补充
+
+## 现场记
+
+基地车已抵达呼和浩特，路线图记录该城市节点。详细现场记录待补充。
