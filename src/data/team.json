@@ -157,5 +157,25 @@
     "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
     "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
     "image": "/people/zibo-chen.webp"
+  },
+  {
+    "id": "gai-tianyao",
+    "name": "盖天垚",
+    "name_en": "Gai Tianyao",
+    "role": "媒体担当",
+    "role_en": "Media Lead",
+    "bio": "内容创作者与传播策划，负责用影像、文字和社媒记录基地车的现场故事与创作瞬间。",
+    "bio_en": "Content creator and communications planner, documenting the MCV's on-site stories and creative moments through visuals, writing, and social media.",
+    "image": "/people/gai-tianyao.webp"
+  },
+  {
+    "id": "liu-yu",
+    "name": "刘雨",
+    "name_en": "Liu Yu",
+    "role": "场景担当",
+    "role_en": "Scenario Lead",
+    "bio": "负责和用户沟通，了解场景需求，共创解决方案。",
+    "bio_en": "Responsible for communicating with users, understanding their scenario needs, and co-creating solutions.",
+    "image": "/people/liu-yu.webp"
   }
 ]

@@ -211,7 +211,12 @@
       "location": "榆林",
       "location_en": "Yulin"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-04",
+      "location": "呼和浩特",
+      "location_en": "Hohhot",
+      "handoffTo": "gai-tianyao"
+    }
   },
   {
     "id": "b15",
@@ -233,7 +238,12 @@
       "location": "西安",
       "location_en": "Xi'an"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-04",
+      "location": "呼和浩特",
+      "location_en": "Hohhot",
+      "handoffTo": "liu-yu"
+    }
   },
   {
     "id": "b17",
@@ -243,6 +253,28 @@
       "date": "2026-07-26",
       "location": "西安",
       "location_en": "Xi'an"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b18",
+    "crewId": "gai-tianyao",
+    "role": "媒体担当",
+    "boardedAt": {
+      "date": "2026-08-04",
+      "location": "呼和浩特",
+      "location_en": "Hohhot"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b19",
+    "crewId": "liu-yu",
+    "role": "场景担当",
+    "boardedAt": {
+      "date": "2026-08-04",
+      "location": "呼和浩特",
+      "location_en": "Hohhot"
     },
     "disembarkedAt": null
   }
