@@ -61,4 +61,26 @@ test.describe('route smoke', () => {
     await page.goto('/en/documentation', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(/\/en\/journals\/?$/);
   });
+
+  test('live admin requires authentication', async ({ page, request }) => {
+    await installHarnessGuards(page);
+
+    // 未登录访问后台 → 重定向到登录页
+    await page.goto('/live/admin', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/live\/admin\/login\/?$/);
+
+    // 登录页可达（未配置密码时显示「未启用」态也算正常渲染）
+    const login = await page.goto('/live/admin/login', { waitUntil: 'domcontentloaded' });
+    expect(login?.status()).toBe(200);
+
+    // 错误密码 → 401（后台未启用时 503，同样拒绝）
+    const response = await request.post('/api/live/login', {
+      data: { password: 'definitely-wrong-password' },
+    });
+    expect([401, 503]).toContain(response.status());
+
+    // 历史抓拍接口未登录 → 401（公开页只保留实时帧与精选轮播）
+    const archive = await request.get('/live/archive/days.json');
+    expect(archive.status()).toBe(401);
+  });
 });

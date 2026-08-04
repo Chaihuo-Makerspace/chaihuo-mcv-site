@@ -1,12 +1,15 @@
 import {
+  existsSync,
   mkdirSync,
   readdirSync,
   readFileSync,
   renameSync,
+  statSync,
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
+import { addToIndex, removeFromIndex, similarThreshold } from './live-similar.mjs';
 import { ARCHIVE_JPG_RE, ensureThumb, removeThumb } from './live-thumbs.mjs';
 
 // 萤石云开放平台。抓拍走云 API（不直连摄像头），设备离线是常态而非故障。
@@ -30,6 +33,8 @@ export function loadConfig(env = process.env) {
     deviceSerial: env.EZVIZ_DEVICE_SERIAL.trim(),
     dataDir: path.resolve(env.LIVE_DATA_DIR ?? './data/live'),
     keepDays: Number(env.LIVE_KEEP_DAYS ?? 30),
+    intervalMinutes: Number(env.LIVE_INTERVAL_MINUTES ?? 3),
+    similarThreshold: similarThreshold(env),
   };
 }
 
@@ -161,16 +166,43 @@ function cleanArchive(config, logFn) {
   const archiveDir = path.join(config.dataDir, 'archive');
   const cutoff = new Date(Date.now() - config.keepDays * 24 * 60 * 60 * 1000);
   const cutoffName = archiveName(cutoff);
-  let removed = 0;
+  const removedFiles = [];
   for (const file of readdirSync(archiveDir)) {
     if (!ARCHIVE_JPG_RE.test(file)) continue;
     if (file < `${cutoffName}.jpg`) {
       unlinkSync(path.join(archiveDir, file));
       removeThumb(config.dataDir, file);
-      removed += 1;
+      removedFiles.push(file);
     }
   }
-  if (removed > 0) logFn(`已清理 ${removed} 张 ${config.keepDays} 天前的历史照片`);
+  if (removedFiles.length > 0) {
+    removeFromIndex(config.dataDir, removedFiles);
+    logFn(`已清理 ${removedFiles.length} 张 ${config.keepDays} 天前的历史照片`);
+  }
+  cleanTrash(config, logFn);
+}
+
+/**
+ * 顺带清理 featured 回收站里 mtime 超过 keepDays 的文件。
+ * 目录可能不存在，按空处理；featured.json 由 web 端维护，这里只删文件本身。
+ */
+function cleanTrash(config, logFn) {
+  const trashDir = path.join(config.dataDir, 'featured', 'trash');
+  if (!existsSync(trashDir)) return;
+  const cutoffMs = Date.now() - config.keepDays * 24 * 60 * 60 * 1000;
+  let removed = 0;
+  for (const file of readdirSync(trashDir)) {
+    const filePath = path.join(trashDir, file);
+    try {
+      const stat = statSync(filePath);
+      if (!stat.isFile() || stat.mtimeMs >= cutoffMs) continue;
+      unlinkSync(filePath);
+      removed += 1;
+    } catch {
+      // 单个文件清理失败跳过，下轮再试
+    }
+  }
+  if (removed > 0) logFn(`已清理回收站 ${removed} 个 ${config.keepDays} 天前的文件`);
 }
 
 /**
@@ -224,6 +256,13 @@ export async function captureOnce(config, logFn = log) {
     logFn(`缩略图生成失败（不影响抓拍）：archive/${file} —— ${error.message}`);
   }
 
+  // 分组索引失败只告警：该张不记 index，展示端会把无记录的图自成一组
+  try {
+    await addToIndex(config.dataDir, file, jpeg, config.similarThreshold);
+  } catch (error) {
+    logFn(`分组索引写入失败（不影响抓拍）：archive/${file} —— ${error.message}`);
+  }
+
   // latest.jpg 覆盖写（先写临时文件再 rename，避免 web 读到半截文件）
   const latestTmp = path.join(config.dataDir, '.latest.tmp.jpg');
   writeFileSync(latestTmp, jpeg);
@@ -235,6 +274,8 @@ export async function captureOnce(config, logFn = log) {
     bytes: jpeg.length,
     width: dimensions.width,
     height: dimensions.height,
+    intervalMinutes: config.intervalMinutes,
+    keepDays: config.keepDays,
   };
   writeFileSync(path.join(config.dataDir, 'latest.json'), JSON.stringify(meta, null, 2));
 

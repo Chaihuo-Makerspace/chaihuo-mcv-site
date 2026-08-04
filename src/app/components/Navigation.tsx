@@ -62,6 +62,7 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
     { to: localePath('/', currentLocale), label: dict['nav.home'], match: '/' },
     { to: localePath('/journals', currentLocale), label: dict['nav.journals'], match: '/journals' },
     { to: localePath('/route', currentLocale), label: dict['nav.route'], match: '/route' },
+    { to: localePath('/live', currentLocale), label: dict['nav.live'], match: '/live' },
     {
       to: localePath('/deconstruct', currentLocale),
       label: dict['nav.deconstruct'],

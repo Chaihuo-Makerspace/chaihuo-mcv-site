@@ -2,12 +2,16 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { APIRoute } from 'astro';
 import { liveDataDir } from '@/lib/live';
+import { isAuthed } from '@/lib/live-auth';
 
 const NAME_RE = /^\d{8}-\d{6}\.webp$/;
 
-// Gallery 缩略图：archive/thumb/<name>。严格校验文件名防路径穿越。
+// Gallery 缩略图：archive/thumb/<name>。历史抓拍仅成员可见；严格校验文件名防路径穿越。
 // 缩略图缺失时回退同名原图（兜底，前端不用处理）。
-export const GET: APIRoute = ({ params }) => {
+export const GET: APIRoute = ({ params, request }) => {
+  if (!isAuthed(request)) {
+    return new Response('Unauthorized', { status: 401 });
+  }
   const name = params.name ?? '';
   if (!NAME_RE.test(name)) {
     return new Response('Bad Request: 非法文件名', { status: 400 });

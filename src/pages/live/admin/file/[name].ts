@@ -6,7 +6,7 @@ import { isAuthed } from '@/lib/live-auth';
 
 const NAME_RE = /^\d{8}-\d{6}\.jpg$/;
 
-// Gallery 原图：archive/<name>。历史抓拍仅成员可见；严格校验文件名防路径穿越；?download=1 时走附件下载。
+// 后台下载 archive 原图（唯一下载入口，鉴权）。严格校验文件名防路径穿越。
 export const GET: APIRoute = ({ params, request }) => {
   if (!isAuthed(request)) {
     return new Response('Unauthorized', { status: 401 });
@@ -21,12 +21,11 @@ export const GET: APIRoute = ({ params, request }) => {
   } catch {
     return new Response('Not found', { status: 404 });
   }
-  const headers: Record<string, string> = {
-    'Content-Type': 'image/jpeg',
-    'Cache-Control': 'no-cache',
-  };
-  if (new URL(request.url).searchParams.get('download') === '1') {
-    headers['Content-Disposition'] = `attachment; filename="${name}"`;
-  }
-  return new Response(new Uint8Array(data), { headers });
+  return new Response(new Uint8Array(data), {
+    headers: {
+      'Content-Type': 'image/jpeg',
+      'Content-Disposition': `attachment; filename="${name}"`,
+      'Cache-Control': 'no-cache',
+    },
+  });
 };

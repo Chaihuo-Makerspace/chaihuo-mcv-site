@@ -1,0 +1,36 @@
+---
+// 成员后台：历史抓拍 / 已入选 / 回收站。noindex，未登录 302 到登录页。
+// 数据量小（archive 30 天滚动），SSR 一次算完所有天的相似分组，前端切日期零请求。
+import LiveAdminContent from '@/app/components/LiveAdminContent';
+import liveAdmin from '@/i18n/live-admin';
+import liveDict from '@/i18n/live';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { listAdminDay, listAdminDays, readFeatured, readLiveMeta } from '@/lib/live';
+import { isAuthed } from '@/lib/live-auth';
+import { listTrash } from '@/lib/live-featured';
+
+if (!isAuthed(Astro.request)) {
+  return Astro.redirect('/live/admin/login');
+}
+
+const t = liveAdmin;
+const keepDays = readLiveMeta()?.keepDays ?? 30;
+const days = listAdminDays();
+const dayGroups = Object.fromEntries(days.map((d) => [d.day, listAdminDay(d.day)]));
+const featured = readFeatured();
+const trash = listTrash(keepDays);
+---
+
+<BaseLayout title={liveDict.zh['hero.title']} description={t['login.body']}>
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  <LiveAdminContent
+    client:load
+    t={t}
+    title={liveDict.zh['hero.title']}
+    days={days}
+    dayGroups={dayGroups}
+    initialFeatured={featured}
+    initialTrash={trash}
+    keepDays={keepDays}
+  />
+</BaseLayout>

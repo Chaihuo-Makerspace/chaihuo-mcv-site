@@ -1,0 +1,30 @@
+---
+// 成员后台登录页：noindex。未配置 LIVE_ADMIN_PASSWORD 时后台整体不可用，显示未启用态。
+import LiveAdminLogin from '@/app/components/LiveAdminLogin';
+import liveAdmin from '@/i18n/live-admin';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { adminPassword, isAuthed } from '@/lib/live-auth';
+
+if (isAuthed(Astro.request)) {
+  return Astro.redirect('/live/admin');
+}
+
+const t = liveAdmin;
+const enabled = adminPassword() !== null;
+---
+
+<BaseLayout title={t['login.title']} description={t['login.body']}>
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  {
+    enabled ? (
+      <LiveAdminLogin client:load t={t} />
+    ) : (
+      <section class="bg-surface">
+        <div class="mx-auto max-w-md px-6 py-24 text-center">
+          <h1>{t['login.title']}</h1>
+          <p class="mt-4 text-neutral-500">{t['login.disabled']}</p>
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>

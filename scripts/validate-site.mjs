@@ -152,8 +152,11 @@ function publicAssetExists(assetPath) {
 function compareLocaleDictionaries() {
   const dir = path.join(root, 'src/i18n');
   const files = fs.readdirSync(dir).filter((name) => name.endsWith('.ts') && name !== 'index.ts');
+  // 内部工具字典（仅中文，无英文版）：跳过 zh/en 对等校验
+  const ZH_ONLY_DICTS = new Set(['live-admin.ts']);
 
   for (const file of files) {
+    if (ZH_ONLY_DICTS.has(file)) continue;
     const mod = loadTsModule(`src/i18n/${file}`);
     const dict = mod.default;
     check(Boolean(dict?.zh), `${file}: missing zh dictionary`);
@@ -173,9 +176,15 @@ function validateRouteMirrors() {
     pagesDir,
     (file) => file.endsWith('.astro') && !file.includes(`${path.sep}en${path.sep}`),
   );
+  // 内部工具页面（仅中文，无英文镜像）
+  const ZH_ONLY_PAGES = new Set([
+    path.join('live', 'admin.astro'),
+    path.join('live', 'admin', 'login.astro'),
+  ]);
 
   for (const page of zhPages) {
     const rel = path.relative(pagesDir, page);
+    if (ZH_ONLY_PAGES.has(rel)) continue;
     const enMirror = path.join(pagesDir, 'en', rel);
     check(
       fs.existsSync(enMirror),

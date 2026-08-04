@@ -25,6 +25,12 @@ const live: Record<Locale, Record<string, string>> = {
     'gallery.prev': '上一张',
     'gallery.next': '下一张',
     'gallery.imageAlt': '拍摄于 {time} 的车载抓拍画面',
+    'interval.note': '车辆开工期间每 {n} 分钟自动抓拍',
+    'featured.title': '一路上',
+    'featured.subtitle': '值得留下的瞬间，由车上的人每天挑出',
+    'featured.prev': '上一张',
+    'featured.next': '下一张',
+    'featured.imageAlt': '{date} 路上的瞬间',
   },
   en: {
     title: 'Live View',
@@ -54,6 +60,12 @@ const live: Record<Locale, Record<string, string>> = {
     'gallery.prev': 'Previous',
     'gallery.next': 'Next',
     'gallery.imageAlt': 'Onboard frame captured at {time}',
+    'interval.note': 'Auto-captured every {n} min while the vehicle is running',
+    'featured.title': 'Along the Way',
+    'featured.subtitle': 'Moments worth keeping, picked daily by the crew on board',
+    'featured.prev': 'Previous',
+    'featured.next': 'Next',
+    'featured.imageAlt': 'A moment from the road on {date}',
   },
 };
 

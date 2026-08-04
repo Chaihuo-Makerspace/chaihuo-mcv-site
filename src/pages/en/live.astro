@@ -1,20 +1,28 @@
 ---
 // English mirror of src/pages/live.astro — self-contained per project convention.
-// Unlisted page: not in navigation, noindex, reachable only via direct link.
+// Public page: in navigation, indexable.
+import FeaturedCarousel from '@/app/components/FeaturedCarousel';
 import LiveContent from '@/app/components/LiveContent';
-import LiveGallery from '@/app/components/LiveGallery';
 import type { Locale } from '@/i18n/index';
 import liveDict from '@/i18n/live';
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { readLiveMeta } from '@/lib/live';
+import { listActiveFeatured, readLiveMeta } from '@/lib/live';
 
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = liveDict[locale];
 const meta = readLiveMeta();
+const featured = listActiveFeatured();
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
-  <meta slot="head" name="robots" content="noindex,nofollow" />
-  <LiveContent client:load locale={locale} t={t} initialMeta={meta} />
-  <LiveGallery client:visible locale={locale} t={t} />
+  <LiveContent
+    client:load
+    locale={locale}
+    t={t}
+    initialMeta={meta}
+    intervalMinutes={meta?.intervalMinutes ?? 3}
+  />
+  {featured.length > 0 && (
+    <FeaturedCarousel client:visible locale={locale} t={t} entries={featured} />
+  )}
 </BaseLayout>

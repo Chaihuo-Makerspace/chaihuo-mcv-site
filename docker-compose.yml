@@ -8,9 +8,12 @@ services:
       - PORT=4321
       - NODE_ENV=production
       - LIVE_DATA_DIR=/data/live
+      # 成员后台共享口令（/live/admin）。未配置时后台显示「未启用」，不影响部署
+      - LIVE_ADMIN_PASSWORD=${LIVE_ADMIN_PASSWORD:-}
     volumes:
-      # 抓拍数据：宿主机目录 bind mount，重建/重启容器不丢，web 只读
-      - ./data/live:/data/live:ro
+      # 抓拍数据：宿主机目录 bind mount，重建/重启容器不丢。
+      # web 需要写 featured/（精选复制、回收站移动、featured.json），不再是只读
+      - ./data/live:/data/live
     restart: unless-stopped
 
   # 基地车摄像头定时抓拍 worker：同一镜像，跑循环脚本。

@@ -12,6 +12,8 @@ interface LiveContentProps {
   locale?: Locale;
   t: Record<string, string>;
   initialMeta: LiveMeta | null;
+  /** 抓拍间隔（分钟），来自 latest.json 的 intervalMinutes */
+  intervalMinutes: number;
 }
 
 const POLL_INTERVAL_MS = 60_000;
@@ -43,7 +45,12 @@ function formatRelative(iso: string, now: number, t: Record<string, string>): st
   return fill(t['time.days'], { n: String(Math.floor(hours / 24)) });
 }
 
-export default function LiveContent({ locale = 'zh', t, initialMeta }: LiveContentProps) {
+export default function LiveContent({
+  locale = 'zh',
+  t,
+  initialMeta,
+  intervalMinutes,
+}: LiveContentProps) {
   const [meta, setMeta] = useState<LiveMeta | null>(initialMeta);
   const [now, setNow] = useState(() => Date.now());
 
@@ -78,55 +85,58 @@ export default function LiveContent({ locale = 'zh', t, initialMeta }: LiveConte
         <h1>{t['hero.title']}</h1>
         <p className="mt-4 max-w-2xl text-neutral-700">{t['hero.body']}</p>
 
-        <div className="mt-10 overflow-hidden rounded-lg border border-neutral-300 bg-surface-card shadow-sm">
-          {meta ? (
-            <div className="relative">
-              <img
-                src={`/live/latest.jpg?t=${encodeURIComponent(meta.capturedAt)}`}
-                width={meta.width}
-                height={meta.height}
-                alt={t['image.alt']}
-                className={`block aspect-video w-full object-cover transition-opacity ${
-                  isOnline ? '' : 'opacity-60'
-                }`}
-              />
-              {/* 状态徽章：黄点是全页唯一循环动画（motion-safe，reduced-motion 时静止） */}
-              <div
-                className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-surface-dark/80 px-3 py-1.5 text-xs font-medium text-surface-dark-foreground"
-                suppressHydrationWarning
-              >
-                <span className="relative flex h-2 w-2">
-                  {isOnline && (
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-brand motion-safe:animate-ping" />
-                  )}
-                  <span
-                    className={`relative inline-flex h-2 w-2 rounded-full ${
-                      isOnline ? 'bg-brand' : 'bg-neutral-400'
-                    }`}
-                  />
-                </span>
-                {isOnline ? t['status.online'] : t['status.offline']}
+        {/* 深色「监视器」容器：相机画面在深色包围里读作"车的眼睛" */}
+        <div className="mt-10 rounded-xl bg-surface-dark p-4 sm:p-6">
+          {/* 状态行：静态圆点（全页循环动画额度让给轮播），mono 呼应 OSD 时间戳 */}
+          <div
+            className="flex items-center gap-2 font-mono text-xs text-surface-dark-foreground"
+            suppressHydrationWarning
+          >
+            <span
+              className={`inline-flex h-2 w-2 rounded-full ${
+                isOnline ? 'bg-brand' : 'bg-neutral-400'
+              }`}
+            />
+            {isOnline ? t['status.online'] : t['status.offline']}
+          </div>
+
+          <div className="mt-3 overflow-hidden rounded-lg">
+            {meta ? (
+              <div className="relative">
+                <img
+                  src={`/live/latest.jpg?t=${encodeURIComponent(meta.capturedAt)}`}
+                  width={meta.width}
+                  height={meta.height}
+                  alt={t['image.alt']}
+                  className={`block aspect-video w-full object-cover transition-opacity ${
+                    isOnline ? '' : 'opacity-60'
+                  }`}
+                />
+                {!isOnline && (
+                  <div className="absolute inset-x-0 bottom-0 bg-surface-dark/70 px-4 py-3 text-sm text-surface-dark-foreground">
+                    {t['offline.note']}
+                  </div>
+                )}
               </div>
-              {!isOnline && (
-                <div className="absolute inset-x-0 bottom-0 bg-surface-dark/70 px-4 py-3 text-sm text-surface-dark-foreground">
-                  {t['offline.note']}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex aspect-video items-center justify-center px-6 text-center">
-              <p className="text-neutral-500">{t['empty.note']}</p>
-            </div>
-          )}
+            ) : (
+              <div className="flex aspect-video items-center justify-center px-6 text-center">
+                <p className="text-neutral-400">{t['empty.note']}</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {meta && (
-          <p className="mt-4 text-sm text-neutral-500" suppressHydrationWarning>
-            {fill(t['captured.at'], { time: formatAbsolute(meta.capturedAt, locale) })}
-            {' · '}
-            {formatRelative(meta.capturedAt, now, t)}
-          </p>
-        )}
+        <p className="mt-4 font-mono text-sm text-neutral-500" suppressHydrationWarning>
+          {meta && (
+            <>
+              {fill(t['captured.at'], { time: formatAbsolute(meta.capturedAt, locale) })}
+              {' · '}
+              {formatRelative(meta.capturedAt, now, t)}
+              {' · '}
+            </>
+          )}
+          {fill(t['interval.note'], { n: String(intervalMinutes) })}
+        </p>
       </div>
     </section>
   );
