@@ -18,6 +18,13 @@ interface NavigationProps {
   locale?: Locale;
 }
 
+// TEMP-LIVE-NAV-GATE (2026-08): 车载摄像头 8/8–8/10 关闭、无法采集画面,
+// 期间隐藏导航「实时视角」入口,8/11 00:00(北京时间)起自动恢复。
+// 摄像头恢复后整段删除:本常量与判断、以及 NAV_LINKS 中 /live 项的条件展开。
+const LIVE_NAV_HIDDEN_FROM = Date.parse('2026-08-08T00:00:00+08:00');
+const LIVE_NAV_HIDDEN_UNTIL = Date.parse('2026-08-11T00:00:00+08:00');
+const liveNavHidden = Date.now() >= LIVE_NAV_HIDDEN_FROM && Date.now() < LIVE_NAV_HIDDEN_UNTIL;
+
 export default function Navigation({ pathname, locale = 'zh' }: NavigationProps) {
   const [currentPathname, setCurrentPathname] = useState(pathname);
   const [currentLocale, setCurrentLocale] = useState<Locale>(locale);
@@ -62,7 +69,10 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
     { to: localePath('/', currentLocale), label: dict['nav.home'], match: '/' },
     { to: localePath('/journals', currentLocale), label: dict['nav.journals'], match: '/journals' },
     { to: localePath('/route', currentLocale), label: dict['nav.route'], match: '/route' },
-    { to: localePath('/live', currentLocale), label: dict['nav.live'], match: '/live' },
+    // TEMP-LIVE-NAV-GATE: 门控期(2026-08-08 ~ 08-10)内不渲染「实时视角」入口
+    ...(liveNavHidden
+      ? []
+      : [{ to: localePath('/live', currentLocale), label: dict['nav.live'], match: '/live' }]),
     {
       to: localePath('/deconstruct', currentLocale),
       label: dict['nav.deconstruct'],
