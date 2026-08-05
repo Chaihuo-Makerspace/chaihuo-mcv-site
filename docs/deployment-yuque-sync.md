@@ -87,6 +87,57 @@ rg "article-title-or-slug" /tmp/mcv-journals.html
 
 If GitHub Actions and webhook delivery are successful but production is stale, inspect the Jenkins console log for `chaihuo-chaihuo-mcv-site`.
 
+## City Inference
+
+How synced journals get attached to route stops
+(`scripts/lib/yuque-journal-sync.mjs` `inferCityId`):
+
+1. **Alias table first.** The hand-maintained `CITY_KEYWORDS` table is checked
+   for aliases only — small places/transit points fold into route stops
+   (定边→榆林, 肃南→张掖, 四川科技馆/绵阳/宜宾→成都, 赫章→毕节,
+   格凸河→贵阳, 七百弄/三都→柳州, 浩坤湖/广西科技馆→南宁, etc.).
+2. **Auto-derived stop names.** Stop primary names are auto-derived from
+   `src/content/stops/*.md` frontmatter `label`s by `loadStopCityKeywords()`
+   (sorted by `order` desc, so new stops need zero keyword maintenance; e.g.
+   隰县→临汾 via the auto-derived 临汾 label).
+
+Keyword order is priority (later stops first) so "A→B" transit titles attach
+to the destination. Titles matching neither source get two more chances in
+`sync-yuque-journals.mjs` `inferCityFromDocBody()`:
+
+1. Re-run `inferCityId` over the doc's opening dateline
+   ("2026.08.01 | 晴 | 临汾→洪洞→太原 | …"), which names the cities even when
+   the title is poetic (e.g. 《双车并进北上路…》 → taiyuan).
+2. If keywords still miss, geocode the route-chain tokens from the dateline
+   AND the title (`extractRouteTokens()`, destination first, then earlier
+   transit points) via Photon (`photon.komoot.io`, free OSM geocoder — the
+   Nominatim public instance is DNS-poisoned on the maintainer's CN network,
+   Photon works both locally and in CI) and fold each into the nearest stop
+   within 100 km (`nearestStop()`, coords from stop frontmatter via
+   `loadStopCoordinates()`); same-name ambiguity is resolved by picking the
+   candidate closest to any route stop.
+
+Geocode results are cached in `src/data/geocode-cache.json` (committed by the
+sync workflow — the script materializes the file even when the cache is empty,
+so CI's `file_pattern` never hits a missing pathspec) so runs are
+deterministic and the API is not re-hit.
+
+Journals that still fall back to `city: "yuque"` are hidden from the route
+panel and are logged loudly plus surfaced as "N 篇日记未匹配到站点" in the CI
+commit message. All synced journals currently map to real stops.
+
+## 2026-08-03 Sync Pipeline Hardening
+
+- CI had been failing at the git-auto-commit step since #33:
+  `src/data/geocode-cache.json` was in `file_pattern` but never existed in a
+  fresh checkout (the script only wrote it when geocoding actually ran), so
+  `git add` died on the missing pathspec and every scheduled run's synced
+  journals were never committed. `writeCacheIfChanged` now materializes the
+  file even when the cache is empty, so each run commits and triggers the
+  Jenkins deploy.
+- City inference gained the dateline+title token geocoding described above
+  (previously only the dateline's last token was geocoded).
+
 ## 2026-06-03 Incident Summary
 
 Symptoms:
