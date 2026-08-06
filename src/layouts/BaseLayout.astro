@@ -6,6 +6,7 @@ import { ClientRouter } from 'astro:transitions';
 import type { Locale } from '@/i18n/index';
 import { getAlternateUrl } from '@/i18n/index';
 import ui from '@/i18n/ui';
+import { BUILD_ID } from '@/lib/build-info';
 
 interface Props {
   title: string;
@@ -34,6 +35,7 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="build-id" content={BUILD_ID} />
     <title>{siteTitle}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL.href} />
@@ -74,6 +76,62 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-27XRD69LSR');
+    </script>
+    {/* 新部署自动刷新（思路同 Nuxt app manifest：导航触发优先，低频轮询兜底）：
+        ① ClientRouter 切换页面时本就要抓取新页面 HTML，直接比对其中的 build-id，零额外请求；
+        ② 停留在单页时低频轮询 /api/version（60s，后台标签页暂停，Save-Data 关闭轮询）；
+        版本号变化即强制刷新，访客无需手动 F5 */}
+    <script is:inline>
+      (function () {
+        var meta = document.querySelector('meta[name="build-id"]');
+        var current = meta && meta.content;
+        if (!current) return;
+        var POLL_MS = 60000;
+        var timer = null;
+
+        function reload() {
+          // 60 秒内已刷新过却仍是旧版本 → 停止，避免 CDN 缓存旧 HTML 导致无限刷新
+          try {
+            var now = Date.now();
+            if (now - Number(sessionStorage.getItem('mcv-reload-at') || 0) < 60000) return;
+            sessionStorage.setItem('mcv-reload-at', String(now));
+          } catch (e) {}
+          location.reload();
+        }
+
+        function outdated(version) {
+          return version && version !== current;
+        }
+
+        // ① 客户端路由切换后：DOM 已是 ClientRouter 抓取的新文档，直接读它的 build-id。
+        // 若来自新部署则强制整页刷新，避免旧 JS islands 与新 HTML 混用
+        document.addEventListener('astro:page-load', function () {
+          var m = document.querySelector('meta[name="build-id"]');
+          if (m && outdated(m.content)) reload();
+        });
+
+        // ② 兜底轮询：覆盖长时间停留在单页、不发生导航的访问
+        function check() {
+          fetch('/api/version?t=' + Date.now(), { cache: 'no-store' })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+              if (data && outdated(data.version)) reload();
+            })
+            .catch(function () {});
+        }
+
+        function start() { if (!timer) timer = setInterval(check, POLL_MS); }
+        function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+        // 后台标签页暂停轮询；切回前台立即检查一次，第一时间发现新部署
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'visible') { check(); start(); } else { stop(); }
+        });
+        // 从 bfcache 恢复时也检查一次
+        window.addEventListener('pageshow', function () { check(); start(); });
+        // 省流模式下不轮询，仅靠导航检测（零额外请求）
+        if (!(navigator.connection && navigator.connection.saveData)) start();
+      })();
     </script>
     <ClientRouter />
     <slot name="head" />
