@@ -227,7 +227,12 @@
       "location": "西安",
       "location_en": "Xi'an"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-04",
+      "location": "呼和浩特",
+      "location_en": "Hohhot",
+      "handoffTo": "zibo-chen"
+    }
   },
   {
     "id": "b16",
