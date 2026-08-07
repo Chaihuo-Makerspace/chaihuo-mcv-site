@@ -19,11 +19,11 @@ interface NavigationProps {
 }
 
 // TEMP-LIVE-NAV-GATE (2026-08): 车载摄像头 8/8–8/10 关闭、无法采集画面,
-// 期间隐藏导航「实时视角」入口,8/11 00:00(北京时间)起自动恢复。
+// 期间隐藏导航「实时视角」入口;8/7 起提前隐藏,8/11 00:00(北京时间)自动恢复。
 // 摄像头恢复后整段删除:本常量与判断、以及 NAV_LINKS 中 /live 项的条件展开。
 // 注意:判断必须放在组件 render 内(每次 SSR 请求重新计算),
 // 不能提升到模块顶层——否则生产服务器以进程启动时的时间为准,门控永不触发。
-const LIVE_NAV_HIDDEN_FROM = Date.parse('2026-08-08T00:00:00+08:00');
+const LIVE_NAV_HIDDEN_FROM = Date.parse('2026-08-07T00:00:00+08:00');
 const LIVE_NAV_HIDDEN_UNTIL = Date.parse('2026-08-11T00:00:00+08:00');
 
 export default function Navigation({ pathname, locale = 'zh' }: NavigationProps) {
