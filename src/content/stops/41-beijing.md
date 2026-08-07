@@ -1,7 +1,7 @@
 ---
 id: beijing
 order: 41
-visited: false
+visited: true
 label: 北京
 label_en: Beijing
 province: 北京市
@@ -11,6 +11,8 @@ altitude: "44"
 relationType: industry
 themes:
   - industry
+event:
+  date: "2026.08.07"
 ---
 
 # 北京
@@ -25,3 +27,7 @@ themes:
 ## 在地共创
 
 - 待补充
+
+## 现场记
+
+基地车已抵达北京，路线图记录该城市节点。详细现场记录待补充。
