@@ -60,7 +60,7 @@ people: []              # 可选,id 指向 src/content/people/met/<id>.md
 ## 同步清单(新增/变更站点时逐项过)
 
 1. `src/content/stops/NN-<id>.md` + `NN-<id>.en.md`:order 连续无空缺;H1 与 label 对齐。
-2. `src/features/route-map/visited-provinces.ts`:首次进入的省份补完整行政区名(如 `甘肃省`,不是 `甘肃`)。
+2. `src/features/route-map/visited-provinces.ts`:首次进入的省份补完整行政区名(如 `甘肃省`,不是 `甘肃`)。语雀日记确认的到达已由 `scripts/update-route-stops-from-journals.mjs` 自动补入该数组,这里只针对手工加站/手工翻 visited 的情况。
 3. **首次进入的省份还要补** `src/features/route-map/route-legs.ts` 的 `PROVINCE_SHORT`(zh 单字简称 / en 两字母代码 / en 全名),否则首页路段带该省显示全名,放不进去窄段。
 4. **"N 省 N 城"文案**(最容易漏,共两处三处):
    - `src/i18n/route.ts` 的 `route.pageDesc`(zh 和 en 各一条);

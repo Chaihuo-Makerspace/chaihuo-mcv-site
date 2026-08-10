@@ -10,4 +10,6 @@ export const PROVINCE_VISITED = [
   '宁夏回族自治区',
   '陕西省',
   '山西省',
+  '内蒙古自治区',
+  '北京市',
 ];

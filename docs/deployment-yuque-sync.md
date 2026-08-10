@@ -20,6 +20,7 @@ path for `mcv.chaihuo.org`.
 
 - GitHub workflow: `.github/workflows/sync-yuque-journals.yml`
 - Sync script: `scripts/sync-yuque-journals.mjs`
+- Route stop flipper: `scripts/update-route-stops-from-journals.mjs` (flips planned stops to `visited` + `event.date` on journal-confirmed arrival, and mirrors the province into `PROVINCE_VISITED` on first province entry)
 - Sync helpers/tests: `scripts/lib/yuque-journal-sync.mjs`, `scripts/yuque-journal-sync.test.mjs`
 - Jenkins webhook job: `chaihuo-chaihuo-mcv-site`
 - GitHub webhook endpoint: Jenkins generic webhook trigger

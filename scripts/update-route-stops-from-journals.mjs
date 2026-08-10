@@ -6,6 +6,12 @@
 // needs no GPS/tracker credentials, unlike scripts/check-arrival.mjs (which
 // only handles discovering brand-new cities not yet in the stops list).
 //
+// It also mirrors the flipped stop's province into PROVINCE_VISITED
+// (src/features/route-map/visited-provinces.ts) so the map's province fill
+// lights up on first entry into a new province — before that fill was only
+// updated by check-arrival.mjs for brand-new cities, so province entries made
+// by journal arrivals (e.g. 内蒙古, 北京) silently never got filled.
+//
 // The validator requires a stop with frontmatter `event` to carry a
 // "## 现场记" body section, so flipping visited without adding one breaks
 // `pnpm check` on main (and the Docker build). The filler sentences below
@@ -92,6 +98,19 @@ function readField(block, field) {
   return match?.[1]?.trim() ?? null;
 }
 
+// Append any missing province to PROVINCE_VISITED (the map's visited-province
+// fill). Mirrors check-arrival.mjs's addProvinceIfNeeded; returns the count of
+// provinces actually added.
+function addProvincesIfNeeded(provinces) {
+  const file = join(ROOT, 'src/features/route-map/visited-provinces.ts');
+  const text = readFileSync(file, 'utf8');
+  const missing = [...provinces].filter((province) => !text.includes(`'${province}'`));
+  if (missing.length === 0) return 0;
+  const suffix = missing.map((province) => `  '${province}',`).join('\n');
+  writeFileSync(file, text.replace(/\n\];\s*$/u, `\n${suffix}\n];\n`));
+  return missing.length;
+}
+
 function applyArrival(text, dotDate, label) {
   const frontmatter = parseFrontmatter(text);
   if (!frontmatter) return null;
@@ -141,6 +160,7 @@ function main() {
 
   let changedCount = 0;
   const changedLabels = [];
+  const changedProvinces = new Set();
   for (const file of stopFiles) {
     const filePath = join(stopsDir, file);
     const text = readFileSync(filePath, 'utf8');
@@ -160,6 +180,8 @@ function main() {
     log(`${id}: visited false -> true, event.date = ${dotDate} (${file})`);
     changedCount += 1;
     changedLabels.push(label);
+    const province = readField(frontmatter.block, 'province');
+    if (province) changedProvinces.add(province);
 
     const enFile = file.replace(/\.md$/, '.en.md');
     const enPath = join(stopsDir, enFile);
@@ -177,6 +199,12 @@ function main() {
         log(`${id}: mirrored ## Event to ${enFile}`);
       }
     }
+  }
+
+  if (changedProvinces.size > 0) {
+    const added = addProvincesIfNeeded(changedProvinces);
+    if (added > 0)
+      log(`Added ${added} province(s) to PROVINCE_VISITED: ${[...changedProvinces].join('、')}`);
   }
 
   log(
