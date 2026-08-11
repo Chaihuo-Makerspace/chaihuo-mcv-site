@@ -1,7 +1,7 @@
 ---
 id: chifeng
 order: 42
-visited: false
+visited: true
 label: 赤峰
 label_en: Chifeng
 province: 内蒙古自治区
@@ -11,6 +11,8 @@ altitude: "570"
 relationType: community
 themes:
   - science
+event:
+  date: "2026.08.11"
 ---
 
 # 赤峰
@@ -25,3 +27,7 @@ themes:
 ## 在地共创
 
 - 待补充
+
+## 现场记
+
+基地车已抵达赤峰，路线图记录该城市节点。详细现场记录待补充。
