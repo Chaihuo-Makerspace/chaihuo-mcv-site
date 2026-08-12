@@ -95,7 +95,11 @@ export async function getToken(config) {
   mkdirSync(config.dataDir, { recursive: true });
   writeFileSync(
     tokenCachePath(config),
-    JSON.stringify({ appKey: config.appKey, accessToken: data.accessToken, expireTime: data.expireTime }),
+    JSON.stringify({
+      appKey: config.appKey,
+      accessToken: data.accessToken,
+      expireTime: data.expireTime,
+    }),
   );
   log('已刷新萤石 accessToken');
   return data.accessToken;
