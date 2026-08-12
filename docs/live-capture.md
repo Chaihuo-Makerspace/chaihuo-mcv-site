@@ -15,7 +15,9 @@ the same image (via `scripts/lib/live-capture.mjs`):
 - Offline is normal — the round is skipped quietly.
 - Archive is pruned after `LIVE_KEEP_DAYS` (default 30).
 - The token is cached in `data/live/.token.json` (7-day validity, refreshed
-  with <1 day left).
+  with <1 day left). The cache is keyed by `appKey`: rotating credentials
+  invalidates it automatically (a stale token would otherwise keep querying
+  the old account's device list, where the camera reads "offline").
 - The camera (`BG9251347` "基地车view") is mounted upright — no rotation
   needed; frames are stored as-is.
 - On each capture the service also computes a dHash perceptual hash

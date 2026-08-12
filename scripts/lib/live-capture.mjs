@@ -73,7 +73,10 @@ function tokenCachePath(config) {
 function readCachedToken(config) {
   try {
     const cached = JSON.parse(readFileSync(tokenCachePath(config), 'utf8'));
+    // appKey 不一致说明换过凭证：旧账号的 token 即使没过期，
+    // 查到的也是旧账号的设备列表（目标设备永远"离线"），必须重申请
     if (
+      cached.appKey === config.appKey &&
       typeof cached.accessToken === 'string' &&
       Number(cached.expireTime) > Date.now() + TOKEN_REFRESH_MARGIN_MS
     ) {
@@ -92,7 +95,7 @@ export async function getToken(config) {
   mkdirSync(config.dataDir, { recursive: true });
   writeFileSync(
     tokenCachePath(config),
-    JSON.stringify({ accessToken: data.accessToken, expireTime: data.expireTime }),
+    JSON.stringify({ appKey: config.appKey, accessToken: data.accessToken, expireTime: data.expireTime }),
   );
   log('已刷新萤石 accessToken');
   return data.accessToken;
