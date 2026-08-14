@@ -4,6 +4,7 @@ export const prerender = true;
 import AboutContent from '@/app/components/AboutContent';
 import heroesData from '@/data/heroes.json';
 import partnersData from '@/data/partners.json';
+import projectIntroData from '@/data/project-intro.json';
 import timelineData from '@/data/timeline.json';
 import aboutDict from '@/i18n/about';
 import type { Locale } from '@/i18n/index';
@@ -13,10 +14,38 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 const locale = (Astro.currentLocale ?? 'zh') as Locale;
 const t = aboutDict[locale];
 
+// 合作伙伴 logo（src/assets/partners/，按 id 映射；未入库的保持文字卡）
+const partnerLogoFiles = import.meta.glob('@/assets/partners/*.{png,svg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+const logoByFileName = new Map(
+  Object.entries(partnerLogoFiles).map(([key, url]) => [key.split('/').pop(), url]),
+);
+const PARTNER_LOGO_MAP: Record<string, string> = {
+  chaihuo: logoByFileName.get('chaihuo-logo.png') ?? '',
+  seeed: logoByFileName.get('seeed-logo.png') ?? '',
+  nvidia: logoByFileName.get('nvidia-logo.png') ?? '',
+  'maker-media': logoByFileName.get('maker-media.svg') ?? '',
+  fablab: logoByFileName.get('fablab.svg') ?? '',
+  makera: logoByFileName.get('makera.png') ?? '',
+  'shenzhen-stm': logoByFileName.get('szstm-logo.png') ?? '',
+};
+
 const partners = partnersData.map((p) => {
   const loc = localize(p, ['description'], locale);
-  return { name: loc.name, description: loc.description };
+  return {
+    id: p.id,
+    name: loc.name,
+    description: loc.description,
+    tier: loc.tier ?? 'partner',
+    link: loc.link ?? '',
+    logo: PARTNER_LOGO_MAP[p.id] ?? '',
+  };
 });
+
+const projectIntro = projectIntroData[locale];
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
@@ -25,6 +54,7 @@ const partners = partnersData.map((p) => {
     timelineData={timelineData.years}
     phases={timelineData.phases}
     partners={partners}
+    projectIntro={projectIntro}
     heroImage={heroesData[0].image}
     locale={locale}
     t={t}

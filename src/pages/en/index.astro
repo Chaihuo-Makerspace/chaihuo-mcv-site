@@ -5,6 +5,7 @@ import HomeContent from '@/app/components/HomeContent';
 import { PROJECT_END, PROJECT_START } from '@/config/project';
 import boardingsData from '@/data/boardings.json';
 import heroesData from '@/data/heroes.json';
+import pressData from '@/data/press.json';
 import teamData from '@/data/team.json';
 import { buildRouteLegs } from '@/features/route-map/route-legs';
 import { loadLocalizedStops } from '@/features/route-map/stops-loader';
@@ -17,6 +18,16 @@ import { withAvatarDerivatives } from '@/lib/people';
 
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = home[locale];
+
+// 首页媒体报道（C：featured 置顶 + 完整时间线，一源两处渲染）
+const press = pressData.map((p) => ({
+  source: locale === 'en' && p.source_en ? p.source_en : p.source,
+  sourceUrl: p.sourceUrl,
+  title: locale === 'en' && p.title_en ? p.title_en : p.title,
+  date: p.date ?? '',
+  tier: p.tier ?? 'full',
+  category: p.category ?? 'media',
+}));
 
 const cities = await loadLocalizedStops(locale);
 
@@ -123,5 +134,5 @@ const timeline = {
   {/* 首屏 LCP:只预加载第一张轮播图,按视口宽度各取桌面/移动派生 */}
   <link slot="head" rel="preload" as="image" href={firstHero.image} media="(min-width: 768px)" />
   <link slot="head" rel="preload" as="image" href={firstHero.imageMobile} media="(max-width: 767.98px)" />
-  <HomeContent client:load cities={islandCities} heroImages={heroImages} timeline={timeline} locale={locale} t={t} />
+  <HomeContent client:load cities={islandCities} heroImages={heroImages} timeline={timeline} press={press} locale={locale} t={t} />
 </BaseLayout>

@@ -105,6 +105,8 @@ const partners = defineCollection({
     name: z.string(),
     description: z.string().optional(),
     description_en: z.string().optional(),
+    tier: z.enum(['host', 'co-organizer', 'partner']).optional(),
+    link: z.string().optional(),
   }),
 });
 

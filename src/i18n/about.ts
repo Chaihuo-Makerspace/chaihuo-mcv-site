@@ -25,6 +25,9 @@ const about: Record<Locale, Record<string, string>> = {
     'scroll.hint': '向下滚动浏览历程',
 
     'partners.label': '共建伙伴 / Partners',
+    'partners.tier.host': '主办方',
+    'partners.tier.co-organizer': '联合发起',
+    'partners.tier.partner': '合作支持',
 
     'vision.quote':
       '"我们坚信，科技平权意味着每个人都有权享受数字化发展的红利。柴火基地车是我们对此最激进、最浪漫的实践。"',
@@ -59,6 +62,9 @@ const about: Record<Locale, Record<string, string>> = {
     'scroll.hint': 'Scroll down to explore the timeline',
 
     'partners.label': 'Partners',
+    'partners.tier.host': 'Host',
+    'partners.tier.co-organizer': 'Co-organizer',
+    'partners.tier.partner': 'Partners',
 
     'vision.quote':
       '"We believe technological equity means everyone deserves to benefit from digital progress. The Chaihuo MCV is our most radical — and most romantic — pursuit of that vision."',

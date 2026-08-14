@@ -1,30 +1,42 @@
 [
   {
+    "id": "chaihuo",
+    "name": "柴火创客空间",
+    "description": "基地车发起方与运营方",
+    "description_en": "MCV initiator & operator",
+    "tier": "host",
+    "link": "https://www.chaihuo.org"
+  },
+  {
     "id": "seeed",
-    "name": "Seeed Studio",
-    "logo": "",
+    "name": "矽递科技",
     "description": "开源硬件与物联网技术支持",
-    "description_en": "Open-source hardware & IoT technology support"
+    "description_en": "Open-source hardware & IoT technology support",
+    "tier": "host",
+    "link": "https://www.seeedstudio.com.cn"
   },
   {
-    "id": "nvidia",
-    "name": "NVIDIA",
-    "logo": "",
-    "description": "边缘计算 GPU 算力提供",
-    "description_en": "Edge computing GPU power provider"
+    "id": "shenzhen-stm",
+    "name": "深圳科学技术馆",
+    "description": "科普与公众科学教育",
+    "description_en": "Public science education",
+    "tier": "co-organizer",
+    "link": "https://www.szstm.org.cn"
   },
   {
-    "id": "maker-media",
-    "name": "Maker Media",
-    "logo": "",
-    "description": "全球创客运动媒体合作",
-    "description_en": "Global maker movement media partner"
+    "id": "makera",
+    "name": "造物时代",
+    "description": "数字制造与创客教育",
+    "description_en": "Digital fabrication & maker education",
+    "tier": "partner",
+    "link": "https://www.makera.cn"
   },
   {
-    "id": "unesco",
-    "name": "UNESCO",
-    "logo": "",
-    "description": "教育公益项目合作",
-    "description_en": "Education & public welfare partnership"
+    "id": "fablab",
+    "name": "Fab Lab",
+    "description": "全球创客实验室网络",
+    "description_en": "Global fabrication laboratory network",
+    "tier": "partner",
+    "link": "https://fablabs.io"
   }
 ]

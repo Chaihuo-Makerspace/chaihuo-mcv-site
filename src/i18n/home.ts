@@ -67,6 +67,11 @@ const home: Record<Locale, Record<string, string>> = {
       '车里有工作台，能坐下几个人。开到哪就请当地人上车看看、试试、聊聊，他们比我们更懂什么技术有用。',
 
     'cta.label': '旅途日记',
+    'press.label': '媒体报道',
+    'press.cat.gov': '政府报道',
+    'press.cat.media': '媒体报道',
+    'press.cat.wechat': '公众号',
+    'partners.label': '共建伙伴',
     'cta.title': '一站一篇，记录路上真实发生的事',
     'cta.body': '城市、人物、设备 — 从每一站的现场记录长出来。',
     'cta.explore': '阅读日记',
@@ -143,6 +148,11 @@ const home: Record<Locale, Record<string, string>> = {
       'A workbench that seats a few people. We pull into a village, invite people aboard to look, try, and talk. They know better what technology is actually useful.',
 
     'cta.label': 'Journals',
+    'press.label': 'Media Coverage',
+    'press.cat.gov': 'Government',
+    'press.cat.media': 'Media',
+    'press.cat.wechat': 'WeChat',
+    'partners.label': 'Partners',
     'cta.title': 'One entry per stop, documenting what actually happened on the road',
     'cta.body': 'Cities, people, equipment — grown from the real record of each stop.',
     'cta.explore': 'Read journals',

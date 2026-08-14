@@ -22,14 +22,30 @@ interface Phase {
 }
 
 interface Partner {
+  id?: string;
   name: string;
   description?: string;
+  tier?: string;
+  link?: string;
+  logo?: string;
 }
+
+interface ProjectIntro {
+  intro: string;
+  highlights: Array<{ label: string; anchor: string; note?: string }>;
+}
+
+const PARTNER_TIERS = [
+  { key: 'host', labelKey: 'partners.tier.host' },
+  { key: 'co-organizer', labelKey: 'partners.tier.co-organizer' },
+  { key: 'partner', labelKey: 'partners.tier.partner' },
+] as const;
 
 interface AboutContentProps {
   timelineData: YearEntry[];
   phases: Phase[];
   partners: Partner[];
+  projectIntro?: ProjectIntro;
   heroImage: string;
   locale?: Locale;
   t: Record<string, string>;
@@ -358,6 +374,7 @@ export default function AboutContent({
   timelineData,
   phases,
   partners,
+  projectIntro,
   heroImage,
   locale = 'zh',
   t,
@@ -368,7 +385,7 @@ export default function AboutContent({
     { value: 15, suffix: locale === 'zh' ? '年' : 'yr', label: t['stats.years'] },
     { value: 30, suffix: '+', label: t['stats.events'] },
     { value: 3, suffix: '', label: t['stats.phases'] },
-    { value: 6, suffix: '+', label: t['stats.partners'] },
+    { value: partners.length, suffix: '+', label: t['stats.partners'] },
   ];
 
   return (
@@ -399,6 +416,15 @@ export default function AboutContent({
             >
               {t['hero.body']}
             </motion.p>
+            {projectIntro?.intro && (
+              <motion.p
+                variants={fadeUp}
+                transition={springTransition}
+                className="text-sm md:text-base text-neutral-700 leading-relaxed mb-8 max-w-md font-medium"
+              >
+                {projectIntro.intro}
+              </motion.p>
+            )}
           </motion.div>
 
           {/* 3D Glass Bento Grid stats dashboard */}
@@ -439,9 +465,6 @@ export default function AboutContent({
         </div>
       </section>
 
-      {/* 年份聚光灯时间轴 */}
-      <YearSpotlight items={enrichedYears} locale={locale} t={t} />
-
       {/* Partners */}
       <section className="py-20 px-6 md:px-[12%] bg-neutral-50">
         <motion.p
@@ -454,36 +477,86 @@ export default function AboutContent({
         >
           {t['partners.label']}
         </motion.p>
-        <motion.div
-          variants={stagger(0.08)}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
-          className="flex flex-wrap justify-center gap-6"
-        >
-          {partners.map((partner) => (
-            <motion.div
-              key={partner.name}
-              variants={fadeUp}
-              transition={{ type: 'spring', damping: 16, stiffness: 220 }}
-              whileHover={{ y: -6, scale: 1.04 }}
-              className="flex flex-col items-center justify-center py-6 px-4 w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(16.666%-20px)] rounded-2xl border border-neutral-300 bg-surface-card/70 backdrop-blur-md hover:border-brand/40 shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-300 relative overflow-hidden group"
-            >
-              {/* Internal Holographic Light Aura on hover */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        {PARTNER_TIERS.map((tier) => {
+          const tierPartners = partners.filter((p) => (p.tier ?? 'partner') === tier.key);
+          if (tierPartners.length === 0) return null;
+          return (
+            <div key={tier.key} className="mb-14 last:mb-0">
+              <motion.p
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={defaultViewport}
+                transition={springTransition}
+                className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-400 text-center mb-6"
+              >
+                {t[tier.labelKey]}
+              </motion.p>
+              <motion.div
+                variants={stagger(0.08)}
+                initial="hidden"
+                whileInView="visible"
+                viewport={defaultViewport}
+                className="flex flex-wrap justify-center gap-6"
+              >
+                {tierPartners.map((partner) => {
+                  const card = (
+                    <motion.div
+                      key={partner.name}
+                      variants={fadeUp}
+                      transition={{ type: 'spring', damping: 16, stiffness: 220 }}
+                      whileHover={{ y: -6, scale: 1.04 }}
+                      className="flex flex-col items-center justify-center py-6 px-4 w-full h-full rounded-2xl border border-neutral-300 bg-surface-card/70 backdrop-blur-md hover:border-brand/40 shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-300 relative overflow-hidden group"
+                    >
+                      {/* Internal Holographic Light Aura on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-brand/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-              <span className="text-lg font-bold text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200">
-                {partner.name}
-              </span>
-              {partner.description && (
-                <span className="text-xs text-neutral-500 group-hover:text-neutral-700 mt-1.5 text-center transition-colors duration-200">
-                  {partner.description}
-                </span>
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
+                      {partner.logo ? (
+                        <img
+                          src={partner.logo}
+                          alt={partner.name}
+                          loading="lazy"
+                          className="h-10 w-auto max-w-[85%] object-contain"
+                        />
+                      ) : (
+                        <span className="text-lg font-bold text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200">
+                          {partner.name}
+                        </span>
+                      )}
+                      {partner.description && (
+                        <span className="text-xs text-neutral-500 group-hover:text-neutral-700 mt-1.5 text-center transition-colors duration-200">
+                          {partner.description}
+                        </span>
+                      )}
+                    </motion.div>
+                  );
+                  const widthClass =
+                    'w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(16.666%-20px)]';
+                  return partner.link ? (
+                    <a
+                      key={partner.name}
+                      href={partner.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={widthClass}
+                      aria-label={`${partner.name} — ${t['partners.label']}`}
+                    >
+                      {card}
+                    </a>
+                  ) : (
+                    <div key={partner.name} className={widthClass}>
+                      {card}
+                    </div>
+                  );
+                })}
+              </motion.div>
+            </div>
+          );
+        })}
       </section>
+
+      {/* 年份聚光灯时间轴 */}
+      <YearSpotlight items={enrichedYears} locale={locale} t={t} />
 
       {/* 愿景收尾 */}
       <section className="py-20 px-6 md:px-[12%] bg-surface-card">

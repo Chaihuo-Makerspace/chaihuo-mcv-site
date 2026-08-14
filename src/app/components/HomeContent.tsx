@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactSlick from 'react-slick';
 
 // Vite 8 CJS interop: default export is nested
@@ -64,10 +64,30 @@ interface TimelineData {
   projectEnd: string;
 }
 
+interface PressItem {
+  source: string;
+  sourceUrl: string;
+  title: string;
+  date?: string;
+  tier?: string;
+  category?: string;
+}
+
+interface PartnerItem {
+  id: string;
+  name: string;
+  description?: string;
+  tier: string;
+  link?: string;
+  logo?: string;
+}
+
 interface Props {
   cities: HomeStop[];
   heroImages: HeroImage[];
   timeline: TimelineData;
+  press?: PressItem[];
+  partners?: PartnerItem[];
   locale?: Locale;
   t: Record<string, string>;
 }
@@ -100,7 +120,15 @@ function getDepartureDays(now = new Date()) {
   return Math.max(0, Math.floor((today - DEPARTURE_DATE) / MS_PER_DAY));
 }
 
-export default function HomeContent({ cities, heroImages, timeline, locale = 'zh', t }: Props) {
+export default function HomeContent({
+  cities,
+  heroImages,
+  timeline,
+  press = [],
+  partners = [],
+  locale = 'zh',
+  t,
+}: Props) {
   const sortedCities = useMemo(() => [...cities].sort((a, b) => a.order - b.order), [cities]);
   const lastVisited = useMemo(
     () => [...sortedCities].reverse().find((c) => c.visited) ?? null,
@@ -108,6 +136,60 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
   );
   const visitedCount = useMemo(() => cities.filter((city) => city.visited).length, [cities]);
   const departureDays = getDepartureDays();
+
+  // 媒体报道信息流：featured 置顶，其余按日期倒序；水平滑动卡片流
+  const pressCards = useMemo(() => {
+    const featured = press.filter((p) => p.tier === 'featured').slice(0, 2);
+    const rest = press
+      .filter((p) => p.tier !== 'featured')
+      .slice()
+      .sort((a, b) => ((b.date ?? '') < (a.date ?? '') ? -1 : 1));
+    return [...featured, ...rest];
+  }, [press]);
+  const pressCategoryLabel = (category?: string) => {
+    const key =
+      category === 'gov'
+        ? 'press.cat.gov'
+        : category === 'wechat'
+          ? 'press.cat.wechat'
+          : 'press.cat.media';
+    return t[key] || category || '';
+  };
+  const pressBadgeClass = (category?: string) =>
+    category === 'gov'
+      ? 'text-blue-700 bg-blue-50 border border-blue-200'
+      : category === 'wechat'
+        ? 'text-green-700 bg-green-50 border border-green-200'
+        : 'text-neutral-600 bg-neutral-100 border border-neutral-200';
+
+  // 媒体报道横向滚动：容器 ref + 箭头辅助滚动（原生 overflow-x 横滑；overscroll contain 防浏览器返回手势）
+  const pressTrackRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = pressTrackRef.current;
+    if (!el) return;
+    // 初始起点：精选在视野左侧留余量处（不从最左开始，往左拖有缓冲 + contain 兜底，不牺牲精选首屏可见）
+    // 布局/水合完成前 scrollWidth 未就绪，用 rAF + 延时多重尝试确保生效
+    const start = () => {
+      const target = Math.max(0, Math.round(el.clientWidth * 0.18));
+      if (el.scrollLeft !== target) el.scrollLeft = target;
+    };
+    start();
+    const raf = requestAnimationFrame(() => requestAnimationFrame(start));
+    const t = window.setTimeout(start, 100);
+    window.addEventListener('resize', start);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+      window.removeEventListener('resize', start);
+    };
+  }, []);
+  const pressScrollBy = (dir: 1 | -1) => {
+    const el = pressTrackRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>('[data-press-card]');
+    const step = card ? card.offsetWidth + 16 : 300;
+    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+  };
 
   // Respect prefers-reduced-motion: pause carousel autoplay for those users.
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -512,6 +594,185 @@ export default function HomeContent({ cities, heroImages, timeline, locale = 'zh
           </div>
         </div>
       </section>
+
+      {/* 共建伙伴条（4a：信任背书，与媒体报道同区不分线；主办/联合发起一行，合作支持一行） */}
+      {partners.length > 0 && (
+        <section data-partners-bar className="py-14 md:py-16 px-6 bg-neutral-50">
+          <div className="max-w-6xl mx-auto">
+            <motion.p
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={defaultViewport}
+              transition={springTransition}
+              className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-8 text-center"
+            >
+              {t['partners.label']}
+            </motion.p>
+            {/* 第一行：主办 + 联合发起 */}
+            {(() => {
+              const lead = partners.filter((p) => p.tier === 'host' || p.tier === 'co-organizer');
+              return (
+                <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 mb-6">
+                  {lead.map((partner, i) => (
+                    <motion.a
+                      key={partner.id}
+                      href={partner.link || '#'}
+                      target={partner.link ? '_blank' : undefined}
+                      rel={partner.link ? 'noopener noreferrer' : undefined}
+                      aria-label={partner.name}
+                      variants={fadeUp}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={defaultViewport}
+                      transition={{ ...springTransition, delay: i * 0.05 }}
+                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                    >
+                      {partner.logo ? (
+                        <img
+                          src={partner.logo}
+                          alt={partner.name}
+                          loading="lazy"
+                          className="h-8 md:h-10 w-auto max-w-[120px] object-contain"
+                        />
+                      ) : (
+                        <span className="text-sm md:text-base font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">
+                          {partner.name}
+                        </span>
+                      )}
+                    </motion.a>
+                  ))}
+                </div>
+              );
+            })()}
+            {/* 第二行：合作支持 */}
+            {(() => {
+              const rest = partners.filter((p) => p.tier === 'partner');
+              if (rest.length === 0) return null;
+              return (
+                <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
+                  {rest.map((partner, i) => (
+                    <motion.a
+                      key={partner.id}
+                      href={partner.link || '#'}
+                      target={partner.link ? '_blank' : undefined}
+                      rel={partner.link ? 'noopener noreferrer' : undefined}
+                      aria-label={partner.name}
+                      variants={fadeUp}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={defaultViewport}
+                      transition={{ ...springTransition, delay: i * 0.05 }}
+                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                    >
+                      {partner.logo ? (
+                        <img
+                          src={partner.logo}
+                          alt={partner.name}
+                          loading="lazy"
+                          className="h-8 md:h-10 w-auto max-w-[120px] object-contain"
+                        />
+                      ) : (
+                        <span className="text-sm md:text-base font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">
+                          {partner.name}
+                        </span>
+                      )}
+                    </motion.a>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        </section>
+      )}
+
+      {/* 媒体报道：固定 3 行窗口 + 原生横向滚动（滚轮/shift+双指/触屏横滑原生生效；14 条全保留，精选置前高亮） */}
+      {pressCards.length > 0 && (
+        <section className="pt-16 md:pt-20 px-6 pb-[30px] md:pb-[30px] bg-neutral-50 overflow-hidden">
+          <div className="max-w-6xl mx-auto">
+            <motion.p
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={defaultViewport}
+              transition={springTransition}
+              className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-8 text-center"
+            >
+              {t['press.label']}
+            </motion.p>
+
+            <div className="relative">
+              {/* 左/右箭头（桌面） */}
+              <button
+                type="button"
+                onClick={() => pressScrollBy(-1)}
+                aria-label={t['carousel.prevAria']}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -ml-5 z-10 w-10 h-10 hidden md:flex items-center justify-center rounded-full bg-surface-card border border-neutral-300 text-neutral-700 hover:text-brand hover:border-brand shadow-sm cursor-pointer"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => pressScrollBy(1)}
+                aria-label={t['carousel.nextAria']}
+                className="absolute right-0 top-1/2 -translate-y-1/2 -mr-5 z-10 w-10 h-10 hidden md:flex items-center justify-center rounded-full bg-surface-card border border-neutral-300 text-neutral-700 hover:text-brand hover:border-brand shadow-sm cursor-pointer"
+              >
+                <ChevronRight size={20} />
+              </button>
+
+              {/* 横向滚动轨道：固定 3 行网格（按行填充，精选左右并排置前），超出横向原生滚动 */}
+              <div
+                ref={pressTrackRef}
+                data-press-track
+                className="overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2 rounded-xl [scrollbar-width:thin] [scrollbar-color:theme(colors.neutral.300)_transparent]"
+              >
+                <div className="grid grid-flow-row grid-cols-[repeat(6,15rem)] gap-x-5 gap-y-4 w-max pr-2">
+                  {pressCards.map((item, i) => {
+                    const featured = item.tier === 'featured';
+                    return (
+                      <motion.a
+                        key={item.sourceUrl}
+                        data-press-card
+                        href={item.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variants={fadeUp}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={defaultViewport}
+                        transition={{ ...springTransition, delay: (i % 6) * 0.04 }}
+                        className={`group block rounded-2xl border transition-[border-color,box-shadow] duration-300 hover:shadow-md cursor-pointer ${
+                          featured
+                            ? 'border-brand/30 bg-brand-light/60 p-5 hover:border-brand/60'
+                            : 'border-neutral-300 bg-surface-card/70 p-4 hover:border-brand/40'
+                        }`}
+                      >
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex mb-2.5 ${pressBadgeClass(item.category)}`}
+                        >
+                          {pressCategoryLabel(item.category)}
+                          {featured ? ` · ${locale === 'en' ? 'Featured' : '精选'}` : ''}
+                        </span>
+                        <span
+                          className={`block font-semibold text-neutral-900 group-hover:text-brand transition-colors duration-200 leading-snug line-clamp-3 ${
+                            featured ? 'text-[15px]' : 'text-sm'
+                          }`}
+                        >
+                          {item.title}
+                        </span>
+                        <span className="block mt-2 text-xs text-neutral-500">
+                          {item.source}
+                          {item.date ? ` · ${item.date}` : ''}
+                        </span>
+                      </motion.a>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 在路上的人 - 角色接力时间轴 */}
       <RoleTimeline
