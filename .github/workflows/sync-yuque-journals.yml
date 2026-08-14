@@ -29,20 +29,26 @@ jobs:
         id: stops
         run: node scripts/update-route-stops-from-journals.mjs
 
-      # Both scripts report what they did as a `summary` output; the commit
+      - name: Create stops for new cities from synced journals
+        id: newstops
+        run: node scripts/create-stops-from-journals.mjs --apply
+
+      # The scripts report what they did as a `summary` output; the commit
       # message is simply what changed, e.g.
-      # "新增基地车日记《2026.07.30｜隰县→临汾》 · 基地车抵达临汾".
-      # Falls back to a generic message when neither step has details
+      # "新增基地车日记《2026.07.30｜隰县→临汾》 · 基地车抵达临汾 · 新站点 哈尔滨、长春 已自动建站".
+      # Falls back to a generic message when no step has details
       # (e.g. cover-only changes).
       - name: Compose commit message
         id: msg
         env:
           SYNC: ${{ steps.sync.outputs.summary }}
           STOPS: ${{ steps.stops.outputs.summary }}
+          NEWSTOPS: ${{ steps.newstops.outputs.summary }}
         run: |
           parts=()
           [ -n "$SYNC" ] && parts+=("$SYNC")
           [ -n "$STOPS" ] && parts+=("$STOPS")
+          [ -n "$NEWSTOPS" ] && parts+=("$NEWSTOPS")
           if [ ${#parts[@]} -eq 0 ]; then
             msg="同步基地车日记"
           else
@@ -55,4 +61,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: ${{ steps.msg.outputs.message }}
-          file_pattern: src/data/yuque-journals.json src/data/geocode-cache.json public/yuque-journals/* src/content/stops/*.md
+          file_pattern: src/data/yuque-journals.json src/data/geocode-cache.json src/data/city-coordinates.json public/yuque-journals/* src/content/stops/*.md scripts/location-city-aliases.json src/features/route-map/visited-provinces.ts

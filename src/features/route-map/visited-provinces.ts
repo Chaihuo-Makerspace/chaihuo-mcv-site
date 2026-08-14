@@ -12,4 +12,6 @@ export const PROVINCE_VISITED = [
   '山西省',
   '内蒙古自治区',
   '北京市',
+  '黑龙江省',
+  '吉林省',
 ];

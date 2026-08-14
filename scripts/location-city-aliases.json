@@ -118,5 +118,17 @@
     "label": "赤峰",
     "label_en": "Chifeng",
     "province": "内蒙古自治区"
+  },
+  "哈尔滨": {
+    "id": "city-230100",
+    "label": "哈尔滨",
+    "label_en": "Harbin",
+    "province": "黑龙江省"
+  },
+  "长春": {
+    "id": "city-220100",
+    "label": "长春",
+    "label_en": "Changchun",
+    "province": "吉林省"
   }
 }
