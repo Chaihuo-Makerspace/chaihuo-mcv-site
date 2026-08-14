@@ -7,6 +7,7 @@ import boardingsData from '@/data/boardings.json';
 import heroesData from '@/data/heroes.json';
 import partnersData from '@/data/partners.json';
 import pressData from '@/data/press.json';
+import projectIntroData from '@/data/project-intro.json';
 import teamData from '@/data/team.json';
 import { buildRouteLegs } from '@/features/route-map/route-legs';
 import { loadLocalizedStops } from '@/features/route-map/stops-loader';
@@ -153,9 +154,21 @@ const timeline = {
   projectStart: PROJECT_START,
   projectEnd: PROJECT_END,
 };
+
+// 首页 Project 结构化数据（GEO）：定性句原文直接进 schema，供 AI 引擎引用
+const projectIntro = projectIntroData[locale];
+const projectJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Project',
+  name: locale === 'zh' ? '柴火AI基地车' : 'Chaihuo AI Base Vehicle',
+  alternateName: locale === 'zh' ? 'Chaihuo AI Base Vehicle' : '柴火AI基地车',
+  description: projectIntro.intro,
+  url: 'https://mcv.chaihuo.org/',
+  founder: { '@id': 'https://www.chaihuo.org' },
+};
 ---
 
-<BaseLayout title={t['title']} description={t['description']}>
+<BaseLayout title={t['title']} description={t['description']} jsonLd={[projectJsonLd]}>
   {/* 首屏 LCP:只预加载第一张轮播图,按视口宽度各取桌面/移动派生 */}
   <link slot="head" rel="preload" as="image" href={firstHero.image} media="(min-width: 768px)" />
   <link slot="head" rel="preload" as="image" href={firstHero.imageMobile} media="(max-width: 767.98px)" />

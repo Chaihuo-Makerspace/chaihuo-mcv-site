@@ -209,9 +209,9 @@ function YearSpotlight({
 
                   {/* Curated Milestone Header */}
                   {mTitle && (
-                    <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-6 tracking-tight flex items-center gap-2">
+                    <h2 className="text-xl md:text-2xl font-bold text-neutral-900 mb-6 tracking-tight flex items-center gap-2">
                       {mTitle}
-                    </h3>
+                    </h2>
                   )}
 
                   {/* Event Bento Grid */}
@@ -579,7 +579,7 @@ export default function AboutContent({
       {/* 底部 CTA */}
       <section className="py-16 px-6 md:px-[12%] bg-neutral-50 border-t border-neutral-300">
         <div className="max-w-2xl mx-auto text-center">
-          <h3 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h3>
+          <h2 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h2>
           <p className="text-neutral-500 mb-6">{t['cta.body']}</p>
           <a
             href={localePath('/guide', locale)}

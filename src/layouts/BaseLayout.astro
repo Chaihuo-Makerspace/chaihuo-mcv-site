@@ -12,18 +12,47 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  /** 追加的 JSON-LD 结构化数据（GEO），按页面注入（如首页 Project schema） */
+  jsonLd?: Record<string, unknown>[];
 }
 
 const locale = (Astro.currentLocale ?? 'zh') as Locale;
 const dict = ui[locale];
 
-const { title, description = dict['site.description'], ogImage = '/og-default.png' } = Astro.props;
+const {
+  title,
+  description = dict['site.description'],
+  ogImage = '/og-default.png',
+  jsonLd = [],
+} = Astro.props;
 const pathname = Astro.url.pathname;
-const canonicalURL = new URL(pathname, Astro.site ?? 'https://mcv.chaihuo.org');
+const siteUrl = (Astro.site ?? new URL('https://mcv.chaihuo.org')).origin;
+const canonicalURL = new URL(pathname, siteUrl);
 
 const htmlLang = locale === 'zh' ? 'zh-CN' : 'en';
 const ogLocale = locale === 'zh' ? 'zh_CN' : 'en_US';
 const siteTitle = `${title} | ${dict['site.name']}`;
+
+// JSON-LD 结构化数据（GEO：Organization + WebSite 全站注入，页面级 schema 经 jsonLd prop 追加）
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': 'https://www.chaihuo.org',
+  name: '柴火创客空间',
+  alternateName: 'Chaihuo Makerspace',
+  url: 'https://www.chaihuo.org',
+  logo: 'https://www.chaihuo.org/Images/logo.png',
+  description: '开源创客空间，柴火AI基地车发起方与运营方',
+};
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: dict['site.name'],
+  alternateName: locale === 'zh' ? 'Chaihuo MCV' : '柴火基地车',
+  url: siteUrl + '/',
+  inLanguage: locale === 'zh' ? 'zh-CN' : 'en',
+};
+const jsonLdBlock = [organizationJsonLd, websiteJsonLd, ...jsonLd];
 
 const alternate = getAlternateUrl(pathname);
 const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.org');
@@ -50,7 +79,7 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
     <meta property="og:title" content={siteTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL.href} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:image" content={new URL(ogImage, siteUrl).href} />
     <meta property="og:locale" content={ogLocale} />
     <meta property="og:locale:alternate" content={locale === 'zh' ? 'en_US' : 'zh_CN'} />
 
@@ -58,7 +87,10 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={siteTitle} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image" content={new URL(ogImage, siteUrl).href} />
+
+    {/* JSON-LD 结构化数据（GEO） */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLdBlock)} />
 
     {/* Microsoft Clarity */}
     <script is:inline>
