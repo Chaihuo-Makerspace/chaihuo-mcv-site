@@ -136,7 +136,12 @@
       "location": "哈密",
       "location_en": "Hami"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-15",
+      "location": "哈尔滨",
+      "location_en": "Harbin",
+      "handoffTo": "huang-xia"
+    }
   },
   {
     "id": "b10",
@@ -259,7 +264,12 @@
       "location": "西安",
       "location_en": "Xi'an"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-14",
+      "location": "哈尔滨",
+      "location_en": "Harbin",
+      "handoffTo": "li-dayu"
+    }
   },
   {
     "id": "b18",
@@ -270,7 +280,12 @@
       "location": "呼和浩特",
       "location_en": "Hohhot"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-15",
+      "location": "哈尔滨",
+      "location_en": "Harbin",
+      "handoffTo": "wei-xiaobo"
+    }
   },
   {
     "id": "b19",
@@ -280,6 +295,39 @@
       "date": "2026-08-04",
       "location": "呼和浩特",
       "location_en": "Hohhot"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b20",
+    "crewId": "li-dayu",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-08-14",
+      "location": "哈尔滨",
+      "location_en": "Harbin"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b21",
+    "crewId": "wei-xiaobo",
+    "role": "媒体担当",
+    "boardedAt": {
+      "date": "2026-08-15",
+      "location": "哈尔滨",
+      "location_en": "Harbin"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b22",
+    "crewId": "huang-xia",
+    "role": "领队",
+    "boardedAt": {
+      "date": "2026-08-15",
+      "location": "哈尔滨",
+      "location_en": "Harbin"
     },
     "disembarkedAt": null
   }
