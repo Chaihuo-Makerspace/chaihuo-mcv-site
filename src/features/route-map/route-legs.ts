@@ -25,6 +25,8 @@ const PROVINCE_SHORT: Record<string, { zh: string; en: string; enFull: string }>
   山西省: { zh: '晋', en: 'SH', enFull: 'Shanxi' },
   内蒙古自治区: { zh: '蒙', en: 'NM', enFull: 'Inner Mongolia' },
   北京市: { zh: '京', en: 'BJ', enFull: 'Beijing' },
+  吉林省: { zh: '吉', en: 'JL', enFull: 'Jilin' },
+  黑龙江省: { zh: '黑', en: 'HL', enFull: 'Heilongjiang' },
 };
 
 // Event dates come in loose formats: "2026.04.22", "2026.04.24 / 04.25", "2026.05.05–07".
