@@ -2,6 +2,7 @@
   "name": "chaihuo-mcv-site",
   "private": true,
   "version": "0.0.1",
+  "packageManager": "pnpm@11.5.0",
   "type": "module",
   "scripts": {
     "dev": "pnpm run images:covers && pnpm run images:avatars && pnpm run images:heroes && pnpm run images:deconstruct && astro dev",
