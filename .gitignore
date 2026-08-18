@@ -89,3 +89,25 @@ public/deconstruct/solutions/thumb/
 
 # 本地 git worktree 隔离工作区
 .worktrees/
+
+# 本地安装的 skills(不入库;已跟踪的 skill 目录不受影响)
+.agents/skills/animate/
+.agents/skills/animation-vocabulary/
+.agents/skills/apple-design/
+.agents/skills/emil-design-eng/
+.agents/skills/find-animation-opportunities/
+.agents/skills/improve-animations/
+.agents/skills/kill-ai-slop/
+.agents/skills/pick-ui-library/
+.agents/skills/prototype/
+.agents/skills/review-animations/
+.agents/skills/threejs-animation/
+.agents/skills/threejs-fundamentals/
+.agents/skills/threejs-geometry/
+.agents/skills/threejs-interaction/
+.agents/skills/threejs-lighting/
+.agents/skills/threejs-loaders/
+.agents/skills/threejs-materials/
+.agents/skills/threejs-postprocessing/
+.agents/skills/threejs-shaders/
+.agents/skills/threejs-textures/

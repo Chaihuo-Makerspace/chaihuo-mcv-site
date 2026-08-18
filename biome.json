@@ -12,6 +12,7 @@
       "!node_modules",
       "!playwright-report",
       "!.agents/skills/*-workspace",
+      "!.agents/skills",
       "!src/app/components/ui",
       "!.astro",
       "!pnpm-lock.yaml",
