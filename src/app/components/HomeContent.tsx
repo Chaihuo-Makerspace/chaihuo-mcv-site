@@ -9,6 +9,7 @@ const Slider = (
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { ChevronDown, ChevronLeft, ChevronRight, Compass, Cpu, Mountain } from 'lucide-react';
+import { daysOnRoad } from '@/features/route-map/expedition-timeline';
 import { MAP_BG } from '@/features/route-map/map-style';
 import RoutePreview from '@/features/route-map/RoutePreview';
 import type { Stop } from '@/features/route-map/stops-loader';
@@ -95,8 +96,6 @@ interface Props {
 // Slimmed stop payload shipped to the island: map geometry + lastVisited fact card
 type HomeStop = ProjectableStop & Pick<Stop, 'terrain' | 'climate' | 'challenge'>;
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const DEPARTURE_DATE = Date.UTC(2026, 3, 22);
 // 官方计划全程天数(见 src/content/stops/00-shenzhen.md 与 press.json 报道标题)
 const TOTAL_ROUTE_DAYS = 200;
 const labCards = [
@@ -117,11 +116,6 @@ const labCards = [
   ],
 ] as const;
 
-function getDepartureDays(now = new Date()) {
-  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.max(0, Math.floor((today - DEPARTURE_DATE) / MS_PER_DAY));
-}
-
 export default function HomeContent({
   cities,
   heroImages,
@@ -137,7 +131,7 @@ export default function HomeContent({
     [sortedCities],
   );
   const visitedCount = useMemo(() => cities.filter((city) => city.visited).length, [cities]);
-  const departureDays = getDepartureDays();
+  const departureDays = daysOnRoad();
 
   // 媒体报道信息流：featured 置顶，其余按日期倒序；水平滑动卡片流
   const pressCards = useMemo(() => {

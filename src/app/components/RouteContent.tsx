@@ -51,10 +51,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
 
   const timeline = useMemo(() => buildTimeline(sortedCities), [sortedCities]);
   const cumulativeKm = useMemo(() => buildCumulativeKm(sortedCities), [sortedCities]);
-  const stats = useMemo(
-    () => expeditionStats(sortedCities, journals, timeline),
-    [sortedCities, journals, timeline],
-  );
+  const stats = useMemo(() => expeditionStats(sortedCities, journals), [sortedCities, journals]);
 
   const lastVisited = useMemo(
     () => [...visibleCities].reverse().find((c) => c.visited) ?? null,

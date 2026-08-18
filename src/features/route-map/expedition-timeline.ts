@@ -35,6 +35,15 @@ const dayMs = 86_400_000;
 const toMs = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
 const toIso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 
+// 出发日(深圳首发,见 src/content/stops/00-shenzhen.md event.date)。
+// 「天在路上」按日历天数计,全站共用这一口径——不按最后到达城市的
+// event 日期计,否则车辆停在某城期间数字停走,且与首页对不上。
+const DEPARTURE_MS = Date.UTC(2026, 3, 22);
+export function daysOnRoad(now = new Date()): number {
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.max(0, Math.floor((today - DEPARTURE_MS) / dayMs));
+}
+
 /**
  * Timeline for the route, keyed by stop id. Only non-routeOnly stops are
  * included — return legs share a city and would double-count days.
@@ -133,11 +142,7 @@ function greatCircleKm(a: Stop, b: Stop): number {
 }
 
 /** Headline numbers for the topbar — data-driven. */
-export function expeditionStats(
-  cities: Stop[],
-  journals: { city: string }[],
-  timeline: Map<string, StopTime>,
-): ExpeditionStats {
+export function expeditionStats(cities: Stop[], journals: { city: string }[]): ExpeditionStats {
   const visible = cities.filter((c) => !isRouteOnlyCity(c)).sort((a, b) => a.order - b.order);
   const visited = visible.filter((c) => c.visited);
   const lastVisited = visited[visited.length - 1];
@@ -154,7 +159,7 @@ export function expeditionStats(
   }
 
   return {
-    days: lastVisited ? (timeline.get(lastVisited.id)?.day ?? null) : null,
+    days: lastVisited ? daysOnRoad() : null,
     cities: visible.length,
     visitedCities: visited.length,
     journals: journals.length,
