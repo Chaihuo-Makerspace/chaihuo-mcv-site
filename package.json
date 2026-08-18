@@ -5,7 +5,7 @@
   "packageManager": "pnpm@11.5.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm run images:covers && pnpm run images:avatars && pnpm run images:heroes && pnpm run images:deconstruct && astro dev",
+    "dev": "pnpm run images:covers && pnpm run images:avatars && pnpm run images:heroes && pnpm run images:deconstruct && astro dev --host",
     "build": "pnpm run check && pnpm run images:covers && pnpm run images:avatars && pnpm run images:heroes && pnpm run images:deconstruct && astro build",
     "build:astro": "astro build",
     "check": "pnpm run lint && pnpm run check:content && pnpm run check:astro",
