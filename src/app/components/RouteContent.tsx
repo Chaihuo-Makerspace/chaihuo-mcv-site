@@ -2,7 +2,11 @@ import { ChevronLeft, MapPin, PanelRightOpen } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CityPanel, countThemes, MapLibreCanvas, ThemeFilter } from '@/features/route-map';
-import { buildTimeline, expeditionStats } from '@/features/route-map/expedition-timeline';
+import {
+  buildCumulativeKm,
+  buildTimeline,
+  expeditionStats,
+} from '@/features/route-map/expedition-timeline';
 import type { MapViewMode } from '@/features/route-map/MapLibreCanvas';
 import StoryRiver from '@/features/route-map/StoryRiver';
 import type { ThemeType } from '@/features/route-map/theme';
@@ -46,6 +50,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   );
 
   const timeline = useMemo(() => buildTimeline(sortedCities), [sortedCities]);
+  const cumulativeKm = useMemo(() => buildCumulativeKm(sortedCities), [sortedCities]);
   const stats = useMemo(
     () => expeditionStats(sortedCities, journals, timeline),
     [sortedCities, journals, timeline],
@@ -288,6 +293,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
               onCollapse={() => setIsPanelCollapsed(true)}
               journals={journals}
               timeline={timeline}
+              cumulativeKm={selectedCity ? (cumulativeKm.get(selectedCity.id) ?? null) : null}
             />
           </div>
         )}
@@ -376,6 +382,12 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
                         )
                       : null,
                     `${selectedCity.altitude}m`,
+                    selectedCity.visited
+                      ? (t['route.panel.km'] ?? '{n} km').replace(
+                          '{n}',
+                          String(cumulativeKm.get(selectedCity.id) ?? 0),
+                        )
+                      : null,
                   ]
                     .filter(Boolean)
                     .join(' · ')}
@@ -418,6 +430,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
               onSelectCity={handleCitySelect}
               journals={journals}
               timeline={timeline}
+              cumulativeKm={selectedCity ? (cumulativeKm.get(selectedCity.id) ?? null) : null}
             />
           </div>
         </motion.div>

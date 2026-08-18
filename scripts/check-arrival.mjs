@@ -9,6 +9,7 @@ const TRACKER_EUI = process.env.SENSECAP_DEVICE_EUI ?? '2CF7F1C08150015A';
 const SENSECAP_BASE = process.env.SENSECAP_BASE_URL ?? 'https://sensecap.seeed.cc/openapi';
 const NOMINATIM_URL =
   process.env.NOMINATIM_REVERSE_URL ?? 'https://nominatim.openstreetmap.org/reverse';
+const ELEVATION_URL = process.env.ELEVATION_URL ?? 'https://api.opentopodata.org/v1/srtm90m';
 const USER_AGENT =
   process.env.GEOCODER_USER_AGENT ??
   'ChaihuoMCV/1.0 route-map-automation contact: https://mcv.chaihuo.org';
@@ -222,8 +223,22 @@ async function reverseGeocode(lng, lat, language) {
   return { city: city ? normalizeCityName(city) : null, province };
 }
 
-function buildStopFiles({ order, id, label, labelEn, province, lng, lat, date }) {
-  const frontmatter = `---\nid: ${id}\norder: ${order}\nvisited: true\nlabel: ${label}\nlabel_en: ${labelEn}\nprovince: ${province}\nlng: ${lng}\nlat: ${lat}\naltitude: "0"\nrelationType: community\nthemes:\n  - maker\nevent:\n  date: "${date}"\n---`;
+async function fetchElevation(lng, lat) {
+  const url = new URL(ELEVATION_URL);
+  url.searchParams.set('locations', `${lat},${lng}`);
+  try {
+    const res = await fetch(url.toString(), { headers: { 'User-Agent': USER_AGENT } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const elevation = data?.results?.[0]?.elevation;
+    return Number.isFinite(elevation) ? Math.round(elevation) : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildStopFiles({ order, id, label, labelEn, province, lng, lat, altitude, date }) {
+  const frontmatter = `---\nid: ${id}\norder: ${order}\nvisited: true\nlabel: ${label}\nlabel_en: ${labelEn}\nprovince: ${province}\nlng: ${lng}\nlat: ${lat}\naltitude: "${altitude}"\nrelationType: community\nthemes:\n  - maker\nevent:\n  date: "${date}"\n---`;
   const zh = `${frontmatter}\n\n# ${label}\n\n## 在地遥测\n\n- 地形: 待补充\n- 阶梯: 待补充\n- 气候: 待补充\n- 极境挑战: 待补充\n\n## 在地共创\n\n- 待补充\n\n## 现场记\n\n定位器检测到基地车抵达${label}，路线图已自动记录该城市节点。详细现场记录待补充。\n\n## 远征日志\n\n### 新世界\n\n待补充\n\n### 火种\n\n待补充\n\n### 越界\n\n待补充\n`;
   const en = `# ${labelEn}\n\n## Telemetry\n\n- Terrain: To be updated\n- Step: To be updated\n- Climate: To be updated\n- Challenge: To be updated\n\n## Activities\n\n- To be updated\n\n## Event\n\nThe location tracker detected that the mobile lab arrived in ${labelEn}. The detailed field note will be updated later.\n\n## Expedition Log\n\n### World\n\nTo be updated\n\n### Fire\n\nTo be updated\n\n### Frontier\n\nTo be updated\n`;
   return { zh, en };
@@ -299,6 +314,9 @@ async function main() {
   const nextOrder = Math.max(...stops.map(({ data }) => data.order)) + 1;
   const date = formatRouteDate(gps.timestamp);
 
+  const elevation = await fetchElevation(gps.lng, gps.lat);
+  if (elevation !== null) log(`Elevation: ${elevation} m`);
+
   const nextStop = {
     order: nextOrder,
     id,
@@ -307,6 +325,7 @@ async function main() {
     province,
     lng: Number(gps.lng.toFixed(6)),
     lat: Number(gps.lat.toFixed(6)),
+    altitude: elevation ?? 0,
     date,
   };
 

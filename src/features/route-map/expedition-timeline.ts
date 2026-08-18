@@ -81,6 +81,37 @@ export function countJournalsByCity(journals: { city: string }[]): Record<string
   return counts;
 }
 
+/**
+ * Cumulative great-circle distance from the origin to each stop, keyed by stop id.
+ * Uses actualRoadKm to scale the raw sum so the last visited stop matches the
+ * headline number, while preserving the relative spacing between stops.
+ * Only visited stops get a value; planned stops are null.
+ */
+export function buildCumulativeKm(cities: Stop[]): Map<string, number | null> {
+  const visible = cities.filter((c) => !isRouteOnlyCity(c)).sort((a, b) => a.order - b.order);
+  const visited = visible.filter((c) => c.visited);
+
+  const raw: number[] = [];
+  let sum = 0;
+  for (let i = 0; i < visited.length; i++) {
+    raw.push(sum);
+    if (i < visited.length - 1) sum += greatCircleKm(visited[i], visited[i + 1]);
+  }
+
+  let scale = 1;
+  if (config.actualRoadKm && raw.length > 1) {
+    const lastRaw = raw[raw.length - 1];
+    if (lastRaw > 0) scale = config.actualRoadKm / lastRaw;
+  }
+
+  const result = new Map<string, number | null>();
+  visible.forEach((c) => {
+    const idx = visited.findIndex((v) => v.id === c.id);
+    result.set(c.id, idx >= 0 ? Math.round(raw[idx] * scale) : null);
+  });
+  return result;
+}
+
 export interface ExpeditionStats {
   days: number | null;
   cities: number;

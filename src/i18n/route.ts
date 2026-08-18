@@ -64,6 +64,7 @@ const route: Record<Locale, Record<string, string>> = {
     // City panel
     'route.panel.cityIndex': '第 {n} 城',
     'route.panel.day': '第 {n} 天',
+    'route.panel.km': '已行 {n} km',
     'route.journals.more': '另外 {n} 篇',
     'route.action.close': '关闭',
     'route.action.collapse': '收起面板',
@@ -123,6 +124,7 @@ const route: Record<Locale, Record<string, string>> = {
     'route.river.hint': 'Click a dimmed card to locate that stop first',
     'route.panel.cityIndex': 'Stop {n}',
     'route.panel.day': 'Day {n}',
+    'route.panel.km': '{n} km driven',
     'route.journals.more': '{n} more',
     'route.action.close': 'Close',
     'route.action.collapse': 'Collapse panel',

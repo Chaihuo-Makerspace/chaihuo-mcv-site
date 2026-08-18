@@ -53,6 +53,7 @@ export default function CityPanel({
   onCollapse,
   journals,
   timeline,
+  cumulativeKm,
 }: {
   city: RouteCity | null;
   cities: RouteCity[];
@@ -67,6 +68,7 @@ export default function CityPanel({
   onCollapse?: () => void;
   journals?: SerializedJournal[];
   timeline?: Map<string, StopTime>;
+  cumulativeKm?: number | null;
 }) {
   const getT = (key: string, fallback: string) => t[key] ?? fallback;
 
@@ -117,6 +119,9 @@ export default function CityPanel({
     // schema), so it is omitted on /en rather than printed untranslated.
     locale === 'zh' ? (city.province ?? null) : null,
     `${city.altitude}m`,
+    cumulativeKm != null
+      ? (t['route.panel.km'] ?? '{n} km').replace('{n}', String(cumulativeKm))
+      : null,
     time?.date && !time.guessed ? time.date.slice(5).replace('-', '.') : null,
   ].filter(Boolean) as string[];
 
