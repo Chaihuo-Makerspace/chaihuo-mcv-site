@@ -97,6 +97,8 @@ type HomeStop = ProjectableStop & Pick<Stop, 'terrain' | 'climate' | 'challenge'
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DEPARTURE_DATE = Date.UTC(2026, 3, 22);
+// 官方计划全程天数(见 src/content/stops/00-shenzhen.md 与 press.json 报道标题)
+const TOTAL_ROUTE_DAYS = 200;
 const labCards = [
   [
     'lab.aiTitle',
@@ -354,7 +356,7 @@ export default function HomeContent({
       <section className="bg-neutral-50 text-black py-16 md:py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
-            {/* 左侧栏: 极境测控指令台 (Col-span 5) */}
+            {/* 左侧栏: 路线叙事 + 当前站点事实卡 (Col-span 5) */}
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -363,12 +365,6 @@ export default function HomeContent({
               className="lg:col-span-5 flex flex-col justify-between gap-6"
             >
               <div>
-                <motion.span
-                  variants={fadeUp}
-                  className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-500 font-bold mb-3 block"
-                >
-                  EXPEDITION RADAR / 极境测控
-                </motion.span>
                 <motion.h2
                   variants={fadeUp}
                   transition={springTransition}
@@ -386,118 +382,85 @@ export default function HomeContent({
                 </motion.p>
               </div>
 
-              {/* 实时数据看板 (Telemetry Grid) */}
-              <motion.div
-                variants={fadeUp}
-                transition={springTransition}
-                className="grid grid-cols-2 gap-3"
-              >
-                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
-                  <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
-                    {t['telemetry.arrivedStops']}
-                  </div>
-                  <div className="text-xl font-bold font-mono text-neutral-900 mt-1 flex items-baseline gap-1">
-                    <span>{visitedCount}</span>
-                    <span className="text-xs text-neutral-500 font-normal">
-                      / {cities.length} stops
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                  <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
-                    {t['telemetry.days']}
-                  </div>
-                  <div className="text-xl font-bold font-mono text-neutral-900 mt-1 flex items-center gap-2">
-                    <span>{departureDays}</span>
-                    <span className="inline-flex rounded-full h-2 w-2 bg-brand" />
-                  </div>
-                </div>
-
-                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
-                  <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
-                    {t['telemetry.current']}
-                  </div>
-                  <div className="text-base font-bold text-neutral-900 mt-1 truncate">
-                    {lastVisited?.label ?? '-'}
-                  </div>
-                </div>
-
-                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
-                  <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
-                    {t['telemetry.planProvinces']}
-                  </div>
-                  <div className="text-base font-bold text-neutral-900 mt-1">
-                    {visitedCount}/{cities.length} 城
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* 当前站点事实卡(与 /route CityPanel 同一语言:扁平定义列表,纸感浅色) */}
+              {/* 行程信息流:日志式天数 + 一条从起点到当前站的微缩路线轨(进度即叙事),
+                  数据少的站点不再有"空盒子";有测控数据的站点在轨下继续展开 */}
               {lastVisited && (
                 <motion.div
                   variants={fadeUp}
                   transition={springTransition}
-                  className="bg-surface-card border border-neutral-300/60 rounded-xl p-5 shadow-sm"
+                  className="border-t border-neutral-200 pt-5"
                 >
-                  <div className="flex items-baseline justify-between gap-3 pb-3 border-b border-neutral-300/60">
-                    <div>
-                      <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider block">
-                        {locale === 'zh' ? '当前站点' : 'CURRENT STOP'}
-                      </span>
-                      <span className="text-lg font-bold text-neutral-900 mt-0.5 block">
-                        {lastVisited.label}
-                      </span>
+                  <p className="flex items-baseline gap-x-2 flex-wrap">
+                    <span className="text-3xl font-extrabold tabular-nums tracking-tight text-neutral-900">
+                      {departureDays}
+                    </span>
+                    <span className="text-sm font-bold tabular-nums text-neutral-400">
+                      {(t['telemetry.daysTotal'] ?? '/ {total} 天').replace(
+                        '{total}',
+                        String(TOTAL_ROUTE_DAYS),
+                      )}
+                    </span>
+                    <span className="text-xs tabular-nums text-neutral-500">
+                      {'· '}
+                      {(t['telemetry.progress'] ?? '已抵达 {visited}/{total} 城')
+                        .replace('{visited}', String(visitedCount))
+                        .replace('{total}', String(cities.length))}
+                    </span>
+                  </p>
+                  <div className="mt-4">
+                    <div className="relative h-0.5 rounded-full bg-neutral-200">
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full bg-brand"
+                        style={{
+                          width: `${Math.min(100, (visitedCount / Math.max(1, cities.length)) * 100)}%`,
+                        }}
+                      />
+                      <span
+                        className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-brand/30"
+                        style={{
+                          left: `${Math.min(100, (visitedCount / Math.max(1, cities.length)) * 100)}%`,
+                        }}
+                      />
                     </div>
-                    <p className="text-xl font-bold font-mono text-neutral-900 leading-none">
-                      {lastVisited.altitude}
-                      <span className="text-[10px] font-sans font-semibold text-neutral-500">
-                        {' '}
-                        m
+                    <div className="mt-2 flex items-baseline justify-between gap-3 text-xs">
+                      <span className="text-neutral-500">
+                        {sortedCities.find((c) => c.isOrigin)?.label ?? sortedCities[0]?.label}
                       </span>
-                    </p>
+                      <span className="font-bold text-neutral-900">{lastVisited.label}</span>
+                    </div>
                   </div>
-                  <dl className="pt-3 flex flex-col gap-2.5 text-left">
-                    {lastVisited.terrain && (
-                      <div className="flex gap-2.5">
-                        <Mountain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
-                        <div>
-                          <dt className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
-                            {locale === 'zh' ? '地貌' : 'TERRAIN'}
-                          </dt>
-                          <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
-                            {lastVisited.terrain}
-                          </dd>
+                  {(lastVisited.terrain || lastVisited.climate) && (
+                    <dl className="mt-4 flex flex-col gap-2.5 text-left">
+                      {lastVisited.terrain && (
+                        <div className="flex gap-2.5">
+                          <Mountain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
+                          <div>
+                            <dt className="text-xs text-neutral-500">{t['telemetry.terrain']}</dt>
+                            <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
+                              {lastVisited.terrain}
+                            </dd>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {lastVisited.climate && (
-                      <div className="flex gap-2.5">
-                        <Compass className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
-                        <div>
-                          <dt className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
-                            {locale === 'zh' ? '气候' : 'CLIMATE'}
-                          </dt>
-                          <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
-                            {lastVisited.climate}
-                          </dd>
+                      )}
+                      {lastVisited.climate && (
+                        <div className="flex gap-2.5">
+                          <Compass className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
+                          <div>
+                            <dt className="text-xs text-neutral-500">{t['telemetry.climate']}</dt>
+                            <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
+                              {lastVisited.climate}
+                            </dd>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {lastVisited.challenge && (
-                      <div className="flex gap-2.5">
-                        <Cpu className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
-                        <div>
-                          <dt className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
-                            {locale === 'zh' ? '行车挑战' : 'CHALLENGE'}
-                          </dt>
-                          <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-3">
-                            {lastVisited.challenge}
-                          </dd>
-                        </div>
-                      </div>
-                    )}
-                  </dl>
+                      )}
+                    </dl>
+                  )}
+                  {lastVisited.challenge && (
+                    <p className="mt-3 flex gap-2.5 items-start border-l-2 border-brand pl-3 text-xs text-neutral-700 leading-relaxed">
+                      <Cpu className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
+                      <span className="line-clamp-3">{lastVisited.challenge}</span>
+                    </p>
+                  )}
                 </motion.div>
               )}
 
@@ -528,27 +491,6 @@ export default function HomeContent({
                 <div className="absolute inset-0">
                   <RoutePreview cities={cities} ariaLabel={t['routePreview.aria']} />
                 </div>
-
-                {/* 当前活动城市标签 */}
-                {lastVisited && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.6, duration: 0.4 }}
-                    className="absolute top-4 left-4 bg-surface-card/90 backdrop-blur-md px-3.5 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 border border-neutral-300/60"
-                  >
-                    <span className="inline-flex rounded-full h-2.5 w-2.5 bg-brand ring-2 ring-brand/30" />
-                    <div>
-                      <span className="text-[9px] text-neutral-500 uppercase tracking-wider font-semibold block leading-none">
-                        {t['telemetry.current']}
-                      </span>
-                      <span className="text-sm font-bold text-neutral-900 leading-tight mt-0.5 block">
-                        {lastVisited.label}
-                      </span>
-                    </div>
-                  </motion.div>
-                )}
 
                 {/* 地图图例标注 */}
                 <div className="absolute bottom-4 right-4 flex items-center gap-2">
