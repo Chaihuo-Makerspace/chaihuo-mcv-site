@@ -3,7 +3,7 @@
     "name": "柴火基地车车长日记",
     "namespace": "mouseart/mcv",
     "url": "https://www.yuque.com/mouseart/mcv",
-    "syncedAt": "2026-08-18T05:15:53.756Z",
+    "syncedAt": "2026-08-18T05:47:36.269Z",
     "intervalMinutes": 10
   },
   "journals": [
@@ -836,6 +836,16 @@
       "href": "https://www.yuque.com/mouseart/mcv/uo1n9qnofa7d1yvf",
       "updatedAt": "2026-08-18T05:07:33.986Z",
       "coverImage": "/yuque-journals/uo1n9qnofa7d1yvf.jpg"
+    },
+    {
+      "id": "281717778",
+      "slug": "zqe5kbd11bc0wh5e",
+      "title": "基地车日记|48天·8000公里·9省：答案在路上",
+      "date": "2026-08-17",
+      "city": "city-230100",
+      "href": "https://www.yuque.com/mouseart/mcv/zqe5kbd11bc0wh5e",
+      "updatedAt": "2026-08-18T05:07:33.986Z",
+      "coverImage": "/yuque-journals/zqe5kbd11bc0wh5e.jpg"
     }
   ]
 }
