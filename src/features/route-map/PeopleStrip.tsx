@@ -34,7 +34,7 @@ export default function PeopleStrip({ people }: { people?: RoutePerson[] }) {
             <div className="min-w-0">
               <div className="flex items-baseline gap-2">
                 <span className="text-[13px] font-semibold text-neutral-800">{name}</span>
-                {role && <span className="text-[10px] font-medium text-amber-700">{role}</span>}
+                {role && <span className="text-[10px] font-medium text-neutral-500">{role}</span>}
               </div>
               {bio && <p className="mt-0.5 text-[11px] leading-snug text-neutral-600">{bio}</p>}
             </div>

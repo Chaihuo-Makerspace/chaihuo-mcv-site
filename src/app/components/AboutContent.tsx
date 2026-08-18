@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Locale } from '@/i18n/index';
 import { localePath } from '@/i18n/index';
-import AntigravityCard from './AntigravityCard';
 import { defaultViewport, fadeUp, springTransition, stagger } from './motion';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -168,10 +167,10 @@ function YearSpotlight({
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${isActive ? 'bg-brand scale-125' : 'bg-neutral-300 group-hover:bg-brand/50'}`}
+                          className={`w-2.5 h-2.5 rounded-full transition-[background-color,transform] duration-200 ${isActive ? 'bg-brand scale-125' : 'bg-neutral-300 group-hover:bg-brand/50'}`}
                         />
                         <span
-                          className={`font-black text-2xl transition-all duration-300 tracking-tight ${isActive ? 'text-brand scale-110 pl-2' : 'text-neutral-300 group-hover:text-neutral-500'}`}
+                          className={`font-black text-2xl transition-[color,transform,padding] duration-200 tracking-tight ${isActive ? 'text-brand scale-110 pl-2' : 'text-neutral-300 group-hover:text-neutral-500'}`}
                         >
                           {item.year}
                         </span>
@@ -225,12 +224,12 @@ function YearSpotlight({
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true, amount: 0.15 }}
                           transition={{ type: 'spring', damping: 20, stiffness: 260 }}
-                          className={`flex flex-col p-6 rounded-2xl border border-neutral-300/60 bg-surface-card/70 backdrop-blur-md shadow-sm hover:shadow-lg hover:border-brand/40 transition-[box-shadow,border-color] duration-300 ${
+                          className={`flex flex-col p-6 rounded-2xl border border-neutral-300 bg-surface-card shadow-sm hover:shadow-lg hover:border-brand/40 transition-[box-shadow,border-color] duration-200 ${
                             isLongText || item.events.length === 1 ? 'md:col-span-2' : ''
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse motion-reduce:animate-none" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand" />
                             <span className="text-xs font-mono font-bold text-brand-dark tracking-widest uppercase">
                               {ev.month}
                             </span>
@@ -290,10 +289,10 @@ function YearSpotlight({
                     <div key={item.year} className="relative group">
                       {/* Highlighted indicator for milestone years */}
                       <span
-                        className={`absolute left-[-29px] top-1.5 w-2.5 h-2.5 rounded-full border transition-all duration-300 ${
+                        className={`absolute left-[-29px] top-1.5 w-2.5 h-2.5 rounded-full border transition-[background-color,border-color,transform] duration-200 ${
                           item.isHighlight
-                            ? 'bg-brand border-brand/50 scale-125 shadow-[0_0_8px_var(--brand)] animate-pulse motion-reduce:animate-none'
-                            : 'bg-neutral-300 border-white group-hover:bg-brand group-hover:scale-105'
+                            ? 'bg-brand border-brand/50 scale-125'
+                            : 'bg-neutral-300 border-white group-hover:bg-brand'
                         }`}
                       />
                       <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
@@ -427,7 +426,7 @@ export default function AboutContent({
             )}
           </motion.div>
 
-          {/* 3D Glass Bento Grid stats dashboard */}
+          {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 w-full max-w-2xl">
             {STATS.map((stat, i) => (
               <motion.div
@@ -438,17 +437,14 @@ export default function AboutContent({
                 transition={{ ...springTransition, delay: 0.3 + i * 0.08 }}
                 className="w-full flex"
               >
-                <AntigravityCard
-                  className="p-5 flex flex-col justify-center items-start w-full bg-surface-card/75 shadow-lg"
-                  maxTilt={12}
-                >
+                <div className="p-5 flex flex-col justify-center items-start w-full bg-surface-card border border-neutral-300 rounded-2xl shadow-sm">
                   <div className="text-3xl font-black text-brand leading-none tracking-tight">
                     <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                   </div>
                   <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mt-2.5">
                     {stat.label}
                   </p>
-                </AntigravityCard>
+                </div>
               </motion.div>
             ))}
           </div>

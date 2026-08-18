@@ -587,7 +587,7 @@ export default function RoleTimeline({
                             alt={member.name}
                             width={128}
                             height={128}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="w-full h-full object-cover"
                             style={
                               member.crewId === 'ye-kaiwei'
                                 ? {

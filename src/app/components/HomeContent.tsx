@@ -155,34 +155,8 @@ export default function HomeContent({
           : 'press.cat.media';
     return t[key] || category || '';
   };
-  const pressBadgeClass = (category?: string) =>
-    category === 'gov'
-      ? 'text-blue-700 bg-blue-50 border border-blue-200'
-      : category === 'wechat'
-        ? 'text-green-700 bg-green-50 border border-green-200'
-        : 'text-neutral-600 bg-neutral-100 border border-neutral-200';
-
   // 媒体报道横向滚动：容器 ref + 箭头辅助滚动（原生 overflow-x 横滑；overscroll contain 防浏览器返回手势）
   const pressTrackRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = pressTrackRef.current;
-    if (!el) return;
-    // 初始起点：精选在视野左侧留余量处（不从最左开始，往左拖有缓冲 + contain 兜底，不牺牲精选首屏可见）
-    // 布局/水合完成前 scrollWidth 未就绪，用 rAF + 延时多重尝试确保生效
-    const start = () => {
-      const target = Math.max(0, Math.round(el.clientWidth * 0.18));
-      if (el.scrollLeft !== target) el.scrollLeft = target;
-    };
-    start();
-    const raf = requestAnimationFrame(() => requestAnimationFrame(start));
-    const t = window.setTimeout(start, 100);
-    window.addEventListener('resize', start);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(t);
-      window.removeEventListener('resize', start);
-    };
-  }, []);
   const pressScrollBy = (dir: 1 | -1) => {
     const el = pressTrackRef.current;
     if (!el) return;
@@ -354,7 +328,7 @@ export default function HomeContent({
         </div>
 
         {/* 滚动提示 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce motion-reduce:animate-none text-white/60">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/60">
           <ChevronDown className="w-5 h-5" />
         </div>
       </section>
@@ -367,7 +341,7 @@ export default function HomeContent({
           </span>
           <span className="text-white/25">·</span>
           <span className="flex items-center gap-2 font-semibold text-white">
-            <span className="w-2 h-2 rounded-full bg-brand animate-pulse motion-reduce:animate-none" />
+            <span className="w-2 h-2 rounded-full bg-brand" />
             {(t['status.current'] ?? '位于 {city}').replace('{city}', lastVisited?.label ?? '')}
           </span>
           <span className="text-white/25">·</span>
@@ -418,7 +392,7 @@ export default function HomeContent({
                 transition={springTransition}
                 className="grid grid-cols-2 gap-3"
               >
-                <div className="bg-surface-card/60 backdrop-blur-md border border-white/80 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                     {t['telemetry.arrivedStops']}
                   </div>
@@ -430,7 +404,7 @@ export default function HomeContent({
                   </div>
                 </div>
 
-                <div className="bg-surface-card/60 backdrop-blur-md border border-white/80 p-3.5 rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group">
                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                     {t['telemetry.days']}
                   </div>
@@ -440,7 +414,7 @@ export default function HomeContent({
                   </div>
                 </div>
 
-                <div className="bg-surface-card/60 backdrop-blur-md border border-white/80 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                     {t['telemetry.current']}
                   </div>
@@ -449,7 +423,7 @@ export default function HomeContent({
                   </div>
                 </div>
 
-                <div className="bg-surface-card/60 backdrop-blur-md border border-white/80 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+                <div className="bg-surface-card border border-neutral-300 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
                   <div className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                     {t['telemetry.planProvinces']}
                   </div>
@@ -626,7 +600,7 @@ export default function HomeContent({
                       whileInView="visible"
                       viewport={defaultViewport}
                       transition={{ ...springTransition, delay: i * 0.05 }}
-                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-[filter,opacity] duration-200"
                     >
                       {partner.logo ? (
                         <img
@@ -663,7 +637,7 @@ export default function HomeContent({
                       whileInView="visible"
                       viewport={defaultViewport}
                       transition={{ ...springTransition, delay: i * 0.05 }}
-                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-[filter,opacity] duration-200"
                     >
                       {partner.logo ? (
                         <img
@@ -747,9 +721,7 @@ export default function HomeContent({
                             : 'border-neutral-300 bg-surface-card/70 p-4 hover:border-brand/40'
                         }`}
                       >
-                        <span
-                          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex mb-2.5 ${pressBadgeClass(item.category)}`}
-                        >
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex mb-2.5 text-neutral-600 bg-neutral-100 border border-neutral-200">
                           {pressCategoryLabel(item.category)}
                           {featured ? ` · ${locale === 'en' ? 'Featured' : '精选'}` : ''}
                         </span>

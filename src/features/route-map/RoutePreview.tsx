@@ -86,7 +86,7 @@ export default function RoutePreview({ cities, ariaLabel }: Props) {
         })}
       </g>
 
-      {/* 🛣️ Route Lines (Solid for visited, Dashed for planned future) */}
+      {/* Route Lines (Solid for visited, Dashed for planned future) */}
       {segments.map((seg, i) => {
         const fromX = round(seg.from.cx);
         const fromY = round(seg.from.cy);
@@ -114,7 +114,7 @@ export default function RoutePreview({ cities, ariaLabel }: Props) {
         );
       })}
 
-      {/* 🔴 City Dots (Glowing for current, subtle for future) */}
+      {/* City Dots (Glowing for current, subtle for future) */}
       {projected
         .filter((city) => !isRouteOnlyCity(city))
         .map((city) => {
@@ -157,7 +157,7 @@ export default function RoutePreview({ cities, ariaLabel }: Props) {
           );
         })}
 
-      {/* 🏷️ Smart Non-overlapping Labels */}
+      {/* Smart Non-overlapping Labels */}
       {projected
         .filter((city) => city.showLabel)
         .map((city) => {
