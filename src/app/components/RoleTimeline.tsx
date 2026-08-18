@@ -73,6 +73,50 @@ function formatShortDate(iso: string, locale: 'zh' | 'en'): string {
 /** Minimum gap as % of timeline width to keep two avatars + labels from overlapping */
 const MIN_GAP_PCT = 4;
 
+/** Minimum width for a dated leg so the province label + borders stay readable */
+const MIN_LEG_PCT = 2.5;
+
+interface LegSpan {
+  startPct: number;
+  endPct: number;
+}
+
+/**
+ * Short legs (a 1–3 day province crossing) collapse to a few px on the 200-day
+ * axis, crushing labels and borders. Give every dated leg a minimum width and
+ * let longer legs pay for it proportionally. The region's total span and its
+ * right edge (today / last stop) stay put, so the month scale, today line and
+ * lanes below are unaffected.
+ */
+function warpLegSpans(rawSpans: LegSpan[]): LegSpan[] {
+  if (rawSpans.length === 0) return rawSpans;
+  const regionStart = rawSpans[0].startPct;
+  const regionEnd = rawSpans[rawSpans.length - 1].endPct;
+  const total = regionEnd - regionStart;
+  const min = Math.min(MIN_LEG_PCT, total / rawSpans.length);
+  const widths = rawSpans.map((s) => Math.max(0, s.endPct - s.startPct));
+
+  const deficit = widths.reduce((sum, w) => sum + Math.max(0, min - w), 0);
+  const excess = widths.reduce((sum, w) => sum + Math.max(0, w - min), 0);
+  if (deficit > 0 && excess > 0) {
+    const take = Math.min(deficit, excess);
+    for (let i = 0; i < widths.length; i++) {
+      if (widths[i] > min) widths[i] -= take * ((widths[i] - min) / excess);
+    }
+    for (let i = 0; i < widths.length; i++) {
+      if (widths[i] < min) widths[i] = min;
+    }
+  }
+
+  let cursor = regionStart;
+  return widths.map((w, i) => {
+    const startPct = cursor;
+    cursor += w;
+    // Pin the right edge exactly so the planned legs anchor keeps aligning
+    return { startPct, endPct: i === widths.length - 1 ? regionEnd : cursor };
+  });
+}
+
 /** Nudge close segment starts within a lane so avatars never collide — stays single-line */
 function computeVisualStarts(
   segments: Segment[],
@@ -192,6 +236,31 @@ export default function RoleTimeline({
     return -1;
   }, [legs]);
 
+  // Dated legs: raw time-true spans (last visited leg extends to today), then
+  // min-width redistribution so short province crossings stay readable. Planned
+  // legs are excluded — they fan out evenly right of today at render time.
+  const legSpans = useMemo(() => {
+    const raw: LegSpan[] = legs.map((leg, i) => {
+      const startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
+      const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
+      const endPct = Math.min(
+        100,
+        Math.max(
+          startPct + 0.5,
+          i === lastVisitedIdx && todayPct !== null ? Math.max(legEndPct, todayPct) : legEndPct,
+        ),
+      );
+      return { startPct, endPct };
+    });
+    const firstPlanned = legs.findIndex((leg) => leg.planned);
+    const datedCount = firstPlanned === -1 ? legs.length : firstPlanned;
+    const spans = new Map<number, LegSpan>();
+    warpLegSpans(raw.slice(0, datedCount)).forEach((span, i) => {
+      spans.set(i, span);
+    });
+    return spans;
+  }, [legs, projectStart, totalDays, lastVisitedIdx, todayPct]);
+
   // The leg the journey is currently in — its column carries down through the lanes
   const currentLegIdx = useMemo(() => {
     if (todayPct === null || lastVisitedIdx < 0) return null;
@@ -205,13 +274,14 @@ export default function RoleTimeline({
 
   const currentLegRange = useMemo(() => {
     if (todayPct === null || currentLegIdx === null) return null;
-    const leg = legs[currentLegIdx];
-    const startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
-    // The current leg is still in progress — the column reaches today, not the last stop
-    const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
-    const endPct = Math.min(100, Math.max(startPct + 0.5, Math.max(legEndPct, todayPct)));
-    return { startPct, endPct };
-  }, [todayPct, currentLegIdx, legs, projectStart, totalDays]);
+    const span = legSpans.get(currentLegIdx);
+    if (!span) return null;
+    // Keep the (linear) today line inside the column even after warping
+    return {
+      startPct: Math.min(span.startPct, Math.max(0, todayPct - 0.5)),
+      endPct: Math.min(100, Math.max(span.endPct, todayPct)),
+    };
+  }, [todayPct, currentLegIdx, legSpans]);
 
   // Planned legs start where the today pointer stands (SSR: end of the last visited leg).
   const plannedAnchorPct = useMemo(() => {
@@ -382,18 +452,10 @@ export default function RoleTimeline({
                             startPct = plannedAnchorPct + (span * plannedIdx) / plannedCount;
                             endPct = plannedAnchorPct + (span * (plannedIdx + 1)) / plannedCount;
                           } else {
-                            startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
-                            // The last visited leg is still in progress — extend it to today
-                            const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
-                            endPct = Math.min(
-                              100,
-                              Math.max(
-                                startPct + 0.5,
-                                i === lastVisitedIdx && todayPct !== null
-                                  ? Math.max(legEndPct, todayPct)
-                                  : legEndPct,
-                              ),
-                            );
+                            // Min-width redistributed span (see warpLegSpans)
+                            const span = legSpans.get(i);
+                            startPct = span?.startPct ?? 0;
+                            endPct = span?.endPct ?? startPct + 0.5;
                           }
                           return (
                             <div
