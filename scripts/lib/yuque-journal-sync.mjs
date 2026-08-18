@@ -50,9 +50,11 @@ export function extractAppData(html) {
 }
 
 export function parseJournalDate(title) {
-  const separatedMatch = title.match(/(20\d{2})[.-](\d{2})[.-](\d{2})/);
+  // 月/日允许不补零（作者常写 2026.8.17），统一补齐为 ISO。
+  const separatedMatch = title.match(/(20\d{2})[.-](\d{1,2})[.-](\d{1,2})/);
   if (separatedMatch) {
-    return `${separatedMatch[1]}-${separatedMatch[2]}-${separatedMatch[3]}`;
+    const [, year, month, day] = separatedMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
 
   const compactMatch = title.match(/(20\d{2})[.-](\d{2})(\d{2})/);
@@ -80,7 +82,10 @@ function loadStops(stopsDir) {
     const order = Number(frontmatter[1].match(/^order:\s*(\d+)\s*$/m)?.[1] ?? 0);
     const lng = Number(frontmatter[1].match(/^lng:\s*([-\d.]+)\s*$/m)?.[1]);
     const lat = Number(frontmatter[1].match(/^lat:\s*([-\d.]+)\s*$/m)?.[1]);
-    if (id && label) stops.push({ id, label, order, lng, lat });
+    const visited = /^visited:\s*true\s*$/m.test(frontmatter[1]);
+    const eventDateRaw = frontmatter[1].match(/^ {2}date:\s*"?([^"\n]+?)"?\s*$/m)?.[1];
+    const eventDate = eventDateRaw ? parseJournalDate(eventDateRaw) : null;
+    if (id && label) stops.push({ id, label, order, lng, lat, visited, eventDate });
   }
 
   return stops.sort((a, b) => b.order - a.order);
@@ -98,6 +103,40 @@ export function loadStopCoordinates(stopsDir = STOPS_DIR) {
   return loadStops(stopsDir).filter(
     (stop) => Number.isFinite(stop.lng) && Number.isFinite(stop.lat),
   );
+}
+
+// 已到访站点的时间线（按 event.date 升序），供"标题/正文都没有地名"的
+// 日记按发布日期归并到当时车辆所在站点。
+export function loadStopTimeline(stopsDir = STOPS_DIR) {
+  return loadStops(stopsDir)
+    .filter((stop) => stop.visited && stop.eventDate)
+    .map((stop) => ({ id: stop.id, date: stop.eventDate }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// 日记日期落在哪一段行程：取 event.date 不晚于该日期的最近一个站点
+// （行程途中归上一个已到访站）。早于首站则返回 null。
+export function stopIdAtDate(timeline, date) {
+  if (!date) return null;
+  let hit = null;
+  for (const stop of timeline) {
+    if (stop.date <= date) hit = stop.id;
+    else break;
+  }
+  return hit;
+}
+
+// 语雀时间戳（UTC）转北京时间日历日——日记是按中国时区记的。
+export function dateOnlyInShanghai(isoString) {
+  if (!isoString) return null;
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
 }
 
 // 从正文日期行提取 "A→B→C" 中转链，最后一个地名即目的地。

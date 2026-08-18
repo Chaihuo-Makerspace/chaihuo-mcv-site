@@ -484,7 +484,13 @@ function formatYuqueCardTitle(title: string) {
     .map((part) => part.trim())
     .filter(Boolean);
 
-  return parts.length >= 3 ? parts.slice(2).join(' | ') : title;
+  if (parts.length >= 3) return parts.slice(2).join(' | ');
+  // 两段式标题(「基地车日记|2026.8.17长春…」/「基地车日记|48天·8000公里…」):
+  // 摘掉「基地车日记」头,保留正文;开头若有 20xx 日期一并去掉。
+  if (parts.length === 2 && parts[0] === '基地车日记') {
+    return parts[1].replace(/^20\d{2}[\d.\-–/]+\s*/, '');
+  }
+  return title;
 }
 
 function formatYuqueJournalDate(value: string | null, locale: Locale) {

@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  dateOnlyInShanghai,
   extractAppData,
   extractCoverFromDocHtml,
   extractFirstImageFromDocContent,
@@ -10,8 +11,11 @@ import {
   inferCityId,
   loadStopCityKeywords,
   loadStopCoordinates,
+  loadStopTimeline,
   nearestStop,
   normalizeYuqueToc,
+  parseJournalDate,
+  stopIdAtDate,
 } from './lib/yuque-journal-sync.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,6 +49,8 @@ async function main() {
       const remoteCover = coverResult.coverImage;
       return {
         ...entry,
+        // 标题没有可解析日期时,用语雀首次发布时间兜底(北京时间日历日)。
+        date: entry.date ?? dateOnlyInShanghai(coverResult.publishedAt),
         updatedAt:
           entry.updatedAt ?? appData.book?.content_updated_at ?? appData.book?.updated_at ?? null,
         coverImage: remoteCover ? await downloadCoverImage(remoteCover, entry.slug) : null,
@@ -53,18 +59,43 @@ async function main() {
   ).filter(Boolean);
 
   // 标题不含任何地名的日记(如《…双车并进北上路…》)会落为 city: "yuque",
-  // 路线自动更新就不会触发。兜底链:正文日期行关键词 → 中转链地名(标题+日期行)
-  // 地理编码就近归并。落选的日记很少,串行处理即可。
+  // 路线自动更新就不会触发。兜底链分两类:
+  // - 标题无日期(回顾/总结文,如《48天·8000公里·9省》):正文往往提到一串
+  //   城市,关键词会错配,直接按发布日期归并当时所在站点。
+  // - 标题有日期(诗题日报):正文日期行关键词 → 中转链地名(标题+日期行)
+  //   地理编码就近归并 → 仍落选再按日期归并。
+  // 落选的日记很少,串行处理即可。
   const stopKeywords = loadStopCityKeywords();
   const stopCoordinates = loadStopCoordinates();
+  const stopTimeline = loadStopTimeline();
   const geocodeCache = await readJsonObject(geocodeCachePath);
   const unmatched = [];
   for (const entry of withCovers.filter((item) => item.city === 'yuque')) {
-    const city = await inferCityFromDocBody(entry.slug, entry.title, bookId, {
-      stopKeywords,
-      stopCoordinates,
-      geocodeCache,
-    });
+    let city = null;
+    const titleHasDate = Boolean(parseJournalDate(entry.title));
+    if (!titleHasDate && entry.date) {
+      city = stopIdAtDate(stopTimeline, entry.date);
+      if (city) {
+        console.log(
+          `[sync] 《${entry.title}》标题无日期(回顾文),按发布日期 ${entry.date} 归并到站点 ${city}`,
+        );
+      }
+    }
+    if (!city) {
+      city = await inferCityFromDocBody(entry.slug, entry.title, bookId, {
+        stopKeywords,
+        stopCoordinates,
+        geocodeCache,
+      });
+    }
+    // 最后一道兜底:标题有日期但正文/地理编码都落选时,按日记日期
+    // 归并到当时车辆所在的已到访站点。
+    if (!city && entry.date) {
+      city = stopIdAtDate(stopTimeline, entry.date);
+      if (city) {
+        console.log(`[sync] 《${entry.title}》无地名,按日期 ${entry.date} 归并到站点 ${city}`);
+      }
+    }
     if (city) {
       entry.city = city;
     } else {
@@ -255,7 +286,7 @@ async function fetchCover(url, slug, bookId) {
   try {
     const docHtml = await fetchText(url);
     const fallbackCover = extractCoverFromDocHtml(docHtml);
-    if (!bookId) return { available: true, coverImage: fallbackCover };
+    if (!bookId) return { available: true, coverImage: fallbackCover, publishedAt: null };
 
     const docResponse = await fetchJson(docApiUrl(slug, bookId));
     return {
@@ -264,14 +295,21 @@ async function fetchCover(url, slug, bookId) {
         extractFirstImageFromDocContent(docResponse.data?.content) ??
         docResponse.data?.cover ??
         fallbackCover,
+      // first_published_at 最稳定:published_at 会在重新发布时刷新,
+      // updated_at 更会随着每次编辑漂移。
+      publishedAt:
+        docResponse.data?.first_published_at ??
+        docResponse.data?.published_at ??
+        docResponse.data?.created_at ??
+        null,
     };
   } catch (error) {
     if (error.status === 401 || error.status === 403) {
       console.warn(`Skipping inaccessible Yuque doc ${url}: ${error.status}`);
-      return { available: false, coverImage: null };
+      return { available: false, coverImage: null, publishedAt: null };
     }
     console.warn(`Unable to fetch cover for ${url}: ${error.message}`);
-    return { available: true, coverImage: null };
+    return { available: true, coverImage: null, publishedAt: null };
   }
 }
 

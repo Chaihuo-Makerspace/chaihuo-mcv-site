@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  dateOnlyInShanghai,
   extractAppData,
   extractCoverFromDocHtml,
   extractFirstImageFromDocContent,
   imageExtensionFromUrl,
+  loadStopTimeline,
   normalizeYuqueToc,
   parseJournalDate,
+  stopIdAtDate,
 } from './lib/yuque-journal-sync.mjs';
 
 describe('yuque journal sync helpers', () => {
@@ -83,6 +86,42 @@ describe('yuque journal sync helpers', () => {
     assert.equal(parseJournalDate('基地车日记｜2026.05.11-12｜绵阳骆驼房车'), '2026-05-11');
     assert.equal(parseJournalDate('基地车日记|2026.0707哈密→敦煌'), '2026-07-07');
     assert.equal(parseJournalDate('没有日期'), null);
+  });
+
+  it('parses unpadded month/day in journal titles', () => {
+    assert.equal(parseJournalDate('基地车日记| 2026.8.17长春：从土地里生长出的思考'), '2026-08-17');
+    assert.equal(parseJournalDate('基地车日记｜2026.8.5｜某地'), '2026-08-05');
+  });
+
+  it('loads a visited-stop timeline for date-based city fallback', () => {
+    const timeline = loadStopTimeline();
+    assert.ok(timeline.length > 0);
+    for (const stop of timeline) {
+      assert.match(stop.id, /^\S+$/);
+      assert.match(stop.date, /^20\d{2}-\d{2}-\d{2}$/);
+    }
+    const sorted = [...timeline].sort((a, b) => a.date.localeCompare(b.date));
+    assert.deepEqual(timeline, sorted);
+  });
+
+  it('maps a journal date to the stop the vehicle was at', () => {
+    const timeline = [
+      { id: 'city-a', date: '2026-05-01' },
+      { id: 'city-b', date: '2026-06-10' },
+      { id: 'city-c', date: '2026-08-14' },
+    ];
+    assert.equal(stopIdAtDate(timeline, '2026-08-17'), 'city-c');
+    assert.equal(stopIdAtDate(timeline, '2026-06-10'), 'city-b');
+    assert.equal(stopIdAtDate(timeline, '2026-05-20'), 'city-a');
+    assert.equal(stopIdAtDate(timeline, '2026-04-01'), null);
+    assert.equal(stopIdAtDate(timeline, null), null);
+  });
+
+  it('converts Yuque UTC timestamps to Beijing calendar dates', () => {
+    assert.equal(dateOnlyInShanghai('2026-08-17T15:32:08.690Z'), '2026-08-17');
+    assert.equal(dateOnlyInShanghai('2026-08-17T16:30:00.000Z'), '2026-08-18');
+    assert.equal(dateOnlyInShanghai(null), null);
+    assert.equal(dateOnlyInShanghai('not-a-date'), null);
   });
 
   it('extracts the Yuque document cover from doc detail html', () => {

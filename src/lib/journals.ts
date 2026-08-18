@@ -96,8 +96,9 @@ export interface RouteJournal {
   coverCard?: string;
 }
 
-// "基地车日记｜2026.05.22｜基地车首保…" / "基地车日记|2026.0727 西安理工…" → 去头
-const YUQUE_TITLE_PREFIX = /^基地车日记\s*[|｜]\s*[\d.\-–/]+\s*[|｜]?\s*/;
+// "基地车日记｜2026.05.22｜基地车首保…" / "基地车日记|2026.0727 西安理工…" → 去头。
+// 日期段要求 20xx 年份开头,否则《…|48天·8000公里·9省…》的 "48" 会被当成日期吃掉。
+const YUQUE_TITLE_PREFIX = /^基地车日记\s*[|｜]\s*(?:20\d{2}[\d.\-–/]*\s*[|｜]?\s*)?/;
 
 /** 本地日记 + 语雀日记（同城同日去重：已发布本地稿优先，placeholder 让位语雀）。 */
 export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<RouteJournal[]> {

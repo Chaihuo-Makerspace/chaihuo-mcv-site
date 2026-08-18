@@ -117,6 +117,24 @@ to the destination. Titles matching neither source get two more chances in
    within 100 km (`nearestStop()`, coords from stop frontmatter via
    `loadStopCoordinates()`); same-name ambiguity is resolved by picking the
    candidate closest to any route stop.
+3. Last resort: date-based folding (`stopIdAtDate()` over `loadStopTimeline()`
+   — visited stops' frontmatter `event.date`, latest stop not later than the
+   journal date). For journals whose **title carries no date** (recaps like
+   《48天·8000公里·9省：答案在路上》, where the body mentions a whole chain of
+   cities and keyword matching misfires) this runs *first*, straight off the
+   publish-date fallback; for dated poetic titles it runs after the body and
+   geocode layers.
+
+## Journal Dates
+
+A journal card's `date` comes from the title first
+(`parseJournalDate()` — accepts both padded `2026.08.17`/`2026.0817` and
+unpadded `2026.8.17`). When the title carries no date, the sync falls back to
+the doc's Yuque `first_published_at` (more stable than `published_at`, which
+refreshes on republish), converted to the Beijing calendar date
+(`dateOnlyInShanghai()`). Cards without any date are dropped by
+`src/lib/journals.ts` and never reach `/journals` — which is why unpadded
+titles previously made journals silently disappear.
 
 Geocode results are cached in `src/data/geocode-cache.json` (committed by the
 sync workflow — the script materializes the file even when the cache is empty,
