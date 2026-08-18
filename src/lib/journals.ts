@@ -123,7 +123,7 @@ export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<
     yuque.push({
       slug: j.slug,
       title: j.title.replace(YUQUE_TITLE_PREFIX, ''),
-      date: j.date,
+      date: j.date!,
       status: 'published',
       city: j.city,
       href: j.href,
