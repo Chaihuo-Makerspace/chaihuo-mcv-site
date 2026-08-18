@@ -14,4 +14,4 @@
 
 ## Event
 
-Via Zuogong to Bangda township, taking on the continuous switchbacks of the Nujiang 72 Bends. Write-up in progress.
+Via the Dongda Pass (5,130 m — the expedition's highest point) and Zuogong to Bangda township, taking on the continuous switchbacks of the Nujiang 72 Bends. Write-up in progress.

@@ -8,6 +8,7 @@ province: 西藏自治区
 lng: 97.169
 lat: 30.054
 altitude: "4120"
+highPoint: "5130"
 relationType: community
 themes:
   - science
@@ -31,4 +32,4 @@ event:
 
 ## 现场记
 
-经左贡抵邦达镇，挑战怒江72道拐连续急弯。整理中。
+经东达山垭口（5130m，全程最高点）、左贡抵邦达镇，挑战怒江72道拐连续急弯。整理中。

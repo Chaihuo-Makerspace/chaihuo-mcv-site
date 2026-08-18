@@ -127,7 +127,10 @@ export function expeditionStats(
     cities: visible.length,
     visitedCities: visited.length,
     journals: journals.length,
-    maxAltitude: Math.max(0, ...visible.map((c) => parseFloat(c.altitude) || 0)),
+    maxAltitude: Math.max(
+      0,
+      ...visible.flatMap((c) => [parseFloat(c.altitude) || 0, parseFloat(c.highPoint ?? '') || 0]),
+    ),
     visitedKm,
   };
 }

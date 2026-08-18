@@ -33,6 +33,8 @@ export type Stop = {
   lng: number;
   lat: number;
   altitude: string;
+  /** 途经最高点（如垭口海拔），仅用于统计 */
+  highPoint?: string;
   relationType: StopRelationType;
   themes: StopThemeType[];
   terrain: string;
@@ -171,6 +173,7 @@ export async function loadLocalizedStops(requestedLocale: Locale): Promise<Stop[
       lng: fm.lng,
       lat: fm.lat,
       altitude: fm.altitude,
+      highPoint: fm.highPoint,
       relationType: fm.relationType,
       themes: fm.themes,
       terrain: scrub(parts.terrain),

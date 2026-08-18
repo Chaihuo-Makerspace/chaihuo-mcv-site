@@ -18,6 +18,8 @@ export const stopFrontmatterSchema = z.object({
   lng: z.number().gte(-180).lte(180),
   lat: z.number().gte(-90).lte(90),
   altitude: z.string(),
+  /** 该站所在路段途经的最高点（如垭口），仅用于统计「最高海拔」 */
+  highPoint: z.string().optional(),
 
   relationType,
   themes: z.array(themeType),
