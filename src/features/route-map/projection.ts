@@ -78,7 +78,7 @@ export function projectCities(cities: ProjectableStop[]): ProjectedCity[] {
     const p = projection([c.lng, c.lat]);
     if (!p) return [];
     const isRouteOnly = isRouteOnlyCity(c);
-    const isLatest = !!lastVisited && c.label === lastVisited.label;
+    const isLatest = c.id === lastVisited?.id;
     return [
       {
         ...c,

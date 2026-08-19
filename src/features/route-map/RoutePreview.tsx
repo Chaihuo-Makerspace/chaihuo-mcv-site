@@ -94,7 +94,7 @@ export default function RoutePreview({ cities, ariaLabel }: Props) {
         const toY = round(seg.to.cy);
 
         return (
-          <g key={`${seg.from.label}-${seg.to.label}`}>
+          <g key={`${seg.from.id}-${seg.to.id}`}>
             <motion.line
               x1={fromX}
               y1={fromY}
@@ -120,10 +120,10 @@ export default function RoutePreview({ cities, ariaLabel }: Props) {
         .map((city) => {
           const x = round(city.cx);
           const y = round(city.cy);
-          const isCurrent = current && city.label === current.label;
+          const isCurrent = city.id === current?.id;
 
           return (
-            <g key={city.label} opacity={city.visited ? 1 : 0.5}>
+            <g key={city.id} opacity={city.visited ? 1 : 0.5}>
               {city.isOrigin && (
                 <>
                   <circle cx={x} cy={y} r="12" fill="none" stroke="#f3d230" strokeWidth="2" />
@@ -166,11 +166,11 @@ export default function RoutePreview({ cities, ariaLabel }: Props) {
 
           const x = round(city.cx + offset[0]);
           const y = round(city.cy + offset[1]);
-          const isCurrent = current && city.label === current.label;
+          const isCurrent = city.id === current?.id;
 
           return (
             <text
-              key={`label-${city.label}`}
+              key={`label-${city.id}`}
               data-route-city-label="true"
               data-city-id={city.id}
               x={x}

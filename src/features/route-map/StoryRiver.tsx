@@ -21,8 +21,8 @@ interface Props {
   journals: RiverJournal[];
   cities: RouteCity[];
   selectedId: string | null;
-  /** Locate a stop (by label) — the first click on a dimmed card. */
-  onSelect: (label: string) => void;
+  /** Locate a stop (by id) — the first click on a dimmed card. */
+  onSelect: (id: string) => void;
   t: Record<string, string>;
   locale: Locale;
 }
@@ -131,7 +131,7 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
                   if (armed) return;
                   e.preventDefault();
                   setArmedSlug(j.slug);
-                  if (!lit) onSelect(cityLabel);
+                  if (!lit) onSelect(j.city);
                 }}
                 className={`group absolute top-4 w-[104px] bg-surface-card cursor-pointer transition-opacity duration-300 ${
                   lit ? '' : 'opacity-40 hover:opacity-100'

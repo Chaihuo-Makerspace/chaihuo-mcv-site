@@ -95,7 +95,7 @@ function loadStops(stopsDir) {
 // 按 order 倒序排列，延续“靠后的站点优先、A→B 归目的地”的约定。
 // 新增站点无需再手工登记，同步时自动生效。
 export function loadStopCityKeywords(stopsDir = STOPS_DIR) {
-  return loadStops(stopsDir).map((stop) => [stop.id, [stop.label]]);
+  return loadStops(stopsDir).map((stop) => [stop.id, [stop.label], { date: stop.eventDate }]);
 }
 
 // 站点坐标（同样按 order 倒序），供地理编码兜底就近归并。
@@ -170,11 +170,29 @@ export function nearestStopId(lng, lat, stops, maxKm = 100) {
 }
 
 export function inferCityId(title, stopKeywords = loadStopCityKeywords()) {
-  // 手工别名表优先（归并规则不可从站点名推导），其后是站点主名。
-  for (const [cityId, keywords] of [...CITY_KEYWORDS, ...stopKeywords]) {
-    if (keywords.some((keyword) => title.includes(keyword))) return cityId;
+  const entries = [...CITY_KEYWORDS, ...stopKeywords];
+  const journalDate = parseJournalDate(title);
+
+  const choose = (text) => {
+    const matches = entries.filter(([, keywords]) =>
+      keywords.some((keyword) => text.includes(keyword)),
+    );
+    if (matches.length === 0) return null;
+    if (!journalDate) return matches[0][0];
+
+    const dated = matches
+      .filter((entry) => entry[2]?.date && entry[2].date <= journalDate)
+      .sort((a, b) => b[2].date.localeCompare(a[2].date));
+    return (dated[0] ?? matches[0])[0];
+  };
+
+  // 中转标题优先按最后一个地名(目的地)归属，再回退到全文关键词。
+  const destination = extractRouteTokens(title).at(-1);
+  if (destination) {
+    const cityId = choose(destination);
+    if (cityId) return cityId;
   }
-  return 'yuque';
+  return choose(title) ?? 'yuque';
 }
 
 export function normalizeYuqueToc(toc, { namespace }) {

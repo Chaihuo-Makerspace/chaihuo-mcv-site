@@ -62,7 +62,7 @@ export default function CityPanel({
   t: Record<string, string>;
   locale?: Locale;
   hero?: boolean;
-  onSelectCity?: (label: string) => void;
+  onSelectCity?: (id: string) => void;
   onClose?: () => void;
   /** Desktop only: shrink the panel to a vertical strip, keeping the city selected. */
   onCollapse?: () => void;
@@ -136,7 +136,7 @@ export default function CityPanel({
             <button
               type="button"
               disabled={!prev}
-              onClick={() => prev && onSelectCity?.(prev.label)}
+              onClick={() => prev && onSelectCity?.(prev.id)}
               className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-0 transition-colors duration-200 cursor-pointer"
             >
               <ChevronLeft className="h-3 w-3" />
@@ -151,7 +151,7 @@ export default function CityPanel({
               {legCounter && <span className="tabular-nums">{legCounter}</span>}
               <button
                 type="button"
-                onClick={() => next && onSelectCity?.(next.label)}
+                onClick={() => next && onSelectCity?.(next.id)}
                 disabled={!next}
                 className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-0 transition-colors duration-200 cursor-pointer"
               >

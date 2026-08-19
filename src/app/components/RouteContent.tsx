@@ -60,7 +60,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
 
   // Panel starts closed: the map's current-position pulse carries "where are
   // we now"; the panel opens on pin/marker/river click.
-  const [selectedCityKey, setSelectedCityKey] = useState<string | null>(null);
+  const [selectedCityId, setSelectedCityId] = useState<string | null>(null);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   const [activeTheme, setActiveTheme] = useState<ThemeType | null>(null);
@@ -68,8 +68,8 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   const themeCounts = useMemo(() => countThemes(visibleCities), [visibleCities]);
 
   const selectedCity = useMemo(
-    () => visibleCities.find((c) => c.label === selectedCityKey) ?? null,
-    [visibleCities, selectedCityKey],
+    () => visibleCities.find((c) => c.id === selectedCityId) ?? null,
+    [visibleCities, selectedCityId],
   );
   const fitPadding = !selectedCity
     ? FIT_PADDING_NO_PANEL
@@ -92,14 +92,14 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  const handleCitySelect = useCallback((key: string) => {
-    setSelectedCityKey(key);
+  const handleCitySelect = useCallback((id: string) => {
+    setSelectedCityId(id);
     setIsPanelCollapsed(false);
     // Auto expand drawer on mobile when clicking a city
     setIsDrawerExpanded(true);
   }, []);
   const clearSelection = useCallback(() => {
-    setSelectedCityKey(null);
+    setSelectedCityId(null);
     setIsPanelCollapsed(false);
   }, []);
 
@@ -262,7 +262,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
         <div className="mt-4 h-[45vh] min-h-[300px] w-full lg:absolute lg:inset-0 lg:mt-0 lg:h-auto lg:min-h-0 lg:z-0">
           <MapLibreCanvas
             cities={cities}
-            selectedKey={selectedCityKey}
+            selectedKey={selectedCityId}
             onSelect={handleCitySelect}
             activeTheme={activeTheme}
             journals={journals}
@@ -281,7 +281,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
               city={selectedCity}
               cities={visibleCities}
               totalLegs={visibleCities.length - 1}
-              isLatest={selectedCity.label === lastVisited?.label}
+              isLatest={selectedCity.id === lastVisited?.id}
               t={t}
               locale={locale}
               hero={false}
@@ -397,7 +397,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
                   <span className="inline-flex rounded border border-neutral-300/50 bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-700">
                     {getT('route.status.origin', '出发点')}
                   </span>
-                ) : selectedCity.label === lastVisited?.label ? (
+                ) : selectedCity.id === lastVisited?.id ? (
                   <span className="inline-flex items-center gap-1 rounded bg-brand px-2.5 py-1 text-[10px] font-bold tracking-wider text-brand-foreground">
                     {getT('route.status.latest', '最新')}
                   </span>
@@ -420,7 +420,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
               city={selectedCity}
               cities={visibleCities}
               totalLegs={visibleCities.length - 1}
-              isLatest={selectedCity.label === lastVisited?.label}
+              isLatest={selectedCity.id === lastVisited?.id}
               t={t}
               locale={locale}
               hero={false}

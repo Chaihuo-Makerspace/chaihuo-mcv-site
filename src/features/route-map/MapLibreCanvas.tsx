@@ -381,13 +381,13 @@ export default function MapLibreCanvas({
           el.appendChild(label);
           el.addEventListener('click', (e) => {
             e.stopPropagation();
-            onSelectRef.current(city.label);
+            onSelectRef.current(city.id);
           });
           new maplibregl.Marker({ element: el, anchor: 'center' })
             .setLngLat([city.lng, city.lat])
             .addTo(map);
           markers.push(el);
-          els.set(city.label, el);
+          els.set(city.id, el);
           labels.set(city.id, label);
 
           // Photo pin — only for stops that actually produced journals.
@@ -427,7 +427,7 @@ export default function MapLibreCanvas({
             pinEl.appendChild(body);
             pinEl.addEventListener('click', (e) => {
               e.stopPropagation();
-              onSelectRef.current(city.label);
+              onSelectRef.current(city.id);
             });
             new maplibregl.Marker({ element: pinEl, anchor: 'center' })
               .setLngLat([city.lng, city.lat])
@@ -518,10 +518,10 @@ export default function MapLibreCanvas({
   // Selection: highlight the selected marker + ease the map to it.
   useEffect(() => {
     if (!ready) return;
-    for (const [label, el] of markerElsRef.current) {
-      el.classList.toggle('mlc-marker--selected', label === selectedKey);
+    for (const [id, el] of markerElsRef.current) {
+      el.classList.toggle('mlc-marker--selected', id === selectedKey);
     }
-    const city = selectedKey ? cities.find((c) => c.label === selectedKey) : null;
+    const city = selectedKey ? cities.find((c) => c.id === selectedKey) : null;
     for (const [id, el] of pinElsRef.current) {
       el.classList.toggle('mlc-pin--selected', !!city && id === city.id);
     }
@@ -558,7 +558,7 @@ export default function MapLibreCanvas({
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const key = selectedKeyRef.current;
-    const city = key ? citiesRef.current.find((c) => c.label === key) : null;
+    const city = key ? citiesRef.current.find((c) => c.id === key) : null;
     if (city) {
       mapRef.current.easeTo({
         center: [city.lng, city.lat],
