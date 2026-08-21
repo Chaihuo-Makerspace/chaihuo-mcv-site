@@ -27,6 +27,7 @@ const PROVINCE_SHORT: Record<string, { zh: string; en: string; enFull: string }>
   北京市: { zh: '京', en: 'BJ', enFull: 'Beijing' },
   吉林省: { zh: '吉', en: 'JL', enFull: 'Jilin' },
   黑龙江省: { zh: '黑', en: 'HL', enFull: 'Heilongjiang' },
+  辽宁省: { zh: '辽', en: 'LN', enFull: 'Liaoning' },
 };
 
 // Event dates come in loose formats: "2026.04.22", "2026.04.24 / 04.25", "2026.05.05–07".

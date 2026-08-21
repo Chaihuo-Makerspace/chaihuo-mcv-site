@@ -130,5 +130,17 @@
     "label": "长春",
     "label_en": "Changchun",
     "province": "吉林省"
+  },
+  "沈阳": {
+    "id": "shenyang",
+    "label": "沈阳",
+    "label_en": "Shenyang",
+    "province": "辽宁省"
+  },
+  "沈阳市": {
+    "id": "shenyang",
+    "label": "沈阳",
+    "label_en": "Shenyang",
+    "province": "辽宁省"
   }
 }
