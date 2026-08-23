@@ -58,3 +58,4 @@ history.
 | 2026-06-20 | fix/route-map-provinces | Updated route map visited provinces with full admin names, added Xizang/Qinghai/Xinjiang, adjusted fill color, and merged into main. |
 | 2026-06-26 | feature/add-karamay | Added Karamay (克拉玛依) stop to route map (order 25, zh/en content), synced province fill colors in RoutePreview.tsx, and merged into main. |
 | 2026-06-28 | dev | Added Urumqi (乌鲁木齐) stop to the route map after Karamay, updated route copy to 27 cities, and merged into main. |
+| 2026-08-23 | feat/live-videos | Added the 「路上的影像」 Bilibili film archive to `/live` (zh/en): `src/data/live-videos.json` + committed WebP covers, `LiveVideos.tsx` horizontal snap rail (3-up desktop, 1-up mobile) with portal iframe modal, placed above the featured carousel, which was renamed 「一路上」 → 「路上的瞬间」 (en: Along the Way → Moments from the Road). |
