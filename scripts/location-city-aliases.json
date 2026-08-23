@@ -142,5 +142,17 @@
     "label": "沈阳",
     "label_en": "Shenyang",
     "province": "辽宁省"
+  },
+  "天津": {
+    "id": "tianjin",
+    "label": "天津",
+    "label_en": "Tianjin",
+    "province": "天津市"
+  },
+  "天津市": {
+    "id": "tianjin",
+    "label": "天津",
+    "label_en": "Tianjin",
+    "province": "天津市"
   }
 }
