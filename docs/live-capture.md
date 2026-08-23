@@ -50,11 +50,13 @@ sees the EZVIZ credentials.
 
 ## Pages
 
-- `/live` is a public, in-nav, indexed page (zh/en) with two blocks only — the
-  live frame (dark "monitor" container, static status dot; the page's single
-  looping-animation budget goes to the carousel) and the 「一路上」 featured
-  carousel (auto-play, dates in mono, hidden entirely when empty). No downloads
-  and no archive browsing on the public page.
+- `/live` is a public, in-nav, indexed page (zh/en) with three blocks in this
+  order — the live frame (dark "monitor" container, static status dot; the
+  page's single looping-animation budget goes to the carousel), 「路上的影像」
+  (`LiveVideos.tsx`), the Bilibili film archive read from
+  `src/data/live-videos.json`, and the 「路上的瞬间」 featured carousel (auto-play,
+  dates in mono, hidden entirely when empty). No downloads and no archive
+  browsing on the public page.
 - `/live/admin` (zh-only, noindex) is the members' backend behind a shared
   password: env `LIVE_ADMIN_PASSWORD` on the web service (unset → admin shows
   "未启用"), HMAC-signed HttpOnly cookie session (7 days, derived from the
@@ -66,6 +68,27 @@ sees the EZVIZ credentials.
   un-feature moves to `featured/trash/`, restorable for 30 days), and original
   downloads (`/live/admin/file/<name>`). All `/live/archive/*` endpoints
   require the same session cookie.
+
+## Films (「路上的影像」)
+
+Past Bilibili videos are hand-curated in `src/data/live-videos.json` (newest
+first): `bvid`, `url`, `cover`, `date`, `duration` (seconds), plus
+`eyebrow`/`title`/`description` with `_en` mirrors resolved by `localize()` in
+the page frontmatter. Covers are committed WebP files under
+`public/live/videos/<bvid>.webp` (960×540, downloaded from the Bilibili API
+cover and converted — they are source assets, not generated derivatives), so
+the page never hotlinks `i*.hdslb.com`. Clicking a card opens a `createPortal`
+modal with the Bilibili iframe player (`player.bilibili.com/player.html`,
+`autoplay=0&danmaku=0`), Esc/backdrop close, body scroll lock, and a permanent
+「在 B 站观看」 external link for networks where the embed fails. The cards sit
+in one horizontal snap rail (three per view on desktop, one-and-a-peek on
+mobile) driven by native scroll plus prev/next buttons in the heading row, so
+the block keeps a fixed height however many films accumulate.
+
+To add a film: resolve the `b23.tv` short link to its `BV` id, read title /
+cover / duration / pubdate from
+`https://api.bilibili.com/x/web-interface/view?bvid=<BV>`, save the cover as
+960px WebP into `public/live/videos/`, and prepend the entry to the JSON.
 
 Design spec: `docs/superpowers/specs/2026-08-04-live-redesign-design.md`.
 
