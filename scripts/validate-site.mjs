@@ -406,6 +406,48 @@ function validateStructuredData() {
   return { routeCityIds, teamIds, equipmentIds };
 }
 
+function validateLiveVideos() {
+  const { videos } = readJson('src/data/live-videos.json');
+  check(Array.isArray(videos), 'live-videos.json: videos must be an array');
+  if (!Array.isArray(videos)) return;
+
+  const seen = new Set();
+  let previousDate = null;
+
+  for (const video of videos) {
+    const label = `live-videos.json:${video.bvid ?? '(no bvid)'}`;
+    check(/^BV[0-9A-Za-z]{10}$/.test(video.bvid ?? ''), `${label}: bvid is not a BV id`);
+    check(!seen.has(video.bvid), `${label}: duplicate bvid`);
+    seen.add(video.bvid);
+
+    check(
+      video.url === `https://www.bilibili.com/video/${video.bvid}`,
+      `${label}: url must be https://www.bilibili.com/video/<bvid>`,
+    );
+    check(
+      video.cover === `/live/videos/${video.bvid}.webp`,
+      `${label}: cover must be /live/videos/<bvid>.webp`,
+    );
+    check(publicAssetExists(video.cover), `${label}: missing public cover ${video.cover}`);
+    check(isDateString(video.date ?? ''), `${label}: date must be YYYY-MM-DD`);
+    check(
+      Number.isInteger(video.duration) && video.duration > 0,
+      `${label}: duration must be a positive integer (seconds)`,
+    );
+
+    for (const field of ['eyebrow', 'title', 'description']) {
+      check(Boolean(video[field]), `${label}: missing zh ${field}`);
+      check(Boolean(video[`${field}_en`]), `${label}: missing en ${field}_en`);
+    }
+
+    // 页面按数组顺序渲染，倒序排列由校验兜底，避免手工插入插错位置
+    if (previousDate && isDateString(video.date ?? '')) {
+      check(video.date <= previousDate, `${label}: entries must be ordered newest first`);
+    }
+    if (isDateString(video.date ?? '')) previousDate = video.date;
+  }
+}
+
 function validateJournals({ routeCityIds, teamIds, equipmentIds }) {
   const journalFiles = walkFiles(path.join(root, 'src/content/journals'), (file) =>
     file.endsWith('.md'),
@@ -450,6 +492,7 @@ function validateJournals({ routeCityIds, teamIds, equipmentIds }) {
 
 compareLocaleDictionaries();
 validateRouteMirrors();
+validateLiveVideos();
 validateJournals(validateStructuredData());
 
 if (failures.length > 0) {

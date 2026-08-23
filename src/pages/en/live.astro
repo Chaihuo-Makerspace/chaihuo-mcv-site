@@ -3,7 +3,10 @@
 // Public page: in navigation, indexable.
 import FeaturedCarousel from '@/app/components/FeaturedCarousel';
 import LiveContent from '@/app/components/LiveContent';
+import LiveVideos from '@/app/components/LiveVideos';
+import videoData from '@/data/live-videos.json';
 import type { Locale } from '@/i18n/index';
+import { localize } from '@/i18n/index';
 import liveDict from '@/i18n/live';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { listActiveFeatured, readLiveMeta } from '@/lib/live';
@@ -12,6 +15,9 @@ const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = liveDict[locale];
 const meta = readLiveMeta();
 const featured = listActiveFeatured();
+const videos = videoData.videos.map((video) =>
+  localize(video, ['eyebrow', 'title', 'description'], locale),
+);
 ---
 
 <BaseLayout title={t['title']} description={t['description']}>
@@ -22,6 +28,7 @@ const featured = listActiveFeatured();
     initialMeta={meta}
     intervalMinutes={meta?.intervalMinutes ?? 3}
   />
+  <LiveVideos client:visible locale={locale} t={t} videos={videos} />
   {featured.length > 0 && (
     <FeaturedCarousel client:visible locale={locale} t={t} entries={featured} />
   )}
