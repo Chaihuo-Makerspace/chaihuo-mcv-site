@@ -1,0 +1,47 @@
+name: Sync Live Videos
+
+on:
+  schedule:
+    # Check the Feishu Base every 10 minutes. GitHub may delay scheduled runs during peak load.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Reads 状态=已发布 records from the Feishu Base, regenerates
+      # src/data/live-videos.json (排序 asc, then date desc) and fetches
+      # missing Bilibili covers into public/live/videos/.
+      - name: Sync live videos from Feishu Base
+        id: sync
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+        run: node scripts/sync-live-videos.mjs
+
+      # The script reports what it did as a `summary` output, e.g.
+      # "新增路上视频《生物老师跨界玩数字制造》".
+      - name: Commit synced data
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: ${{ steps.sync.outputs.summary }}
+          file_pattern: src/data/live-videos.json public/live/videos/*

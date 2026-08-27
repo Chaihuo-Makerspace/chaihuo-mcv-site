@@ -412,7 +412,6 @@ function validateLiveVideos() {
   if (!Array.isArray(videos)) return;
 
   const seen = new Set();
-  let previousDate = null;
 
   for (const video of videos) {
     const label = `live-videos.json:${video.bvid ?? '(no bvid)'}`;
@@ -440,11 +439,7 @@ function validateLiveVideos() {
       check(Boolean(video[`${field}_en`]), `${label}: missing en ${field}_en`);
     }
 
-    // 页面按数组顺序渲染，倒序排列由校验兜底，避免手工插入插错位置
-    if (previousDate && isDateString(video.date ?? '')) {
-      check(video.date <= previousDate, `${label}: entries must be ordered newest first`);
-    }
-    if (isDateString(video.date ?? '')) previousDate = video.date;
+    // 顺序由飞书多维表格的「排序」字段决定（sync-live-videos.mjs 生成），不再校验日期倒序
   }
 }
 

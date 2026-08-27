@@ -1,6 +1,19 @@
 {
   "videos": [
     {
+      "bvid": "BV1JmKG6nE3J",
+      "url": "https://www.bilibili.com/video/BV1JmKG6nE3J",
+      "cover": "/live/videos/BV1JmKG6nE3J.webp",
+      "date": "2026-07-16",
+      "duration": 392,
+      "eyebrow": "G318 · 川藏线",
+      "eyebrow_en": "G318 · Sichuan–Tibet",
+      "title": "把科技带向远方",
+      "title_en": "Taking Technology Far",
+      "description": "不断遇见，不断帮助，基地车 G318 之旅留下的精彩瞬间。",
+      "description_en": "Meeting people, lending a hand: highlights from the vehicle's journey along the G318."
+    },
+    {
       "bvid": "BV1sF3f6qE5a",
       "url": "https://www.bilibili.com/video/BV1sF3f6qE5a",
       "cover": "/live/videos/BV1sF3f6qE5a.webp",
@@ -38,19 +51,6 @@
       "title_en": "When AI Reaches Xinjiang",
       "description": "AI 走进果园，机器人帮着采摘、管理与监测，科技从实验室进入田间地头。",
       "description_en": "AI enters the orchards: robots help with picking, management and monitoring, moving technology from the lab into the fields."
-    },
-    {
-      "bvid": "BV1JmKG6nE3J",
-      "url": "https://www.bilibili.com/video/BV1JmKG6nE3J",
-      "cover": "/live/videos/BV1JmKG6nE3J.webp",
-      "date": "2026-07-16",
-      "duration": 392,
-      "eyebrow": "G318 · 川藏线",
-      "eyebrow_en": "G318 · Sichuan–Tibet",
-      "title": "把科技带向远方",
-      "title_en": "Taking Technology Far",
-      "description": "不断遇见，不断帮助，基地车 G318 之旅留下的精彩瞬间。",
-      "description_en": "Meeting people, lending a hand: highlights from the vehicle's journey along the G318."
     }
   ]
 }

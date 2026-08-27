@@ -135,6 +135,8 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 
 **Yuque journal sync:** `Sync Yuque Journals` GitHub Actions workflow syncs visible, publicly accessible Yuque `DOC` entries from `https://www.yuque.com/mouseart/mcv` every 10 minutes and via manual dispatch, then commits back to `main` (triggering Jenkins deploy). Inaccessible 401/403 docs are skipped. City inference attaches journals to route stops via auto-derived stop labels + an alias table + dateline/geocoding fallbacks. Details: `docs/deployment-yuque-sync.md`.
 
+**Live videos sync:** `src/data/live-videos.json` is generated from the Feishu Base [基地车路上视频](https://seeedstudio.feishu.cn/base/EpPpbh8ndaHS1asFeCgcyp0Fnse) (table 路上视频) by `scripts/sync-live-videos.mjs` via the `Sync Live Videos` workflow (every 10 min + manual dispatch). Only 状态=已发布 records sync; BVID is a Base formula extracted from the pasted bilibili URL; order comes from the 排序 field (larger first), then date desc; missing covers are fetched from the Bilibili API as 960px WebP. Do not hand-edit `live-videos.json` — edit the Base. Needs `FEISHU_APP_ID`/`FEISHU_APP_SECRET` secrets (tenant app with base read scope, added as Base collaborator).
+
 **Production deployment debugging:** Production is served through Tengine/CDN and Jenkins, not Cloudflare Workers — ignore GitHub's Cloudflare Workers/Pages check; it is not the source of truth for `mcv.chaihuo.org`. If production is stale, check GitHub webhook deliveries for the Jenkins queue item, then inspect Jenkins job `chaihuo-chaihuo-mcv-site`. See `docs/deployment-yuque-sync.md`.
 
 **Docker pnpm version:** Docker pins `pnpm@11.5.0`. Do not use `pnpm@latest` in Docker because pnpm lockfile validation can change across versions. If `pnpm-workspace.yaml` overrides change, regenerate and verify the lockfile with `corepack pnpm@11.5.0 install --lockfile-only --no-frozen-lockfile` and `corepack pnpm@11.5.0 install --frozen-lockfile --lockfile-only`.
@@ -148,6 +150,7 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 - Interactive elements must have `cursor-pointer` and `transition-colors duration-200`
 - Navigation and Footer receive `locale` prop; internal links use `localePath()` helper
 - `src/app/components/ui/` — shadcn/ui components — **do not modify manually**
+- **Data authority rule:** repo data files split into two kinds — *generated artifacts* (`src/data/live-videos.json`, `src/data/yuque-journals.json`; source of truth is the Feishu Base / Yuque, overwritten by sync, **never hand-edit**) and *human sources* (`team.json`, `equipment.json`, `faq.json`, stops, etc.; edited via PR as usual). Agents may freely change presentation/layout/components; for synced datasets they are read-only. Schema changes (new field) must update all three together: Feishu/Yuque column + sync script mapping + component.
 
 ## Detailed Docs
 
