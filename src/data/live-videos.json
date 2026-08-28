@@ -2,6 +2,20 @@
   "videos": [
     {
       "platform": "bilibili",
+      "id": "BV1r38v62EXG",
+      "url": "https://www.bilibili.com/video/BV1r38v62EXG",
+      "cover": "/live/videos/BV1r38v62EXG.webp",
+      "date": "2026-08-25",
+      "duration": 109,
+      "eyebrow": "共创者",
+      "eyebrow_en": "Makers",
+      "title": "志愿者说：从工程师到教师，技术一直在路上",
+      "title_en": "From Engineer to Teacher, My Journey in Technology Continues.",
+      "description": "西安—呼和浩特段的技术担当是矽递前员工。身份在变，对技术的热爱未变",
+      "description_en": "The person in charge of technology for the Xi'an–Hohhot route is a former Seeed Studio engineer. While the job title may have changed, the love for technology has never wavered."
+    },
+    {
+      "platform": "bilibili",
       "id": "BV1sF3f6qE5a",
       "url": "https://www.bilibili.com/video/BV1sF3f6qE5a",
       "cover": "/live/videos/BV1sF3f6qE5a.webp",

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // 从飞书多维表格同步「路上视频」到 src/data/live-videos.json，支持 B 站和抖音两个平台。
 // 数据源：https://seeedstudio.feishu.cn/base/EpPpbh8ndaHS1asFeCgcyp0Fnse （表「路上视频」）
-// 只同步「状态 = 已发布」的记录；「排序」越大越靠前，留空按发布日期倒序。
+// 无发布闸门：必填字段齐全的记录即同步；不完整的跳过并报警。「排序」越大越靠前，留空按发布日期倒序。
 // 平台差异：
 //   B 站 — 封面/时长缺了走 B 站公开接口自动补；表里传了「封面」附件则优先用附件。
 //   抖音 — 没有可用的公开接口：封面必须走表里的「封面」附件，「时长(秒)」必须手填；
@@ -114,11 +114,10 @@ async function resolveShortLink(url) {
 }
 
 // 返回 entry 或 null；抖音短链需要联网解析，所以是 async
+// 没有「状态」闸门：必填字段齐全即为可发布，不完整的记录跳过并报警
 async function toVideo(record, warnings) {
   const f = record.fields ?? {};
   const url = asText(f['视频链接']);
-  const status = asText(f['状态']);
-  if (status !== '已发布') return null;
 
   const platform = detectPlatform(url);
   if (!platform) {
@@ -341,11 +340,11 @@ for (const record of records) {
 }
 sortVideos(videos);
 for (const warning of warnings) console.warn(`[sync] ${warning}`);
-console.log(`[sync] 已发布视频 ${videos.length} 条（表中记录共 ${records.length} 条）`);
+console.log(`[sync] 可同步视频 ${videos.length} 条（表中记录共 ${records.length} 条）`);
 
 // 表里有记录但一条都同步不出来，多半是字段结构变了或数据源异常——宁可失败也不清空 JSON
 if (videos.length === 0 && records.length > 0) {
-  console.error('[sync] 已发布记录全部被跳过，疑似字段结构变化，放弃写入');
+  console.error('[sync] 所有记录均被跳过，疑似字段结构变化，放弃写入');
   process.exit(1);
 }
 
