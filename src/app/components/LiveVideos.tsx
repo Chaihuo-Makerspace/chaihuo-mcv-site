@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogTitle } from '@/app/components/ui/dialog';
 import type { Locale } from '@/i18n/index';
 
 export interface LiveVideo {
-  bvid: string;
+  platform: 'bilibili' | 'douyin';
+  /** bilibili 为 BV 号，douyin 为数字视频 ID */
+  id: string;
   url: string;
   cover: string;
   /** YYYY-MM-DD */
@@ -115,20 +117,9 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
           onScroll={syncEdges}
           className="mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {videos.map((video) => (
-            <li
-              key={video.bvid}
-              className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
-            >
-              <button
-                type="button"
-                onClick={(event) => {
-                  openerRef.current = event.currentTarget;
-                  setPlaying(video);
-                }}
-                aria-label={fill(t['videos.play'], { title: video.title })}
-                className="group block w-full cursor-pointer text-left transition-colors duration-200"
-              >
+          {videos.map((video) => {
+            const cardInner = (
+              <>
                 <div className="relative overflow-hidden rounded-lg border border-neutral-300 bg-surface-card">
                   <img
                     src={video.cover}
@@ -158,9 +149,41 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                   {video.title}
                 </h3>
                 <p className="mt-2 text-neutral-700">{video.description}</p>
-              </button>
-            </li>
-          ))}
+              </>
+            );
+
+            return (
+              <li
+                key={`${video.platform}-${video.id}`}
+                className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+              >
+                {/* 抖音没有稳定的官方嵌入播放器，卡片直接外链（移动端可唤起 App） */}
+                {video.platform === 'douyin' ? (
+                  <a
+                    href={video.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={fill(t['videos.watchDouyin'], { title: video.title })}
+                    className="group block w-full cursor-pointer text-left transition-colors duration-200"
+                  >
+                    {cardInner}
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      openerRef.current = event.currentTarget;
+                      setPlaying(video);
+                    }}
+                    aria-label={fill(t['videos.play'], { title: video.title })}
+                    className="group block w-full cursor-pointer text-left transition-colors duration-200"
+                  >
+                    {cardInner}
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
 
@@ -190,9 +213,9 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
 
             <div className="overflow-hidden rounded-lg">
               <iframe
-                key={playing.bvid}
+                key={playing.id}
                 title={playing.title}
-                src={`https://player.bilibili.com/player.html?bvid=${playing.bvid}&autoplay=0&danmaku=0&high_quality=1`}
+                src={`https://player.bilibili.com/player.html?bvid=${playing.id}&autoplay=0&danmaku=0&high_quality=1`}
                 allowFullScreen
                 referrerPolicy="no-referrer"
                 sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"

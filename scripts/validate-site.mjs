@@ -414,19 +414,36 @@ function validateLiveVideos() {
   const seen = new Set();
 
   for (const video of videos) {
-    const label = `live-videos.json:${video.bvid ?? '(no bvid)'}`;
-    check(/^BV[0-9A-Za-z]{10}$/.test(video.bvid ?? ''), `${label}: bvid is not a BV id`);
-    check(!seen.has(video.bvid), `${label}: duplicate bvid`);
-    seen.add(video.bvid);
+    const label = `live-videos.json:${video.platform ?? '(no platform)'}:${video.id ?? '(no id)'}`;
+    check(
+      video.platform === 'bilibili' || video.platform === 'douyin',
+      `${label}: platform must be bilibili or douyin`,
+    );
+    const key = `${video.platform}:${video.id}`;
+    check(!seen.has(key), `${label}: duplicate video`);
+    seen.add(key);
 
-    check(
-      video.url === `https://www.bilibili.com/video/${video.bvid}`,
-      `${label}: url must be https://www.bilibili.com/video/<bvid>`,
-    );
-    check(
-      video.cover === `/live/videos/${video.bvid}.webp`,
-      `${label}: cover must be /live/videos/<bvid>.webp`,
-    );
+    if (video.platform === 'bilibili') {
+      check(/^BV[0-9A-Za-z]{10}$/.test(video.id ?? ''), `${label}: id is not a BV id`);
+      check(
+        video.url === `https://www.bilibili.com/video/${video.id}`,
+        `${label}: url must be https://www.bilibili.com/video/<bvid>`,
+      );
+      check(
+        video.cover === `/live/videos/${video.id}.webp`,
+        `${label}: cover must be /live/videos/<bvid>.webp`,
+      );
+    } else if (video.platform === 'douyin') {
+      check(/^\d{6,}$/.test(video.id ?? ''), `${label}: id is not a douyin numeric id`);
+      check(
+        video.url === `https://www.douyin.com/video/${video.id}`,
+        `${label}: url must be https://www.douyin.com/video/<id>`,
+      );
+      check(
+        video.cover === `/live/videos/douyin-${video.id}.webp`,
+        `${label}: cover must be /live/videos/douyin-<id>.webp`,
+      );
+    }
     check(publicAssetExists(video.cover), `${label}: missing public cover ${video.cover}`);
     check(isDateString(video.date ?? ''), `${label}: date must be YYYY-MM-DD`);
     check(
