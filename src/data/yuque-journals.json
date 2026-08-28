@@ -3,7 +3,7 @@
     "name": "柴火基地车车长日记",
     "namespace": "mouseart/mcv",
     "url": "https://www.yuque.com/mouseart/mcv",
-    "syncedAt": "2026-08-27T15:18:28.677Z",
+    "syncedAt": "2026-08-28T11:39:39.529Z",
     "intervalMinutes": 10
   },
   "journals": [
@@ -305,7 +305,7 @@
       "city": "xian",
       "href": "https://www.yuque.com/mouseart/mcv/xvd2shgug2f7sq9q",
       "updatedAt": "2026-08-27T12:24:13.073Z",
-      "coverImage": "/yuque-journals/xvd2shgug2f7sq9q.jpg"
+      "coverImage": null
     },
     {
       "id": "279188942",
