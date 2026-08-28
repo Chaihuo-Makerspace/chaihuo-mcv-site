@@ -2,9 +2,11 @@
 export const prerender = true;
 
 import HomeContent from '@/app/components/HomeContent';
+import type { LiveVideo } from '@/app/components/LiveVideos';
 import { PROJECT_END, PROJECT_START } from '@/config/project';
 import boardingsData from '@/data/boardings.json';
 import heroesData from '@/data/heroes.json';
+import videosData from '@/data/live-videos.json';
 import partnersData from '@/data/partners.json';
 import pressData from '@/data/press.json';
 import projectIntroData from '@/data/project-intro.json';
@@ -13,6 +15,7 @@ import { buildRouteLegs } from '@/features/route-map/route-legs';
 import { loadLocalizedStops } from '@/features/route-map/stops-loader';
 import home from '@/i18n/home';
 import type { Locale } from '@/i18n/index';
+import { localize } from '@/i18n/index';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { createDerivativeResolver } from '@/lib/derivatives';
 import { withAvatarDerivatives } from '@/lib/people';
@@ -63,6 +66,11 @@ const heroImages = heroesData.map((h) => ({ ...h, imageMobile: heroMobile(h.imag
 const firstHero = heroImages[0];
 
 const cities = await loadLocalizedStops(locale);
+
+// 首页「路上的故事」视频条（飞书 Base 同步产物，scripts/sync-live-videos.mjs）
+const videos = videosData.videos.map((video) =>
+  localize(video, ['eyebrow', 'title', 'description'], locale),
+) as LiveVideo[];
 
 // Island payload:HomeContent/RoutePreview 只读地图几何与当前站点事实卡字段,
 // 事件/人物/散文等完整 Stop 数据不出服务端(timeline legs 仍用完整 cities)
@@ -172,6 +180,9 @@ const projectJsonLd = {
   {/* 首屏 LCP:只预加载第一张轮播图,按视口宽度各取桌面/移动派生 */}
   <link slot="head" rel="preload" as="image" href={firstHero.image} media="(min-width: 768px)" />
   <link slot="head" rel="preload" as="image" href={firstHero.imageMobile} media="(max-width: 767.98px)" />
+  {/* B 站弹层播放器：提前握手，点开少等一个连接建立 */}
+  <link slot="head" rel="preconnect" href="https://player.bilibili.com" crossorigin />
+  <link slot="head" rel="dns-prefetch" href="https://player.bilibili.com" />
   <HomeContent
     client:load
     cities={islandCities}
@@ -179,6 +190,7 @@ const projectJsonLd = {
     timeline={timeline}
     press={press}
     partners={partners}
+    videos={videos}
     locale={locale}
     t={t}
   />

@@ -64,6 +64,13 @@ const home: Record<Locale, Record<string, string>> = {
     'lab.spaceDesc':
       '车里有工作台，能坐下几个人。开到哪就请当地人上车看看、试试、聊聊，他们比我们更懂什么技术有用。',
 
+    'videos.title': '路上的故事',
+    'videos.subtitle': '走过的地方、遇见的人，被剪成了片子',
+    'videos.play': '播放《{title}》',
+    'videos.external': '在 B 站观看',
+    'videos.prev': '上一支',
+    'videos.next': '下一支',
+
     'cta.label': '旅途日记',
     'press.label': '媒体报道',
     'press.cat.gov': '政府报道',
@@ -142,6 +149,13 @@ const home: Record<Locale, Record<string, string>> = {
     'lab.spaceTitle': 'Open Lab Space',
     'lab.spaceDesc':
       'A workbench that seats a few people. We pull into a village, invite people aboard to look, try, and talk. They know better what technology is actually useful.',
+
+    'videos.title': 'Stories from the Road',
+    'videos.subtitle': 'The places we drove through and the people we met, cut into short films',
+    'videos.play': 'Play {title}',
+    'videos.external': 'Watch on Bilibili',
+    'videos.prev': 'Previous film',
+    'videos.next': 'Next film',
 
     'cta.label': 'Journals',
     'press.label': 'Media Coverage',

@@ -4,15 +4,12 @@ import { Dialog, DialogContent, DialogTitle } from '@/app/components/ui/dialog';
 import type { Locale } from '@/i18n/index';
 
 export interface LiveVideo {
-  platform: 'bilibili' | 'douyin';
-  /** bilibili 为 BV 号，douyin 为数字视频 ID */
-  id: string;
+  /** B 站 BV 号 */
+  bvid: string;
   url: string;
   cover: string;
   /** YYYY-MM-DD */
   date: string;
-  /** 秒 */
-  duration: number;
   eyebrow: string;
   title: string;
   description: string;
@@ -28,12 +25,6 @@ function fill(template: string, vars: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => vars[key] ?? '');
 }
 
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
 /** '2026-07-28' → zh '2026.07.28' / en 'Jul 28, 2026'（正午取值避免时区跨界） */
 function formatDate(date: string, locale: Locale): string {
   if (locale === 'zh') return date.replaceAll('-', '.');
@@ -47,11 +38,23 @@ function formatDate(date: string, locale: Locale): string {
 
 export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps) {
   const [playing, setPlaying] = useState<LiveVideo | null>(null);
+  // B 站播放器是重 JS 应用，冷启动慢：弹层打开后等 iframe load 再撤掉封面海报
+  const [playerReady, setPlayerReady] = useState(false);
+  // 空闲时用一个隐藏 iframe 预热播放器的共享 JS/CSS，首次点开弹层就不再是冷启动
+  const [warmPlayer, setWarmPlayer] = useState(false);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const railRef = useRef<HTMLUListElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const schedule =
+      window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 2000));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const id = schedule(() => setWarmPlayer(true));
+    return () => cancel(id as number);
+  }, []);
 
   // 横向轨道：两端到底时禁用对应箭头（移动端直接滑，不占纵向长度）
   const syncEdges = useCallback(() => {
@@ -82,8 +85,8 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
   if (videos.length === 0) return null;
 
   return (
-    <section className="bg-surface">
-      <div className="mx-auto max-w-6xl px-6 pb-16">
+    <section className="bg-neutral-50">
+      <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="flex items-end justify-between gap-6">
           <div>
             <h2>{t['videos.title']}</h2>
@@ -117,9 +120,21 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
           onScroll={syncEdges}
           className="mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {videos.map((video) => {
-            const cardInner = (
-              <>
+          {videos.map((video) => (
+            <li
+              key={video.bvid}
+              className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+            >
+              <button
+                type="button"
+                onClick={(event) => {
+                  openerRef.current = event.currentTarget;
+                  setPlayerReady(false);
+                  setPlaying(video);
+                }}
+                aria-label={fill(t['videos.play'], { title: video.title })}
+                className="group block w-full cursor-pointer text-left transition-colors duration-200"
+              >
                 <div className="relative overflow-hidden rounded-lg border border-neutral-300 bg-surface-card">
                   <img
                     src={video.cover}
@@ -129,14 +144,12 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                     height={540}
                     className="block aspect-video w-full object-cover"
                   />
-                  {/* 悬停/聚焦时压暗封面，黄只落在播放键这一小块 */}
-                  <span className="absolute inset-0 flex items-center justify-center bg-neutral-950/0 transition-colors duration-200 group-hover:bg-neutral-950/30 group-focus-visible:bg-neutral-950/30">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-card/90 text-neutral-900 transition-colors duration-200 group-hover:bg-brand group-focus-visible:bg-brand">
+                  {/* 常态封面完全干净；悬停/聚焦时压暗，中央大播放钮淡入变黄（黄只落在这一小块） */}
+                  <span className="absolute inset-0 bg-neutral-950/0 transition-colors duration-200 group-hover:bg-neutral-950/30 group-focus-visible:bg-neutral-950/30" />
+                  <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-brand-foreground">
                       <PlayIcon className="ml-0.5 h-5 w-5 fill-current" />
                     </span>
-                  </span>
-                  <span className="absolute right-2 bottom-2 rounded bg-neutral-950/75 px-1.5 py-0.5 font-mono text-xs text-neutral-50">
-                    {formatDuration(video.duration)}
                   </span>
                 </div>
 
@@ -149,41 +162,9 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                   {video.title}
                 </h3>
                 <p className="mt-2 text-neutral-700">{video.description}</p>
-              </>
-            );
-
-            return (
-              <li
-                key={`${video.platform}-${video.id}`}
-                className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
-              >
-                {/* 抖音没有稳定的官方嵌入播放器，卡片直接外链（移动端可唤起 App） */}
-                {video.platform === 'douyin' ? (
-                  <a
-                    href={video.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={fill(t['videos.watchDouyin'], { title: video.title })}
-                    className="group block w-full cursor-pointer text-left transition-colors duration-200"
-                  >
-                    {cardInner}
-                  </a>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      openerRef.current = event.currentTarget;
-                      setPlaying(video);
-                    }}
-                    aria-label={fill(t['videos.play'], { title: video.title })}
-                    className="group block w-full cursor-pointer text-left transition-colors duration-200"
-                  >
-                    {cardInner}
-                  </button>
-                )}
-              </li>
-            );
-          })}
+              </button>
+            </li>
+          ))}
         </ul>
       </div>
 
@@ -211,15 +192,23 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
           >
             <DialogTitle className="pr-8 font-normal text-base">{playing.title}</DialogTitle>
 
-            <div className="overflow-hidden rounded-lg">
+            {/* 播放器加载期间封面海报盖在 iframe 上面顶住（player.html 会早早刷黑底），load 后再淡出 */}
+            <div className="relative aspect-video overflow-hidden rounded-lg bg-neutral-950">
               <iframe
-                key={playing.id}
+                key={playing.bvid}
                 title={playing.title}
-                src={`https://player.bilibili.com/player.html?bvid=${playing.id}&autoplay=0&danmaku=0&high_quality=1`}
+                src={`https://player.bilibili.com/player.html?bvid=${playing.bvid}&autoplay=1&danmaku=0&high_quality=1`}
+                allow="autoplay; fullscreen"
                 allowFullScreen
                 referrerPolicy="no-referrer"
                 sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"
-                className="block aspect-video w-full border-0"
+                onLoad={() => setPlayerReady(true)}
+                className="absolute inset-0 block h-full w-full border-0"
+              />
+              <img
+                src={playing.cover}
+                alt=""
+                className={`pointer-events-none absolute inset-0 z-10 h-full w-full object-cover transition-opacity duration-500 ${playerReady ? 'opacity-0' : 'opacity-100'}`}
               />
             </div>
 
@@ -236,6 +225,17 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
           </DialogContent>
         )}
       </Dialog>
+
+      {/* 隐藏预热帧：只加载播放器共享资源（autoplay=0），1px 不可见也不拦截交互 */}
+      {warmPlayer && videos.length > 0 && (
+        <iframe
+          aria-hidden="true"
+          tabIndex={-1}
+          title={t['videos.title']}
+          src={`https://player.bilibili.com/player.html?bvid=${videos[0].bvid}&autoplay=0`}
+          className="pointer-events-none absolute h-px w-px opacity-0"
+        />
+      )}
     </section>
   );
 }

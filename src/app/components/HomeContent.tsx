@@ -24,6 +24,7 @@ import {
   springTransition,
   stagger,
 } from '../components/motion';
+import LiveVideos, { type LiveVideo } from './LiveVideos';
 import RoleTimeline from './RoleTimeline';
 
 // ─── Types ───
@@ -89,6 +90,7 @@ interface Props {
   timeline: TimelineData;
   press?: PressItem[];
   partners?: PartnerItem[];
+  videos?: LiveVideo[];
   locale?: Locale;
   t: Record<string, string>;
 }
@@ -122,6 +124,7 @@ export default function HomeContent({
   timeline,
   press = [],
   partners = [],
+  videos = [],
   locale = 'zh',
   t,
 }: Props) {
@@ -504,6 +507,9 @@ export default function HomeContent({
           </div>
         </div>
       </section>
+
+      {/* 路上的故事：飞书 Base 同步的 B 站/抖音视频（地图之下、共建伙伴之上） */}
+      {videos.length > 0 && <LiveVideos locale={locale} t={t} videos={videos} />}
 
       {/* 共建伙伴条（4a：信任背书，与媒体报道同区不分线；主办/联合发起一行，合作支持一行） */}
       {partners.length > 0 && (

@@ -2,9 +2,11 @@
 export const prerender = true;
 
 import HomeContent from '@/app/components/HomeContent';
+import type { LiveVideo } from '@/app/components/LiveVideos';
 import { PROJECT_END, PROJECT_START } from '@/config/project';
 import boardingsData from '@/data/boardings.json';
 import heroesData from '@/data/heroes.json';
+import videosData from '@/data/live-videos.json';
 import pressData from '@/data/press.json';
 import teamData from '@/data/team.json';
 import { buildRouteLegs } from '@/features/route-map/route-legs';
@@ -30,6 +32,11 @@ const press = pressData.map((p) => ({
 }));
 
 const cities = await loadLocalizedStops(locale);
+
+// Videos rail synced from the Feishu Base (scripts/sync-live-videos.mjs)
+const videos = videosData.videos.map((video) =>
+  localize(video, ['eyebrow', 'title', 'description'], locale),
+) as LiveVideo[];
 
 // Island payload:HomeContent/RoutePreview 只读地图几何与当前站点事实卡字段,
 // 事件/人物/散文等完整 Stop 数据不出服务端(timeline legs 仍用完整 cities)
@@ -134,5 +141,8 @@ const timeline = {
   {/* 首屏 LCP:只预加载第一张轮播图,按视口宽度各取桌面/移动派生 */}
   <link slot="head" rel="preload" as="image" href={firstHero.image} media="(min-width: 768px)" />
   <link slot="head" rel="preload" as="image" href={firstHero.imageMobile} media="(max-width: 767.98px)" />
-  <HomeContent client:load cities={islandCities} heroImages={heroImages} timeline={timeline} press={press} locale={locale} t={t} />
+  {/* Bilibili modal player: pre-warm the connection */}
+  <link slot="head" rel="preconnect" href="https://player.bilibili.com" crossorigin />
+  <link slot="head" rel="dns-prefetch" href="https://player.bilibili.com" />
+  <HomeContent client:load cities={islandCities} heroImages={heroImages} timeline={timeline} press={press} videos={videos} locale={locale} t={t} />
 </BaseLayout>

@@ -1,12 +1,10 @@
 {
   "videos": [
     {
-      "platform": "bilibili",
-      "id": "BV1r38v62EXG",
+      "bvid": "BV1r38v62EXG",
       "url": "https://www.bilibili.com/video/BV1r38v62EXG",
       "cover": "/live/videos/BV1r38v62EXG.webp",
       "date": "2026-08-25",
-      "duration": 109,
       "eyebrow": "共创者",
       "eyebrow_en": "Makers",
       "title": "志愿者说：从工程师到教师，技术一直在路上",
@@ -15,12 +13,10 @@
       "description_en": "The person in charge of technology for the Xi'an–Hohhot route is a former Seeed Studio engineer. While the job title may have changed, the love for technology has never wavered."
     },
     {
-      "platform": "bilibili",
-      "id": "BV1sF3f6qE5a",
+      "bvid": "BV1sF3f6qE5a",
       "url": "https://www.bilibili.com/video/BV1sF3f6qE5a",
       "cover": "/live/videos/BV1sF3f6qE5a.webp",
       "date": "2026-08-03",
-      "duration": 238,
       "eyebrow": "共创者",
       "eyebrow_en": "Makers",
       "title": "生物老师跨界玩数字制造",
@@ -29,12 +25,10 @@
       "description_en": "Recreating classical Chinese architecture with a laser cutter, turning built heritage into something you can hold."
     },
     {
-      "platform": "bilibili",
-      "id": "BV11L3v6uEWA",
+      "bvid": "BV11L3v6uEWA",
       "url": "https://www.bilibili.com/video/BV11L3v6uEWA",
       "cover": "/live/videos/BV11L3v6uEWA.webp",
       "date": "2026-07-29",
-      "duration": 273,
       "eyebrow": "甘肃",
       "eyebrow_en": "Gansu",
       "title": "从丝路古道到 AI 时代，甘肃正在焕新",
@@ -43,12 +37,10 @@
       "description_en": "From farming to rural development, AI is connecting tradition and the future on this ancient land."
     },
     {
-      "platform": "bilibili",
-      "id": "BV1wA3i6TEYC",
+      "bvid": "BV1wA3i6TEYC",
       "url": "https://www.bilibili.com/video/BV1wA3i6TEYC",
       "cover": "/live/videos/BV1wA3i6TEYC.webp",
       "date": "2026-07-28",
-      "duration": 255,
       "eyebrow": "新疆",
       "eyebrow_en": "Xinjiang",
       "title": "当 AI 走进新疆，一场农业革命正在发生",
@@ -57,12 +49,10 @@
       "description_en": "AI enters the orchards: robots help with picking, management and monitoring, moving technology from the lab into the fields."
     },
     {
-      "platform": "bilibili",
-      "id": "BV1JmKG6nE3J",
+      "bvid": "BV1JmKG6nE3J",
       "url": "https://www.bilibili.com/video/BV1JmKG6nE3J",
       "cover": "/live/videos/BV1JmKG6nE3J.webp",
       "date": "2026-07-16",
-      "duration": 392,
       "eyebrow": "G318 · 川藏线",
       "eyebrow_en": "G318 · Sichuan–Tibet",
       "title": "318科技纪事：把科技带向远方",
