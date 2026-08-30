@@ -1,7 +1,6 @@
 import { execSync } from 'node:child_process';
 import node from '@astrojs/node';
 import react from '@astrojs/react';
-import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
@@ -38,13 +37,7 @@ export default defineConfig({
     '/documentation': '/journals',
     '/en/documentation': '/en/journals',
   },
-  integrations: [
-    react(),
-    sitemap({
-      // 排除管理端与 404 页，避免内部路由进搜索引擎索引
-      filter: (page) => !page.includes('/live/admin/') && !page.includes('/404'),
-    }),
-  ],
+  integrations: [react()],
   vite: {
     plugins: [tailwindcss()],
     define: {

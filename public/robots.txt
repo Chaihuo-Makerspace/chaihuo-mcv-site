@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mcv.chaihuo.org/sitemap-index.xml
+Sitemap: https://mcv.chaihuo.org/sitemap.xml
