@@ -60,7 +60,7 @@ export default function FeaturedCarousel({ locale = 'zh', t, entries }: Featured
 
   return (
     <section className="bg-surface">
-      <div className="mx-auto max-w-6xl px-6 pb-16">
+      <div className="page-rail pb-16">
         <h2>{t['featured.title']}</h2>
         <p className="mt-2 max-w-2xl text-neutral-500">{t['featured.subtitle']}</p>
 

@@ -81,7 +81,7 @@ export default function LiveContent({
 
   return (
     <section className="bg-surface">
-      <div className="mx-auto max-w-6xl px-6 py-16">
+      <div className="page-rail py-16">
         <h1>{t['hero.title']}</h1>
         <p className="mt-4 max-w-2xl text-neutral-700">{t['hero.body']}</p>
 

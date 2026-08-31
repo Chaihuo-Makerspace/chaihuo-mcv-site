@@ -251,79 +251,81 @@ export default function HomeContent({
         </Slider>
 
         {/* Hero 内容 */}
-        <div className="absolute inset-0 flex flex-col justify-center pointer-events-none px-6 md:px-[12%] lg:px-[16%]">
-          <motion.div
-            className="max-w-2xl pointer-events-auto"
-            variants={stagger(0.2)}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.h1
-              className="font-display text-5xl md:text-7xl lg:text-8xl mb-4 leading-tight"
-              variants={fadeLeft}
-              transition={springTransition}
-            >
-              <span className="block text-white font-bold">{t['hero.title']}</span>
-              <span className="block text-brand font-bold text-4xl md:text-6xl mt-2">
-                {t['hero.slogan']}
-              </span>
-            </motion.h1>
-            <motion.p
-              className="text-base md:text-lg text-neutral-300 mb-6 leading-relaxed max-w-lg"
-              variants={fadeLeft}
-              transition={springTransition}
-            >
-              {t['hero.subtitle']}
-            </motion.p>
-            <motion.p
-              className="text-base md:text-lg text-neutral-300 mb-10 max-w-lg leading-relaxed"
-              variants={fadeLeft}
-              transition={springTransition}
-            >
-              {t['hero.body']}
-            </motion.p>
+        <div className="absolute inset-0 flex flex-col justify-center pointer-events-none">
+          <div className="page-rail">
             <motion.div
-              variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}
-              transition={{ y: springTransition, opacity: { duration: 0.12, ease: 'easeOut' } }}
-              className="flex flex-wrap gap-4"
+              className="max-w-2xl pointer-events-auto"
+              variants={stagger(0.2)}
+              initial="hidden"
+              animate="visible"
             >
-              {/* 了解我们 (About Us) */}
-              <motion.a
-                href={localePath('/about', locale)}
-                className="pointer-events-auto border border-white/20 bg-surface-card/5 backdrop-blur-sm text-white px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer group"
-                whileHover={{
-                  y: -4,
-                  scale: 1.02,
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  borderColor: 'rgba(255, 255, 255, 0.4)',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
-                }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              <motion.h1
+                className="font-display text-5xl md:text-7xl lg:text-8xl mb-4 leading-tight"
+                variants={fadeLeft}
+                transition={springTransition}
               >
-                <span>{t['hero.aboutAction']}</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
-              </motion.a>
+                <span className="block text-white font-bold">{t['hero.title']}</span>
+                <span className="block text-brand font-bold text-4xl md:text-6xl mt-2">
+                  {t['hero.slogan']}
+                </span>
+              </motion.h1>
+              <motion.p
+                className="text-base md:text-lg text-neutral-300 mb-6 leading-relaxed max-w-lg"
+                variants={fadeLeft}
+                transition={springTransition}
+              >
+                {t['hero.subtitle']}
+              </motion.p>
+              <motion.p
+                className="text-base md:text-lg text-neutral-300 mb-10 max-w-lg leading-relaxed"
+                variants={fadeLeft}
+                transition={springTransition}
+              >
+                {t['hero.body']}
+              </motion.p>
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}
+                transition={{ y: springTransition, opacity: { duration: 0.12, ease: 'easeOut' } }}
+                className="flex flex-wrap gap-4"
+              >
+                {/* 了解我们 (About Us) */}
+                <motion.a
+                  href={localePath('/about', locale)}
+                  className="pointer-events-auto border border-white/20 bg-surface-card/5 backdrop-blur-sm text-white px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer group"
+                  whileHover={{
+                    y: -4,
+                    scale: 1.02,
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.4)',
+                    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                >
+                  <span>{t['hero.aboutAction']}</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
+                </motion.a>
 
-              {/* 加入行动 (Join Action) */}
-              <motion.a
-                href={localePath('/guide', locale)}
-                className="pointer-events-auto border border-brand/35 bg-brand/10 backdrop-blur-md text-brand px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer font-semibold group shadow-md"
-                whileHover={{
-                  y: -4,
-                  scale: 1.02,
-                  backgroundColor: 'rgba(243, 210, 48, 0.2)',
-                  borderColor: 'rgba(243, 210, 48, 0.55)',
-                  boxShadow: '0 15px 35px rgba(243, 210, 48, 0.25)',
-                }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-              >
-                <span>{t['hero.joinAction']}</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
-              </motion.a>
+                {/* 加入行动 (Join Action) */}
+                <motion.a
+                  href={localePath('/guide', locale)}
+                  className="pointer-events-auto border border-brand/35 bg-brand/10 backdrop-blur-md text-brand px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer font-semibold group shadow-md"
+                  whileHover={{
+                    y: -4,
+                    scale: 1.02,
+                    backgroundColor: 'rgba(243, 210, 48, 0.2)',
+                    borderColor: 'rgba(243, 210, 48, 0.55)',
+                    boxShadow: '0 15px 35px rgba(243, 210, 48, 0.25)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                >
+                  <span>{t['hero.joinAction']}</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
+                </motion.a>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
 
         {/* 滚动提示 */}
@@ -334,7 +336,7 @@ export default function HomeContent({
 
       {/* 实时任务状态条 — hero 图片之后,独立一条,居中 */}
       <div className="bg-neutral-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-3.5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
+        <div className="page-rail py-3.5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
           <span className="text-white/70">
             {(t['status.days'] ?? '已出发 {days} 天').replace('{days}', String(departureDays))}
           </span>
@@ -350,8 +352,8 @@ export default function HomeContent({
         </div>
       </div>
 
-      <section className="bg-neutral-50 text-black py-16 md:py-20 px-6">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-neutral-50 text-black py-16 md:py-20">
+        <div className="page-rail">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
             {/* 左侧栏: 路线叙事 + 当前站点事实卡 (Col-span 5) */}
             <motion.div
@@ -513,8 +515,8 @@ export default function HomeContent({
 
       {/* 共建伙伴条（4a：信任背书，与媒体报道同区不分线；主办/联合发起一行，合作支持一行） */}
       {partners.length > 0 && (
-        <section data-partners-bar className="py-14 md:py-16 px-6 bg-neutral-50">
-          <div className="max-w-6xl mx-auto">
+        <section data-partners-bar className="py-14 md:py-16 bg-neutral-50">
+          <div className="page-rail">
             <motion.p
               variants={fadeUp}
               initial="hidden"
@@ -604,38 +606,40 @@ export default function HomeContent({
 
       {/* 媒体报道：固定 3 行窗口 + 原生横向滚动（滚轮/shift+双指/触屏横滑原生生效；14 条全保留，精选置前高亮） */}
       {pressCards.length > 0 && (
-        <section className="pt-16 md:pt-20 px-6 pb-[30px] md:pb-[30px] bg-neutral-50 overflow-hidden">
-          <div className="max-w-6xl mx-auto">
-            <motion.p
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
-              transition={springTransition}
-              className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-8 text-center"
-            >
-              {t['press.label']}
-            </motion.p>
+        <section className="pt-16 md:pt-20 pb-[30px] md:pb-[30px] bg-neutral-50 overflow-hidden">
+          <div className="page-rail">
+            <div className="relative mb-8">
+              <motion.p
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={defaultViewport}
+                transition={springTransition}
+                className="text-xs uppercase tracking-[0.2em] text-neutral-500 text-center"
+              >
+                {t['press.label']}
+              </motion.p>
+              <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-2 md:flex">
+                <button
+                  type="button"
+                  onClick={() => pressScrollBy(-1)}
+                  aria-label={t['carousel.prevAria']}
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 bg-surface-card text-neutral-700 shadow-sm transition-colors duration-200 hover:border-brand hover:text-brand"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => pressScrollBy(1)}
+                  aria-label={t['carousel.nextAria']}
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 bg-surface-card text-neutral-700 shadow-sm transition-colors duration-200 hover:border-brand hover:text-brand"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
 
             <div className="relative">
-              {/* 左/右箭头（桌面） */}
-              <button
-                type="button"
-                onClick={() => pressScrollBy(-1)}
-                aria-label={t['carousel.prevAria']}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -ml-5 z-10 w-10 h-10 hidden md:flex items-center justify-center rounded-full bg-surface-card border border-neutral-300 text-neutral-700 hover:text-brand hover:border-brand shadow-sm cursor-pointer"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <button
-                type="button"
-                onClick={() => pressScrollBy(1)}
-                aria-label={t['carousel.nextAria']}
-                className="absolute right-0 top-1/2 -translate-y-1/2 -mr-5 z-10 w-10 h-10 hidden md:flex items-center justify-center rounded-full bg-surface-card border border-neutral-300 text-neutral-700 hover:text-brand hover:border-brand shadow-sm cursor-pointer"
-              >
-                <ChevronRight size={20} />
-              </button>
-
               {/* 横向滚动轨道：固定 3 行网格（按行填充，精选左右并排置前），超出横向原生滚动 */}
               <div
                 ref={pressTrackRef}
@@ -701,8 +705,8 @@ export default function HomeContent({
       />
 
       {/* 基地车概况 - 流动的基础设施 */}
-      <section className="py-20 px-6 bg-surface-card">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-20 bg-surface-card">
+        <div className="page-rail">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-black">
             {t['lab.title']}
           </h2>
@@ -740,9 +744,9 @@ export default function HomeContent({
       </section>
 
       {/* 旅途日记 CTA */}
-      <section className="py-16 px-6 border-t border-neutral-300">
+      <section className="py-16 border-t border-neutral-300">
         <motion.div
-          className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6"
+          className="page-rail flex flex-col md:flex-row md:items-center md:justify-between gap-6"
           initial="hidden"
           whileInView="visible"
           viewport={defaultViewport}

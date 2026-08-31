@@ -200,8 +200,8 @@ export default function DeconstructContent({
   return (
     <div className="min-h-screen bg-surface">
       {/* ═══════ 1. HERO — 理念 + 整车技术图 ═══════ */}
-      <section className="pt-24 pb-16 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section className="pt-24 pb-16">
+        <div className="page-rail">
           <motion.div
             className="text-center mb-12"
             variants={stagger(0.2)}
@@ -284,8 +284,8 @@ export default function DeconstructContent({
       </section>
 
       {/* ═══════ 1b. 车载技术卡片 ═══════ */}
-      <section className="px-6 pb-20">
-        <div className="max-w-6xl mx-auto">
+      <section className="pb-20">
+        <div className="page-rail">
           <SectionHeading
             eyebrow={t['tech.eyebrow']}
             title={t['tech.title']}
@@ -366,8 +366,8 @@ export default function DeconstructContent({
       </section>
 
       {/* ═══════ 2. 合作伙伴共创 ═══════ */}
-      <section className="px-6 py-20 bg-surface-card border-y border-neutral-300">
-        <div className="max-w-6xl mx-auto">
+      <section className="border-y border-neutral-300 bg-surface-card py-20">
+        <div className="page-rail">
           <SectionHeading
             eyebrow={t['cocreate.eyebrow']}
             title={t['cocreate.title']}
@@ -565,8 +565,8 @@ export default function DeconstructContent({
       </section>
 
       {/* ═══════ 3. 开源改装与路线图 ═══════ */}
-      <section className="px-6 py-20">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-20">
+        <div className="page-rail">
           <SectionHeading
             eyebrow={t['opensource.eyebrow']}
             title={t['opensource.title']}
@@ -726,17 +726,19 @@ export default function DeconstructContent({
       </section>
 
       {/* 底部 CTA */}
-      <section className="py-16 px-6 bg-surface-card border-t border-neutral-300">
-        <div className="max-w-2xl mx-auto text-center">
-          <h3 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h3>
-          <p className="text-neutral-500 mb-6">{t['cta.body']}</p>
-          <a
-            href={localePath('/guide', locale)}
-            className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
-          >
-            {t['cta.button']}
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
-          </a>
+      <section className="border-t border-neutral-300 bg-surface-card py-16">
+        <div className="page-rail">
+          <div className="mx-auto max-w-2xl text-center">
+            <h3 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h3>
+            <p className="text-neutral-500 mb-6">{t['cta.body']}</p>
+            <a
+              href={localePath('/guide', locale)}
+              className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
+            >
+              {t['cta.button']}
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </section>
     </div>

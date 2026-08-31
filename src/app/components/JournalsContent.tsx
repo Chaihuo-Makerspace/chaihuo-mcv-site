@@ -143,8 +143,8 @@ export default function JournalsContent({
   return (
     <div className="min-h-screen bg-surface">
       {/* 顶部 Hero */}
-      <section className="pt-28 pb-12 px-6">
-        <div className="max-w-5xl mx-auto">
+      <section className="pt-28 pb-12">
+        <div className="page-rail">
           <motion.div variants={stagger(0.1)} initial="hidden" animate="visible">
             <motion.p
               className="text-xs font-semibold tracking-[0.3em] text-neutral-500 uppercase mb-3"
@@ -172,8 +172,8 @@ export default function JournalsContent({
       </section>
 
       {!hasYuqueJournals && (
-        <section className="py-6 px-6 bg-surface-card border-b border-neutral-300 sticky top-[64px] z-40 shadow-xs">
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <section className="sticky top-[64px] z-40 border-b border-neutral-300 bg-surface-card py-6 shadow-xs">
+          <div className="page-rail flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex flex-wrap items-center gap-4">
               <div className="relative flex items-center bg-neutral-100 hover:bg-neutral-300 border border-neutral-300 rounded-lg px-3 py-1.5 transition-colors duration-200 group cursor-pointer focus-within:ring-2 focus-within:ring-brand focus-within:border-brand">
                 <MapPin className="w-4 h-4 text-neutral-500 mr-2" />
@@ -238,8 +238,8 @@ export default function JournalsContent({
       )}
 
       {/* Cards Grid */}
-      <section className={`${hasYuqueJournals ? 'pt-8 pb-16' : 'py-16'} px-6`}>
-        <div className="max-w-5xl mx-auto">
+      <section className={hasYuqueJournals ? 'pt-8 pb-16' : 'py-16'}>
+        <div className="page-rail">
           {hasYuqueJournals ? (
             filteredYuqueJournals.length > 0 ? (
               <motion.div

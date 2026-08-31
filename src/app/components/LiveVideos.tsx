@@ -86,7 +86,7 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
 
   return (
     <section className="bg-neutral-50">
-      <div className="mx-auto max-w-6xl px-6 py-16">
+      <div className="page-rail py-16">
         <div className="flex items-end justify-between gap-6">
           <div>
             <h2>{t['videos.title']}</h2>

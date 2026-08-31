@@ -78,6 +78,15 @@
 
 `--radius: 0.625rem`,派生 `rounded-sm`(−4px)/ `rounded-md`(−2px)/ `rounded-lg` / `rounded-xl`(+4px)。
 
+### 版心
+
+营销页与导航/页脚共用一条内容列,令牌 `--page-max: 72rem`(等于 Tailwind `max-w-6xl`),写法只有 `.page-rail`(max 与 `padding-inline: 1.5rem` 在同一层,padding 永远在 max 内)。
+
+- 区块背景可以铺满视口;内容列必须走 `.page-rail`。
+- **版心不能窄,行长可以窄**:`max-w-2xl` / `max-w-lg` 只约束标题、引语、正文,不拿来当 `<section>` 容器。
+- 禁止再混 `max-w-5xl` / `6xl` / `7xl` 当区块宽,禁止把 `px-6` 写在 max 外,禁止 `px-[12%]` 当版心。
+- 例外:日记详情是阅读行长(`max-w-3xl`);`/route` 是全幅地图应用;`/live/admin` 是后台。
+
 ### 动效签名(Premium Restrained · 高级克制)
 
 - 页面切换:`250ms` 淡出 / `350ms` 淡入 + 12px 上滑。

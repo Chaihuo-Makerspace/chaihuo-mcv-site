@@ -310,8 +310,8 @@ export default function RoleTimeline({
   const plannedCount = useMemo(() => legs.filter((leg) => leg.planned).length, [legs]);
 
   return (
-    <section className="relative bg-gradient-to-b from-neutral-50 via-white to-white pt-16 md:pt-24 pb-24 md:pb-36 px-6 border-t border-neutral-100/50">
-      <div className="max-w-6xl mx-auto">
+    <section className="relative bg-gradient-to-b from-neutral-50 via-white to-white pt-16 md:pt-24 pb-24 md:pb-36 border-t border-neutral-100/50">
+      <div className="page-rail">
         {/* Header */}
         <motion.div
           variants={stagger(0.15)}

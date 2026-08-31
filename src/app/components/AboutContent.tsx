@@ -139,9 +139,9 @@ function YearSpotlight({
   return (
     <div
       ref={containerRef}
-      className="bg-neutral-50/50 border-y border-neutral-300/60 py-20 px-6 md:px-[10%] lg:px-[12%] relative scroll-mt-20"
+      className="relative scroll-mt-20 border-y border-neutral-300/60 bg-neutral-50/50 py-20"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="page-rail">
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
           {/* Left column - Sticky Year Tracker (Desktop Only) */}
           <div className="hidden lg:block w-[28%] shrink-0">
@@ -390,200 +390,211 @@ export default function AboutContent({
   return (
     <div className="min-h-screen bg-surface-card">
       {/* Hero — 左右分栏：信息 | 图片 */}
-      <section className="relative min-h-[480px] md:min-h-[560px] flex flex-col md:flex-row">
-        {/* Left — 信息区 */}
-        <div className="flex-1 flex flex-col justify-center pt-28 md:pt-32 pb-10 md:pb-12 px-6 md:pl-[12%] md:pr-12">
-          <motion.div variants={stagger(0.12)} initial="hidden" animate="visible">
-            <motion.p
-              className="text-xs tracking-[0.3em] text-neutral-500 uppercase mb-3"
-              variants={fadeUp}
-              transition={springTransition}
-            >
-              {t['hero.subtitle']}
-            </motion.p>
-            <motion.h1
-              variants={fadeUp}
-              transition={springTransition}
-              className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-900 mb-4 leading-tight"
-            >
-              {t['hero.title']}
-            </motion.h1>
-            <motion.p
-              variants={fadeUp}
-              transition={springTransition}
-              className="text-sm md:text-base text-neutral-500 leading-relaxed mb-8 max-w-md"
-            >
-              {t['hero.body']}
-            </motion.p>
-            {projectIntro?.intro && (
+      <section className="relative min-h-[480px] md:min-h-[560px]">
+        {/* Left — 信息区，左缘与全站 page-rail 对齐；右图桌面铺到视口右缘 */}
+        <div className="page-rail relative z-10 flex flex-col justify-center pt-28 md:pt-32 pb-10 md:pb-12">
+          <div className="md:w-1/2 md:pr-8">
+            <motion.div variants={stagger(0.12)} initial="hidden" animate="visible">
+              <motion.p
+                className="text-xs tracking-[0.3em] text-neutral-500 uppercase mb-3"
+                variants={fadeUp}
+                transition={springTransition}
+              >
+                {t['hero.subtitle']}
+              </motion.p>
+              <motion.h1
+                variants={fadeUp}
+                transition={springTransition}
+                className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-900 mb-4 leading-tight"
+              >
+                {t['hero.title']}
+              </motion.h1>
               <motion.p
                 variants={fadeUp}
                 transition={springTransition}
-                className="text-sm md:text-base text-neutral-700 leading-relaxed mb-8 max-w-md font-medium"
+                className="text-sm md:text-base text-neutral-500 leading-relaxed mb-8 max-w-md"
               >
-                {projectIntro.intro}
+                {t['hero.body']}
               </motion.p>
-            )}
-          </motion.div>
+              {projectIntro?.intro && (
+                <motion.p
+                  variants={fadeUp}
+                  transition={springTransition}
+                  className="text-sm md:text-base text-neutral-700 leading-relaxed mb-8 max-w-md font-medium"
+                >
+                  {projectIntro.intro}
+                </motion.p>
+              )}
+            </motion.div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 w-full max-w-2xl">
-            {STATS.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                transition={{ ...springTransition, delay: 0.3 + i * 0.08 }}
-                className="w-full flex"
-              >
-                <div className="p-5 flex flex-col justify-center items-start w-full bg-surface-card border border-neutral-300 rounded-2xl shadow-sm">
-                  <div className="text-3xl font-black text-brand leading-none tracking-tight">
-                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 w-full max-w-2xl">
+              {STATS.map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ ...springTransition, delay: 0.3 + i * 0.08 }}
+                  className="w-full flex"
+                >
+                  <div className="p-5 flex flex-col justify-center items-start w-full bg-surface-card border border-neutral-300 rounded-2xl shadow-sm">
+                    <div className="text-3xl font-black text-brand leading-none tracking-tight">
+                      <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                    </div>
+                    <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mt-2.5">
+                      {stat.label}
+                    </p>
                   </div>
-                  <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mt-2.5">
-                    {stat.label}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Right — 图片区（桌面端右侧，移动端底部条形） */}
-        <div className="h-48 md:h-auto md:w-[45%] relative">
+        {/* Right — 图片区（移动端全幅条；桌面从视口中线铺到右缘） */}
+        <div className="relative h-48 md:hidden">
           <img
             src={heroImage}
             alt={t['hero.image.alt']}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-surface-card via-surface-card/40 to-transparent w-24" />
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 left-1/2 right-0 hidden md:block">
+          <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 w-24 bg-gradient-to-r from-surface-card via-surface-card/40 to-transparent" />
         </div>
       </section>
 
       {/* Partners */}
-      <section className="py-20 px-6 md:px-[12%] bg-neutral-50">
-        <motion.p
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
-          transition={springTransition}
-          className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-12 text-center"
-        >
-          {t['partners.label']}
-        </motion.p>
-        {PARTNER_TIERS.map((tier) => {
-          const tierPartners = partners.filter((p) => (p.tier ?? 'partner') === tier.key);
-          if (tierPartners.length === 0) return null;
-          return (
-            <div key={tier.key} className="mb-14 last:mb-0">
-              <motion.p
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={defaultViewport}
-                transition={springTransition}
-                className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-400 text-center mb-6"
-              >
-                {t[tier.labelKey]}
-              </motion.p>
-              <motion.div
-                variants={stagger(0.08)}
-                initial="hidden"
-                whileInView="visible"
-                viewport={defaultViewport}
-                className="flex flex-wrap justify-center gap-6"
-              >
-                {tierPartners.map((partner) => {
-                  const card = (
-                    <motion.div
-                      key={partner.name}
-                      variants={fadeUp}
-                      transition={{ type: 'spring', damping: 16, stiffness: 220 }}
-                      whileHover={{ y: -6, scale: 1.04 }}
-                      className="flex flex-col items-center justify-center py-6 px-4 w-full h-full rounded-2xl border border-neutral-300 bg-surface-card/70 backdrop-blur-md hover:border-brand/40 shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-300 relative overflow-hidden group"
-                    >
-                      {/* Internal Holographic Light Aura on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-brand/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <section className="bg-neutral-50 py-20">
+        <div className="page-rail">
+          <motion.p
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            transition={springTransition}
+            className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-12 text-center"
+          >
+            {t['partners.label']}
+          </motion.p>
+          {PARTNER_TIERS.map((tier) => {
+            const tierPartners = partners.filter((p) => (p.tier ?? 'partner') === tier.key);
+            if (tierPartners.length === 0) return null;
+            return (
+              <div key={tier.key} className="mb-14 last:mb-0">
+                <motion.p
+                  variants={fadeUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={defaultViewport}
+                  transition={springTransition}
+                  className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-400 text-center mb-6"
+                >
+                  {t[tier.labelKey]}
+                </motion.p>
+                <motion.div
+                  variants={stagger(0.08)}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={defaultViewport}
+                  className="flex flex-wrap justify-center gap-6"
+                >
+                  {tierPartners.map((partner) => {
+                    const card = (
+                      <motion.div
+                        key={partner.name}
+                        variants={fadeUp}
+                        transition={{ type: 'spring', damping: 16, stiffness: 220 }}
+                        whileHover={{ y: -6, scale: 1.04 }}
+                        className="flex flex-col items-center justify-center py-6 px-4 w-full h-full rounded-2xl border border-neutral-300 bg-surface-card/70 backdrop-blur-md hover:border-brand/40 shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-300 relative overflow-hidden group"
+                      >
+                        {/* Internal Holographic Light Aura on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-brand/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                      {partner.logo ? (
-                        <img
-                          src={partner.logo}
-                          alt={partner.name}
-                          loading="lazy"
-                          className="h-10 w-auto max-w-[85%] object-contain"
-                        />
-                      ) : (
-                        <span className="text-lg font-bold text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200">
-                          {partner.name}
-                        </span>
-                      )}
-                      {partner.description && (
-                        <span className="text-xs text-neutral-500 group-hover:text-neutral-700 mt-1.5 text-center transition-colors duration-200">
-                          {partner.description}
-                        </span>
-                      )}
-                    </motion.div>
-                  );
-                  const widthClass =
-                    'w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(16.666%-20px)]';
-                  return partner.link ? (
-                    <a
-                      key={partner.name}
-                      href={partner.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={widthClass}
-                      aria-label={`${partner.name} — ${t['partners.label']}`}
-                    >
-                      {card}
-                    </a>
-                  ) : (
-                    <div key={partner.name} className={widthClass}>
-                      {card}
-                    </div>
-                  );
-                })}
-              </motion.div>
-            </div>
-          );
-        })}
+                        {partner.logo ? (
+                          <img
+                            src={partner.logo}
+                            alt={partner.name}
+                            loading="lazy"
+                            className="h-10 w-auto max-w-[85%] object-contain"
+                          />
+                        ) : (
+                          <span className="text-lg font-bold text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200">
+                            {partner.name}
+                          </span>
+                        )}
+                        {partner.description && (
+                          <span className="text-xs text-neutral-500 group-hover:text-neutral-700 mt-1.5 text-center transition-colors duration-200">
+                            {partner.description}
+                          </span>
+                        )}
+                      </motion.div>
+                    );
+                    const widthClass =
+                      'w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(16.666%-20px)]';
+                    return partner.link ? (
+                      <a
+                        key={partner.name}
+                        href={partner.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={widthClass}
+                        aria-label={`${partner.name} — ${t['partners.label']}`}
+                      >
+                        {card}
+                      </a>
+                    ) : (
+                      <div key={partner.name} className={widthClass}>
+                        {card}
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* 年份聚光灯时间轴 */}
       <YearSpotlight items={enrichedYears} locale={locale} t={t} />
 
       {/* 愿景收尾 */}
-      <section className="py-20 px-6 md:px-[12%] bg-surface-card">
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
-          transition={springTransition}
-          className="max-w-2xl mx-auto text-center"
-        >
-          <div className="w-8 h-[2px] bg-brand mx-auto mb-8" />
-          <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed font-light italic">
-            {t['vision.quote']}
-          </p>
-          <p className="mt-6 text-sm text-neutral-500">{t['vision.author']}</p>
-        </motion.div>
+      <section className="bg-surface-card py-20">
+        <div className="page-rail">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            transition={springTransition}
+            className="max-w-2xl mx-auto text-center"
+          >
+            <div className="w-8 h-[2px] bg-brand mx-auto mb-8" />
+            <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed font-light italic">
+              {t['vision.quote']}
+            </p>
+            <p className="mt-6 text-sm text-neutral-500">{t['vision.author']}</p>
+          </motion.div>
+        </div>
       </section>
 
       {/* 底部 CTA */}
-      <section className="py-16 px-6 md:px-[12%] bg-neutral-50 border-t border-neutral-300">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h2>
-          <p className="text-neutral-500 mb-6">{t['cta.body']}</p>
-          <a
-            href={localePath('/guide', locale)}
-            className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
-          >
-            {t['cta.button']}
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
-          </a>
+      <section className="border-t border-neutral-300 bg-neutral-50 py-16">
+        <div className="page-rail">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-2xl font-bold text-neutral-900 mb-3">{t['cta.title']}</h2>
+            <p className="text-neutral-500 mb-6">{t['cta.body']}</p>
+            <a
+              href={localePath('/guide', locale)}
+              className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-8 py-3 rounded-full hover:bg-brand-hover transition-colors duration-200 cursor-pointer font-medium"
+            >
+              {t['cta.button']}
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </section>
     </div>

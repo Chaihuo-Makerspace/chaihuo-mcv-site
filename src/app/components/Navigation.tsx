@@ -166,7 +166,7 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
             : 'bg-transparent'
         } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
       >
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="page-rail py-4 flex items-center justify-between">
           <a href={localePath('/', currentLocale)} className="flex items-center">
             <img
               src={logoHorizontal}

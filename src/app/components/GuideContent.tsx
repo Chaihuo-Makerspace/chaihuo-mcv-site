@@ -36,8 +36,8 @@ export default function GuideContent({ faqGroups, t }: GuideContentProps) {
   return (
     <div className="min-h-screen bg-surface-card">
       {/* 标题区 */}
-      <section className="pt-24 pb-12 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section className="pt-24 pb-12">
+        <div className="page-rail">
           <motion.div variants={stagger(0.2)} initial="hidden" animate="visible">
             <motion.p
               className="text-sm tracking-[0.3em] text-neutral-500 uppercase mb-3"
@@ -65,8 +65,8 @@ export default function GuideContent({ faqGroups, t }: GuideContentProps) {
       </section>
 
       {/* Participation Methods */}
-      <section className="py-20 px-6 bg-neutral-50">
-        <div className="max-w-6xl mx-auto">
+      <section className="bg-neutral-50 py-20">
+        <div className="page-rail">
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -226,8 +226,8 @@ export default function GuideContent({ faqGroups, t }: GuideContentProps) {
       </section>
 
       {/* FAQ Section — 分组展示 */}
-      <section className="py-20 px-6 bg-surface-card">
-        <div className="max-w-4xl mx-auto">
+      <section className="bg-surface-card py-20">
+        <div className="page-rail">
           <motion.div
             variants={fadeUp}
             initial="hidden"
