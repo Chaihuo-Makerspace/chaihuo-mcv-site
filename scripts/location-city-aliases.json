@@ -154,5 +154,29 @@
     "label": "天津",
     "label_en": "Tianjin",
     "province": "天津市"
+  },
+  "济南": {
+    "id": "jinan",
+    "label": "济南",
+    "label_en": "Jinan",
+    "province": "山东省"
+  },
+  "济南市": {
+    "id": "jinan",
+    "label": "济南",
+    "label_en": "Jinan",
+    "province": "山东省"
+  },
+  "威海": {
+    "id": "weihai",
+    "label": "威海",
+    "label_en": "Weihai",
+    "province": "山东省"
+  },
+  "威海市": {
+    "id": "weihai",
+    "label": "威海",
+    "label_en": "Weihai",
+    "province": "山东省"
   }
 }

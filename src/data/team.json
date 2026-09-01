@@ -207,5 +207,15 @@
     "bio": "负责和用户沟通，了解场景需求，共创解决方案。",
     "bio_en": "Responsible for communicating with users, understanding their scenario needs, and co-creating solutions.",
     "image": "/people/liu-yu.webp"
+  },
+  {
+    "id": "jin-dongxu",
+    "name": "金东旭",
+    "name_en": "Jin Dongxu",
+    "role": "技术担当",
+    "role_en": "Tech Lead",
+    "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+    "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
+    "image": "/people/jin-dongxu.webp"
   }
 ]
