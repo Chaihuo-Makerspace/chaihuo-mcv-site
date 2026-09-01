@@ -307,7 +307,12 @@
       "location": "哈尔滨",
       "location_en": "Harbin"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-27",
+      "location": "天津",
+      "location_en": "Tianjin",
+      "handoffTo": "jin-dongxu"
+    }
   },
   {
     "id": "b21",
@@ -328,6 +333,17 @@
       "date": "2026-08-15",
       "location": "哈尔滨",
       "location_en": "Harbin"
+    },
+    "disembarkedAt": null
+  },
+  {
+    "id": "b23",
+    "crewId": "jin-dongxu",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-08-27",
+      "location": "天津",
+      "location_en": "Tianjin"
     },
     "disembarkedAt": null
   }
