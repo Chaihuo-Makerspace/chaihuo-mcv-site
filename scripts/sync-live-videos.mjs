@@ -217,10 +217,11 @@ async function writeCover(buffer, outPath) {
     .toFile(outPath);
 }
 
-// B 站公开接口补封面和发布日期（pubdate = 上传时间；表里手填的日期优先）
+// B 站公开接口补封面和发布日期（pubdate = 上传时间；表里手填的日期优先）。
+// GitHub Actions 出口常被 B 站 412，缺封面/日期时跳过该条，不要把整次同步打死。
 async function ensureCoverAndDate(entry) {
   const coverPath = path.join(COVER_DIR, `${entry.bvid}.webp`);
-  if (existsSync(coverPath) && entry.date) return;
+  if (existsSync(coverPath) && entry.date) return true;
   try {
     const data = await fetchJson(
       `https://api.bilibili.com/x/web-interface/view?bvid=${entry.bvid}`,
@@ -251,9 +252,19 @@ async function ensureCoverAndDate(entry) {
     }
   } catch (error) {
     console.warn(`[sync] ${entry.bvid} 封面/日期获取失败：${error.message}`);
-    if (!existsSync(coverPath)) throw new Error(`${entry.bvid} 缺少封面且无法自动生成`);
-    if (!entry.date) throw new Error(`${entry.bvid} 缺少发布日期且无法自动获取`);
   }
+  if (!existsSync(coverPath) || !entry.date) {
+    console.warn(
+      `[sync] 跳过 ${entry.bvid}（${entry.title || '无标题'}）：缺少${[
+        existsSync(coverPath) ? '' : '封面',
+        entry.date ? '' : '发布日期',
+      ]
+        .filter(Boolean)
+        .join('、')}`,
+    );
+    return false;
+  }
+  return true;
 }
 
 function emitGithubOutput(key, value) {
@@ -313,9 +324,17 @@ if (videos.length === 0 && records.length > 0) {
   process.exit(1);
 }
 
-for (const entry of videos) await ensureCoverAndDate(entry);
+const ready = [];
+for (const entry of videos) {
+  if (await ensureCoverAndDate(entry)) ready.push(entry);
+}
 
-const output = { videos: videos.map(({ sort, ...rest }) => rest) };
+if (ready.length === 0 && records.length > 0) {
+  console.error('[sync] 可解析记录都缺封面或日期，放弃写入');
+  process.exit(1);
+}
+
+const output = { videos: ready.map(({ sort, ...rest }) => rest) };
 const nextJson = `${JSON.stringify(output, null, 2)}\n`;
 const prevVideos = existsSync(DATA_FILE)
   ? (JSON.parse(readFileSync(DATA_FILE, 'utf8')).videos ?? [])
