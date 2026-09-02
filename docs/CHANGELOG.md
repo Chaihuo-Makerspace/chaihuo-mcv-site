@@ -30,6 +30,7 @@ history.
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-09-02 | main | Live-videos sync now canonicalizes casually pasted Bilibili links: `b23.tv` short links, search/share URLs with tracking params, mobile URLs, and bare BV ids resolve to `https://www.bilibili.com/video/<BV>` and are written back to the Base 视频链接 field when the app can edit records. |
 | 2026-09-02 | main | Yuque journal `city` is now sticky after first assignment, and human pins live in `src/data/journal-city-overrides.json` so a later sync cannot re-home a card (map pins, story-river grouping, and arrival flipping all read that field). The 2026.8.31 《辞燕赴夷》 card is pinned to Jinan. Locked the rule in `AGENTS.md` so other agents cannot re-home cards from poetic titles or by patching generated JSON. |
 | 2026-09-01 | main | Added Jinan as the latest visited stop (arrival 2026-08-31) and Weihai as the next planned stop (2026-09-02); marked Shandong visited and added 鲁/SD to the home timeline province band. |
 | 2026-08-31 | main | Unified the marketing content column: `--page-max` + `.page-rail` (72rem, padding inside the max) so nav, footer, home, about, guide, deconstruct, journals list, and live share one left/right edge. Home no longer mixes `7xl` map/status with `6xl` sections or `%` hero inset; About dropped `px-[12%]` gutters; Guide FAQ / Deconstruct CTA stay in the rail (copy measure can still be `max-w-2xl`). Journal detail, `/route`, and `/live/admin` unchanged. |

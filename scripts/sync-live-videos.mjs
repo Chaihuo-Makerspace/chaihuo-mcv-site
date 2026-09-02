@@ -2,13 +2,20 @@
 // 从飞书多维表格同步「路上视频」到 src/data/live-videos.json，仅支持 B 站。
 // 数据源：https://seeedstudio.feishu.cn/base/EpPpbh8ndaHS1asFeCgcyp0Fnse （表「路上视频」）
 // 无发布闸门：必填字段齐全的记录即同步；不完整的跳过并报警。「排序」越大越靠前，留空按发布日期倒序。
-// 录入只要贴链接：BV 号从链接自动提取（b23.tv 短链跟随 302 解析），封面/发布日期缺了走 B 站公开接口自动补。
+// 录入只要贴链接：分享短链 / 带参数搜索链 / 纯 BV 号都会解析成标准 https://www.bilibili.com/video/<BV>，
+// 并尽量写回表格「视频链接」。封面/发布日期缺了走 B 站公开接口自动补。
 // 用法：FEISHU_APP_ID=xxx FEISHU_APP_SECRET=xxx node scripts/sync-live-videos.mjs
 // GitHub Actions: .github/workflows/sync-live-videos.yml
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import {
+  canonicalVideoUrl,
+  looksLikeBilibiliPaste,
+  needsUrlWriteback,
+  resolveBvid,
+} from './lib/bilibili-url.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_FILE = path.join(ROOT, 'src/data/live-videos.json');
@@ -80,48 +87,47 @@ function asText(value) {
   return String(value).trim();
 }
 
-// b23.tv 短链本身不含 BV 号，跟随 302 拿到真实地址
-async function resolveShortLink(url) {
-  const response = await fetch(url, {
-    redirect: 'manual',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-    },
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
-  return response.headers.get('location') ?? '';
-}
-
-// 返回 entry 或 null；b23.tv 短链需要联网解析，所以是 async
-// 没有「状态」闸门：必填字段齐全即为可发布，不完整的记录跳过并报警
-async function toVideo(record, warnings) {
+// 解析「视频链接」里随手贴的分享短链 / 带参搜索链 / 纯 BV 号。短链需要联网，所以是 async。
+async function resolveRecord(record, warnings) {
   const f = record.fields ?? {};
-  const url = asText(f['视频链接']);
+  const originalUrl = asText(f['视频链接']);
 
-  if (!/bilibili\.|b23\.tv/.test(url)) {
-    warnings.push(`跳过记录 ${record.record_id}：链接不是 B 站（${url || '空链接'}）`);
+  if (!looksLikeBilibiliPaste(originalUrl)) {
+    warnings.push(`跳过记录 ${record.record_id}：链接不是 B 站（${originalUrl || '空链接'}）`);
     return null;
   }
 
-  // 「视频ID」是表里的公式字段（旧名 BVID，两个名字都认）；提不到就从链接正则兜底，短链先解析
+  // 「视频ID」是表里的公式字段（旧名 BVID，两个名字都认）；提不到就从粘贴内容解析
   const fieldId = asText(f['视频ID'] ?? f['BVID']);
-  let bvid = fieldId;
+  let bvid = /^BV[0-9A-Za-z]{10}$/.test(fieldId) ? fieldId : '';
   if (!bvid) {
-    let target = url;
-    if (/b23\.tv/.test(url)) {
-      try {
-        target = await resolveShortLink(url);
-      } catch (error) {
-        warnings.push(`记录 ${record.record_id} 短链解析失败：${error.message}`);
-      }
+    const resolved = await resolveBvid(originalUrl, { timeoutMs: FETCH_TIMEOUT_MS });
+    if (resolved.error) {
+      warnings.push(`记录 ${record.record_id} 短链解析失败：${resolved.error.message}`);
     }
-    bvid = target.match(/BV[0-9A-Za-z]{10}/)?.[0] ?? '';
+    bvid = resolved.bvid;
   }
 
   if (!/^BV[0-9A-Za-z]{10}$/.test(bvid)) {
-    warnings.push(`跳过记录 ${record.record_id}：无法从链接提取有效 BV 号（${url || '空链接'}）`);
+    warnings.push(
+      `跳过记录 ${record.record_id}：无法从链接提取有效 BV 号（${originalUrl || '空链接'}）`,
+    );
     return null;
   }
+
+  return {
+    recordId: record.record_id,
+    originalUrl,
+    bvid,
+    canonicalUrl: canonicalVideoUrl(bvid),
+    needsWriteback: needsUrlWriteback(originalUrl, bvid),
+    fields: f,
+  };
+}
+
+// 没有「状态」闸门：必填字段齐全即为可发布，不完整的记录跳过并报警
+function toVideo(resolved, warnings) {
+  const { bvid, canonicalUrl, fields: f } = resolved;
 
   // 排序读回来是字符串（"5"），空单元格是 null/undefined/""，要显式区分
   const rawSort = f['排序'];
@@ -130,7 +136,7 @@ async function toVideo(record, warnings) {
 
   const entry = {
     bvid,
-    url: `https://www.bilibili.com/video/${bvid}`,
+    url: canonicalUrl,
     cover: `/live/videos/${bvid}.webp`,
     date: formatDate(f['发布日期']),
     eyebrow: asText(f['分类']),
@@ -155,6 +161,37 @@ async function toVideo(record, warnings) {
     return null;
   }
   return entry;
+}
+
+async function writeBackCanonicalUrls(token, resolved) {
+  const updates = resolved.filter((item) => item.needsWriteback);
+  if (updates.length === 0) return;
+
+  try {
+    const data = await fetchJson(
+      `https://open.feishu.cn/open-apis/bitable/v1/apps/${BASE_TOKEN}/tables/${TABLE_ID}/records/batch_update`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          records: updates.map((item) => ({
+            record_id: item.recordId,
+            fields: { 视频链接: item.canonicalUrl },
+          })),
+        }),
+      },
+    );
+    if (data.code !== 0) {
+      console.warn(`[sync] 回写标准链接失败：${data.msg} (${data.code})`);
+      return;
+    }
+    console.log(`[sync] 已将 ${updates.length} 条视频链接转为标准 BV 地址`);
+  } catch (error) {
+    console.warn(`[sync] 回写标准链接失败：${error.message}`);
+  }
 }
 
 function formatDate(value) {
@@ -254,9 +291,16 @@ function summarize(previous, next) {
 const token = await getTenantToken();
 const records = await listRecords(token);
 const warnings = [];
-const videos = [];
+const resolved = [];
 for (const record of records) {
-  const entry = await toVideo(record, warnings);
+  const item = await resolveRecord(record, warnings);
+  if (item) resolved.push(item);
+}
+await writeBackCanonicalUrls(token, resolved);
+
+const videos = [];
+for (const item of resolved) {
+  const entry = toVideo(item, warnings);
   if (entry) videos.push(entry);
 }
 sortVideos(videos);

@@ -28,9 +28,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Reads 状态=已发布 records from the Feishu Base, regenerates
-      # src/data/live-videos.json (排序 asc, then date desc) and fetches
-      # missing Bilibili covers into public/live/videos/.
+      # Reads complete records from the Feishu Base, regenerates
+      # src/data/live-videos.json (排序 larger-first, then date desc),
+      # canonicalizes pasted Bilibili links, and fetches missing covers
+      # into public/live/videos/.
       - name: Sync live videos from Feishu Base
         id: sync
         env:
