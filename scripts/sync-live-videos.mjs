@@ -2,11 +2,11 @@
 // 从飞书多维表格同步「路上视频」到 src/data/live-videos.json，仅支持 B 站。
 // 数据源：https://seeedstudio.feishu.cn/base/EpPpbh8ndaHS1asFeCgcyp0Fnse （表「路上视频」）
 // 无发布闸门：必填字段齐全的记录即同步；不完整的跳过并报警。「排序」越大越靠前，留空按发布日期倒序。
-// 录入只要贴链接：分享短链 / 带参数搜索链 / 纯 BV 号都会解析成标准 https://www.bilibili.com/video/<BV>，
-// 并尽量写回表格「视频链接」。封面/发布日期缺了走 B 站公开接口自动补。
+// 录入：贴 B 站链接 + 上传「封面」附件 + 填发布日期。封面只从表里的附件来（截图或导出封面），
+// 不打 B 站接口——GitHub Actions 出口会被 412。链接会尽量写回标准 BV 地址。
 // 用法：FEISHU_APP_ID=xxx FEISHU_APP_SECRET=xxx node scripts/sync-live-videos.mjs
 // GitHub Actions: .github/workflows/sync-live-videos.yml
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -115,19 +115,23 @@ async function resolveRecord(record, warnings) {
     return null;
   }
 
+  const attachments = Array.isArray(f['封面']) ? f['封面'] : [];
+  const coverFileToken = attachments[0]?.file_token ?? null;
+
   return {
     recordId: record.record_id,
     originalUrl,
     bvid,
     canonicalUrl: canonicalVideoUrl(bvid),
     needsWriteback: needsUrlWriteback(originalUrl, bvid),
+    coverFileToken,
     fields: f,
   };
 }
 
 // 没有「状态」闸门：必填字段齐全即为可发布，不完整的记录跳过并报警
 function toVideo(resolved, warnings) {
-  const { bvid, canonicalUrl, fields: f } = resolved;
+  const { bvid, canonicalUrl, coverFileToken, fields: f } = resolved;
 
   // 排序读回来是字符串（"5"），空单元格是 null/undefined/""，要显式区分
   const rawSort = f['排序'];
@@ -146,6 +150,7 @@ function toVideo(resolved, warnings) {
     description: asText(f['描述']),
     description_en: asText(f['描述 EN']),
     sort: Number.isFinite(sortNum) ? sortNum : null,
+    coverFileToken,
   };
 
   const missing = [
@@ -156,6 +161,9 @@ function toVideo(resolved, warnings) {
     'description',
     'description_en',
   ].filter((key) => !entry[key]);
+  if (!entry.date) missing.push('发布日期');
+  const coverPath = path.join(COVER_DIR, `${bvid}.webp`);
+  if (!coverFileToken && !existsSync(coverPath)) missing.push('封面（表格附件）');
   if (missing.length > 0) {
     warnings.push(`跳过 ${bvid}（${entry.title || '无标题'}）：缺少 ${missing.join('、')}`);
     return null;
@@ -211,60 +219,48 @@ function sortVideos(videos) {
 }
 
 async function writeCover(buffer, outPath) {
+  mkdirSync(path.dirname(outPath), { recursive: true });
   await sharp(buffer)
     .resize({ width: COVER_WIDTH, withoutEnlargement: true })
     .webp({ quality: 78 })
     .toFile(outPath);
 }
 
-// B 站公开接口补封面和发布日期（pubdate = 上传时间；表里手填的日期优先）。
-// GitHub Actions 出口常被 B 站 412，缺封面/日期时跳过该条，不要把整次同步打死。
-async function ensureCoverAndDate(entry) {
+async function downloadAttachment(token, fileToken) {
+  const response = await fetch(
+    `https://open.feishu.cn/open-apis/drive/v1/medias/${fileToken}/download`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    },
+  );
+  if (!response.ok) throw new Error(`附件下载失败 HTTP ${response.status}`);
+  return Buffer.from(await response.arrayBuffer());
+}
+
+// 封面只来自表格「封面」附件（GitHub 打得通飞书，打不通 B 站）。
+// 已入库的 WebP 可作兜底，避免旧片在附件补齐前从首页消失。
+async function ensureCover(entry, token) {
   const coverPath = path.join(COVER_DIR, `${entry.bvid}.webp`);
+  if (entry.coverFileToken) {
+    try {
+      await writeCover(await downloadAttachment(token, entry.coverFileToken), coverPath);
+      console.log(`[sync] 封面已生成（表格附件）${entry.cover}`);
+      return true;
+    } catch (error) {
+      console.warn(`[sync] ${entry.bvid} 附件封面下载失败：${error.message}`);
+    }
+  }
   if (existsSync(coverPath) && entry.date) return true;
-  try {
-    const data = await fetchJson(
-      `https://api.bilibili.com/x/web-interface/view?bvid=${entry.bvid}`,
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          Referer: 'https://www.bilibili.com',
-        },
-      },
-    );
-    if (data.code !== 0) throw new Error(`B站接口返回 ${data.code}`);
-    if (!entry.date && Number.isInteger(data.data?.pubdate)) {
-      entry.date = formatDate(data.data.pubdate * 1000);
-    }
-    if (!entry.date) throw new Error('接口未返回 pubdate，请在表里手填发布日期');
-    if (!existsSync(coverPath) && data.data?.pic) {
-      const picUrl = data.data.pic.replace(/^http:/, 'https:');
-      const buf = Buffer.from(
-        await (
-          await fetch(picUrl, {
-            headers: { Referer: 'https://www.bilibili.com' },
-            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-          })
-        ).arrayBuffer(),
-      );
-      await writeCover(buf, coverPath);
-      console.log(`[sync] 封面已生成 ${entry.cover}`);
-    }
-  } catch (error) {
-    console.warn(`[sync] ${entry.bvid} 封面/日期获取失败：${error.message}`);
-  }
-  if (!existsSync(coverPath) || !entry.date) {
-    console.warn(
-      `[sync] 跳过 ${entry.bvid}（${entry.title || '无标题'}）：缺少${[
-        existsSync(coverPath) ? '' : '封面',
-        entry.date ? '' : '发布日期',
-      ]
-        .filter(Boolean)
-        .join('、')}`,
-    );
-    return false;
-  }
-  return true;
+  console.warn(
+    `[sync] 跳过 ${entry.bvid}（${entry.title || '无标题'}）：缺少${[
+      existsSync(coverPath) ? '' : '封面（表格附件）',
+      entry.date ? '' : '发布日期',
+    ]
+      .filter(Boolean)
+      .join('、')}`,
+  );
+  return false;
 }
 
 function emitGithubOutput(key, value) {
@@ -326,7 +322,7 @@ if (videos.length === 0 && records.length > 0) {
 
 const ready = [];
 for (const entry of videos) {
-  if (await ensureCoverAndDate(entry)) ready.push(entry);
+  if (await ensureCover(entry, token)) ready.push(entry);
 }
 
 if (ready.length === 0 && records.length > 0) {
@@ -334,7 +330,7 @@ if (ready.length === 0 && records.length > 0) {
   process.exit(1);
 }
 
-const output = { videos: ready.map(({ sort, ...rest }) => rest) };
+const output = { videos: ready.map(({ sort, coverFileToken, ...rest }) => rest) };
 const nextJson = `${JSON.stringify(output, null, 2)}\n`;
 const prevVideos = existsSync(DATA_FILE)
   ? (JSON.parse(readFileSync(DATA_FILE, 'utf8')).videos ?? [])

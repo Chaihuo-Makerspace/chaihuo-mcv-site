@@ -30,7 +30,7 @@ jobs:
 
       # Reads complete records from the Feishu Base, regenerates
       # src/data/live-videos.json (排序 larger-first, then date desc),
-      # canonicalizes pasted Bilibili links, and fetches missing covers
+      # canonicalizes pasted Bilibili links, and copies 「封面」attachments
       # into public/live/videos/.
       - name: Sync live videos from Feishu Base
         id: sync

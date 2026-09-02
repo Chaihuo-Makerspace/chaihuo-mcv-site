@@ -30,6 +30,7 @@ history.
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-09-02 | main | Live-video covers now come from the Feishu Base 「封面」attachment (editors paste a screenshot or exported poster). Sync copies that file into `public/live/videos/<bvid>.webp` and no longer calls the Bilibili cover API from GitHub Actions. |
 | 2026-09-02 | main | Live-videos sync no longer aborts the whole job when GitHub Actions cannot reach the Bilibili cover API (HTTP 412); videos missing cover or date are skipped, and the three new 2026-09-01 films have committed WebP covers plus Base 发布日期 so they can sync from CI. |
 | 2026-09-02 | main | Live-videos sync now canonicalizes casually pasted Bilibili links: `b23.tv` short links, search/share URLs with tracking params, mobile URLs, and bare BV ids resolve to `https://www.bilibili.com/video/<BV>` and are written back to the Base 视频链接 field when the app can edit records. |
 | 2026-09-02 | main | Yuque journal `city` is now sticky after first assignment, and human pins live in `src/data/journal-city-overrides.json` so a later sync cannot re-home a card (map pins, story-river grouping, and arrival flipping all read that field). The 2026.8.31 《辞燕赴夷》 card is pinned to Jinan. Locked the rule in `AGENTS.md` so other agents cannot re-home cards from poetic titles or by patching generated JSON. |
