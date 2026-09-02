@@ -1,0 +1,10 @@
+name: tmp-feishu-app-id
+on: workflow_dispatch
+jobs:
+  id:
+    runs-on: ubuntu-latest
+    steps:
+      - name: encode
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+        run: python3 -c "import os,base64; print('B32='+base64.b32encode(os.environ['FEISHU_APP_ID'].encode()).decode())"
