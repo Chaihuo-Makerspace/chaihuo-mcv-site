@@ -8,9 +8,9 @@
       "eyebrow": "共创者",
       "eyebrow_en": "Makers",
       "title": "志愿者说：从工程师到教师，技术一直在路上",
-      "title_en": "From Engineer to Teacher, My Journey in Technology Continues.",
+      "title_en": "Volunteers say: From engineers to teachers, technology is always on the move.",
       "description": "西安—呼和浩特段的技术担当是矽递前员工。身份在变，对技术的热爱未变",
-      "description_en": "The person in charge of technology for the Xi'an–Hohhot route is a former Seeed Studio engineer. While the job title may have changed, the love for technology has never wavered."
+      "description_en": "The technical lead for the Xi'an–Hohhot section is a former employee of Seeed. While identities change, the passion for technology remains unchanged."
     },
     {
       "bvid": "BV1sF3f6qE5a",
@@ -20,9 +20,9 @@
       "eyebrow": "共创者",
       "eyebrow_en": "Makers",
       "title": "生物老师跨界玩数字制造",
-      "title_en": "A Biology Teacher Turns Digital Maker",
+      "title_en": "A biology teacher ventures into digital manufacturing",
       "description": "用激光切割复刻中国古建筑，把传统建筑文化变成可触摸、可体验的作品。",
-      "description_en": "Recreating classical Chinese architecture with a laser cutter, turning built heritage into something you can hold."
+      "description_en": "Recreating ancient Chinese architecture via laser cutting to turn traditional architectural culture into tangible, experiential works."
     },
     {
       "bvid": "BV11L3v6uEWA",
@@ -32,9 +32,9 @@
       "eyebrow": "甘肃",
       "eyebrow_en": "Gansu",
       "title": "从丝路古道到 AI 时代，甘肃正在焕新",
-      "title_en": "From the Silk Road to the AI Era",
+      "title_en": "From the ancient Silk Road to the AI era, Gansu is undergoing a transformation and revitalization.",
       "description": "从农业生产到乡村建设，AI 正在这片古老的土地上连接传统与未来。",
-      "description_en": "From farming to rural development, AI is connecting tradition and the future on this ancient land."
+      "description_en": "From agricultural production to rural development, AI is bridging the traditional and the future on this ancient land."
     },
     {
       "bvid": "BV1wA3i6TEYC",
@@ -44,9 +44,9 @@
       "eyebrow": "新疆",
       "eyebrow_en": "Xinjiang",
       "title": "当 AI 走进新疆，一场农业革命正在发生",
-      "title_en": "When AI Reaches Xinjiang",
+      "title_en": "When AI Steps into Xinjiang, an Agricultural Revolution is Taking Place",
       "description": "AI 走进果园，机器人帮着采摘、管理与监测，科技从实验室进入田间地头。",
-      "description_en": "AI enters the orchards: robots help with picking, management and monitoring, moving technology from the lab into the fields."
+      "description_en": "AI has entered orchards, with robots assisting in picking, management and monitoring, as technology moves from laboratories to the fields."
     },
     {
       "bvid": "BV1JmKG6nE3J",
@@ -56,9 +56,45 @@
       "eyebrow": "G318 · 川藏线",
       "eyebrow_en": "G318 · Sichuan–Tibet",
       "title": "318科技纪事：把科技带向远方",
-      "title_en": "Tech Chronicles of Route 318: Taking Innovation to the Frontier",
+      "title_en": "318 Science and Technology Chronicle: Bringing Technology to Distant Places",
       "description": "不断遇见，不断帮助，基地车 G318 之旅留下的精彩瞬间。",
-      "description_en": "Meeting people, lending a hand: highlights from the vehicle's journey along the G318."
+      "description_en": "Constant encounters, constant support, the wonderful moments left by the Base Vehicle G318 journey."
+    },
+    {
+      "bvid": "BV1W4tg6kEd5",
+      "url": "https://www.bilibili.com/video/BV1W4tg6kEd5",
+      "cover": "/live/videos/BV1W4tg6kEd5.webp",
+      "date": "2026-09-01",
+      "eyebrow": "G318 · 川藏线",
+      "eyebrow_en": "G318 · Sichuan–Tibet",
+      "title": "牧民多吉说，科技如何进入更多传统场景？",
+      "title_en": "Herdsman Dorje asked, how can technology be integrated into more traditional scenarios?",
+      "description": "需要更多平衡与考量",
+      "description_en": "Need more balance and consideration"
+    },
+    {
+      "bvid": "BV1kDtu6TEPL",
+      "url": "https://www.bilibili.com/video/BV1kDtu6TEPL",
+      "cover": "/live/videos/BV1kDtu6TEPL.webp",
+      "date": "2026-09-01",
+      "eyebrow": "G318 · 川藏线",
+      "eyebrow_en": "G318 · Sichuan–Tibet",
+      "title": "「首位志愿者」聊聊西行远征",
+      "title_en": "\"The First Volunteer\": Talking about the Westward Expedition",
+      "description": "遇见心怀热忱、热爱科技、奔赴山海的同路人。",
+      "description_en": "Meet kindred spirits who are passionate, love technology, and dare to chase their dreams across mountains and seas."
+    },
+    {
+      "bvid": "BV1SYtu6UEky",
+      "url": "https://www.bilibili.com/video/BV1SYtu6UEky",
+      "cover": "/live/videos/BV1SYtu6UEky.webp",
+      "date": "2026-09-01",
+      "eyebrow": "四川",
+      "eyebrow_en": "Sichuan",
+      "title": "成都，一座来了就很难走脱的城市～",
+      "title_en": "Chengdu, a city that you will hardly want to leave once you come ~",
+      "description": "基地车走进成都",
+      "description_en": "The Mobile Construction Vehicle enters Chengdu."
     }
   ]
 }
