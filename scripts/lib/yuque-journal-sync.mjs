@@ -187,10 +187,7 @@ export function parseCityOverrides(raw) {
 // After title/body inference: an override always wins; a previously assigned
 // real stop is sticky (title edits must not re-home a card on the map); `yuque`
 // is not sticky so a later stop/keyword can still catch an unmatched card.
-export function resolveSyncedCity(
-  inferredCity,
-  { previousCity = null, overrideCity = null } = {},
-) {
+export function resolveSyncedCity(inferredCity, { previousCity = null, overrideCity = null } = {}) {
   if (overrideCity) return { city: overrideCity, source: 'override' };
   if (previousCity && previousCity !== 'yuque') {
     return { city: previousCity, source: 'sticky' };
