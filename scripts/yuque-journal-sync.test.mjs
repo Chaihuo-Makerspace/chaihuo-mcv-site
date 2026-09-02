@@ -8,7 +8,9 @@ import {
   imageExtensionFromUrl,
   loadStopTimeline,
   normalizeYuqueToc,
+  parseCityOverrides,
   parseJournalDate,
+  resolveSyncedCity,
   stopIdAtDate,
 } from './lib/yuque-journal-sync.mjs';
 
@@ -102,6 +104,48 @@ describe('yuque journal sync helpers', () => {
     }
     const sorted = [...timeline].sort((a, b) => a.date.localeCompare(b.date));
     assert.deepEqual(timeline, sorted);
+  });
+
+  it('parses journal city overrides from string or object values', () => {
+    assert.deepEqual(
+      parseCityOverrides({
+        a: 'jinan',
+        b: { city: 'weihai', note: 'pinned' },
+        _comment: 'ignore me',
+        c: { note: 'missing city' },
+        d: '  taiyuan  ',
+      }),
+      { a: 'jinan', b: 'weihai', d: 'taiyuan' },
+    );
+    assert.deepEqual(parseCityOverrides(null), {});
+    assert.deepEqual(parseCityOverrides([]), {});
+  });
+
+  it('keeps a previously assigned city unless an override is set', () => {
+    assert.deepEqual(resolveSyncedCity('jinan', { previousCity: 'tianjin' }), {
+      city: 'tianjin',
+      source: 'sticky',
+    });
+    assert.deepEqual(
+      resolveSyncedCity('tianjin', { previousCity: 'tianjin', overrideCity: 'jinan' }),
+      { city: 'jinan', source: 'override' },
+    );
+    assert.deepEqual(resolveSyncedCity('jinan', { previousCity: 'yuque' }), {
+      city: 'jinan',
+      source: 'inferred',
+    });
+    assert.deepEqual(resolveSyncedCity('chengdu', {}), {
+      city: 'chengdu',
+      source: 'inferred',
+    });
+    assert.deepEqual(resolveSyncedCity('yuque', { previousCity: 'yuque' }), {
+      city: 'yuque',
+      source: 'unmatched',
+    });
+    assert.deepEqual(resolveSyncedCity('yuque', { overrideCity: 'jinan' }), {
+      city: 'jinan',
+      source: 'override',
+    });
   });
 
   it('maps a journal date to the stop the vehicle was at', () => {

@@ -14,7 +14,9 @@ import {
   loadStopTimeline,
   nearestStop,
   normalizeYuqueToc,
+  parseCityOverrides,
   parseJournalDate,
+  resolveSyncedCity,
   stopIdAtDate,
 } from './lib/yuque-journal-sync.mjs';
 
@@ -23,6 +25,7 @@ const root = path.resolve(__dirname, '..');
 
 const bookUrl = process.env.YUQUE_BOOK_URL ?? 'https://www.yuque.com/mouseart/mcv';
 const outputPath = path.join(root, 'src/data/yuque-journals.json');
+const overridesPath = path.join(root, 'src/data/journal-city-overrides.json');
 const imageDir = path.join(root, 'public/yuque-journals');
 // Nominatim 地理编码结果缓存（入库提交）：结果稳定可审查，也避免每 10 分钟
 // 重复请求公共实例。
@@ -69,7 +72,7 @@ async function main() {
   const stopCoordinates = loadStopCoordinates();
   const stopTimeline = loadStopTimeline();
   const geocodeCache = await readJsonObject(geocodeCachePath);
-  const unmatched = [];
+  let unmatched = [];
   for (const entry of withCovers.filter((item) => item.city === 'yuque')) {
     let city = null;
     const titleHasDate = Boolean(parseJournalDate(entry.title));
@@ -102,6 +105,22 @@ async function main() {
       unmatched.push(entry);
     }
   }
+
+  const previousBySlug = await readExistingBySlug(outputPath);
+  const overrides = parseCityOverrides(await readJsonObject(overridesPath));
+  for (const entry of withCovers) {
+    const inferred = entry.city;
+    const { city, source } = resolveSyncedCity(inferred, {
+      previousCity: previousBySlug.get(entry.slug)?.city ?? null,
+      overrideCity: overrides[entry.slug] ?? null,
+    });
+    if (city !== inferred) {
+      console.log(`[sync] 《${entry.title}》city ${inferred} → ${city} (${source})`);
+    }
+    entry.city = city;
+  }
+  unmatched = withCovers.filter((entry) => entry.city === 'yuque');
+
   // 未匹配的日记不会出现在 /route —— 明确打日志,并让摘要进 CI 提交信息,
   // 维护者一眼能看到,而不是静默消失。
   if (unmatched.length > 0) {
@@ -122,7 +141,7 @@ async function main() {
   };
 
   await mkdir(path.dirname(outputPath), { recursive: true });
-  const previousSlugs = await readExistingSlugs(outputPath);
+  const previousSlugs = new Set(previousBySlug.keys());
   const wrote = await writeJsonIfMateriallyChanged(outputPath, payload);
   if (wrote) {
     const added = withCovers.filter((entry) => !previousSlugs.has(entry.slug));
@@ -135,12 +154,12 @@ async function main() {
   }
 }
 
-async function readExistingSlugs(filePath) {
+async function readExistingBySlug(filePath) {
   try {
     const existing = JSON.parse(await readFile(filePath, 'utf8'));
-    return new Set((existing.journals ?? []).map((journal) => journal.slug));
+    return new Map((existing.journals ?? []).map((journal) => [journal.slug, journal]));
   } catch {
-    return new Set();
+    return new Map();
   }
 }
 

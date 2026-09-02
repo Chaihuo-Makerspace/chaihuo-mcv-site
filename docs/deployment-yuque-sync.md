@@ -145,6 +145,26 @@ Journals that still fall back to `city: "yuque"` are hidden from the route
 panel and are logged loudly plus surfaced as "N 篇日记未匹配到站点" in the CI
 commit message. All synced journals currently map to real stops.
 
+## Locked journal cities
+
+`city` on a journal card is what the route map, story river, and arrival
+flipper read. The sync must not silently re-home a card after a human has
+placed it.
+
+1. **Override file (human source):** `src/data/journal-city-overrides.json`,
+   keyed by Yuque slug → `{ city, note }` or a stop-id string. Applied last,
+   every run. Never hand-edit `yuque-journals.json` to pin a city — the next
+   sync would have overwritten it before this lock existed, and the override
+   file is what `pnpm check` validates.
+2. **Sticky previous city:** if a slug already has a real stop id (not
+   `yuque`) and no override, keep that city even when the title or keyword
+   table would now infer something else. Unmatched `yuque` cards are *not*
+   sticky, so a later stop/keyword can still catch them.
+3. Title, date, cover, and `updatedAt` still refresh from Yuque as usual.
+
+`validate-site.mjs` checks override cities against stop ids, slugs against
+`yuque-journals.json`, and that the generated `city` matches the override.
+
 ## 2026-08-03 Sync Pipeline Hardening
 
 - CI had been failing at the git-auto-commit step since #33:

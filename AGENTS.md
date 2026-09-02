@@ -6,6 +6,8 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 柴火基地车官网 (Chaihuo MCV Site) — a bilingual (zh/en) marketing website for Chaihuo's mobile AI laboratory vehicle "普罗米修斯号". Astro SSR site with route map, journals, and Content Collections for structured data.
 
+**Location / journal city is locked.** Do not re-home Yuque journals, patch `yuque-journals.json` `city`, or invent arrivals from poetic titles. See **Hard locks: route location and journal city**.
+
 ## Commands
 
 - `pnpm dev` — start Astro dev server
@@ -133,7 +135,7 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 
 **Image derivatives:** large public images (Yuque covers, people avatars, hero carousel, deconstruct cards) are served through small WebP derivatives — **gitignored, rebuilt at dev/build time**, resolved in `.astro` frontmatter with an `existsSync` fallback to the original so a missing derivative degrades instead of 404-ing. Details: `docs/image-derivatives.md`.
 
-**Yuque journal sync:** `Sync Yuque Journals` GitHub Actions workflow syncs visible, publicly accessible Yuque `DOC` entries from `https://www.yuque.com/mouseart/mcv` every 10 minutes and via manual dispatch, then commits back to `main` (triggering Jenkins deploy). Inaccessible 401/403 docs are skipped. City inference attaches journals to route stops via auto-derived stop labels + an alias table + dateline/geocoding fallbacks. Details: `docs/deployment-yuque-sync.md`.
+**Yuque journal sync:** `Sync Yuque Journals` GitHub Actions workflow syncs visible, publicly accessible Yuque `DOC` entries from `https://www.yuque.com/mouseart/mcv` every 10 minutes and via manual dispatch, then commits back to `main` (triggering Jenkins deploy). Inaccessible 401/403 docs are skipped. Title inference may assign `city` on first sight; after that the city is sticky, and human pins live in `src/data/journal-city-overrides.json`. Do not re-home cards from poetic titles. Details: `docs/deployment-yuque-sync.md` and **Hard locks** below.
 
 **Live videos sync:** `src/data/live-videos.json` is generated from the Feishu Base [基地车路上视频](https://seeedstudio.feishu.cn/base/EpPpbh8ndaHS1asFeCgcyp0Fnse) (table 路上视频) by `scripts/sync-live-videos.mjs` via the `Sync Live Videos` workflow (every 10 min + manual dispatch). Bilibili only (Douyin was tried and dropped — marketing publishes everything on Bilibili). No status gate: every record whose required fields are complete syncs (incomplete ones are skipped with warnings); order comes from the 排序 field (larger first), then date desc. Editors just paste a link: the BV id is derived from 视频链接 (b23.tv short links are resolved via 302), and cover + 发布日期 (pubdate) auto-fill from Bilibili's public API — hand-filled values win. EN columns (标题/描述/分类 EN) are filled by the Base's AI field shortcut / formula; the sync just reads them. Do not hand-edit `live-videos.json` — edit the Base. Needs `FEISHU_APP_ID`/`FEISHU_APP_SECRET` secrets (tenant app with base read scope, added as Base collaborator). The videos rail renders on the **home page** (「路上的故事」, below the map, above the partners bar) — not on `/live`.
 
@@ -150,8 +152,28 @@ const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in l
 - Interactive elements must have `cursor-pointer` and `transition-colors duration-200`
 - Navigation and Footer receive `locale` prop; internal links use `localePath()` helper
 - `src/app/components/ui/` — shadcn/ui components — **do not modify manually**
-- **Data authority rule:** repo data files split into two kinds — *generated artifacts* (`src/data/live-videos.json`, `src/data/yuque-journals.json`; source of truth is the Feishu Base / Yuque, overwritten by sync, **never hand-edit**) and *human sources* (`team.json`, `equipment.json`, `faq.json`, stops, etc.; edited via PR as usual). Agents may freely change presentation/layout/components; for synced datasets they are read-only. Schema changes (new field) must update all three together: Feishu/Yuque column + sync script mapping + component.
+- **Data authority rule:** repo data files split into two kinds — *generated artifacts* (`src/data/live-videos.json`, `src/data/yuque-journals.json`; source of truth is the Feishu Base / Yuque, overwritten by sync, **never hand-edit**) and *human sources* (`team.json`, `equipment.json`, `faq.json`, `journal-city-overrides.json`, stops, etc.; edited via PR as usual). Agents may freely change presentation/layout/components; for synced datasets they are read-only. Schema changes (new field) must update all three together: Feishu/Yuque column + sync script mapping + component. Location / journal-city edits follow **Hard locks** below — do not "fix" a city by patching the generated JSON.
 - **Tooling split for Feishu work:** verify/test sync behavior by running the project scripts (simulate the CI path, e.g. `node scripts/sync-live-videos.mjs`); modify Feishu docs / Base content or structure with `lark-cli` (`--as user`). Don't use lark-cli to "check" what a sync script would produce, and don't use scripts to edit Base structure.
+
+## Hard locks: route location and journal city
+
+Other agents have re-homed journals from poetic titles and hand-edited generated JSON. These rules are invariants. Do not weaken them to "help" a map mismatch. Skill: `update-route-stop`. Runbook: `docs/deployment-yuque-sync.md`.
+
+**Homepage 「位于」 / map yellow dot** = last official stop with `visited: true` and not `routeOnly`, by `order`. There is no "current city" field. Not journal `city`, not GPS, not i18n copy, not `PROVINCE_VISITED`.
+
+- To move the vehicle: add or flip a stop in `src/content/stops/` (and follow that skill's sync list). Never hardcode `已出发` / `位于` / `已抵达` numbers in i18n or components.
+- Do not un-visit a stop a human set to `visited: true`.
+- `routeOnly` transit points (e.g. 秦皇岛途经点) are not cities and do not count in 「位于」 or 站数.
+
+**Journal `city`** is what map photo pins, the story river, and the arrival flipper key on. It is not a scratch field.
+
+- `src/data/yuque-journals.json` is generated. **Never hand-edit `city` as the lasting fix.** Title/date/cover may refresh; city must not be reshuffled.
+- To pin a card: edit `src/data/journal-city-overrides.json` (`<yuque-slug>: { "city": "<stop-id>", "note": "…" }`) and set the matching JSON `city` to the same id so the site is correct before the next 10-minute sync. `pnpm check` requires override city = stop id = JSON `city`.
+- After a card has a real stop id (not `yuque`), sync is **sticky**. Do not re-infer because the title changed, a new stop was added, or keywords "would be more accurate now".
+- `city: "yuque"` is the only unlocked state (still unmatched). To unlock one card for re-inference: delete its override and set JSON `city` to `yuque` — then stop. Do not batch-rewrite the file.
+- Poetic / classical titles are not place names (辞燕赴夷, 津门, 燕, 夷). Do not add a 雅称 alias table. Do not scan essay prose to invent an arrival. Do not infer 夷→山东/威海 or 燕→北京.
+
+**Do not touch these unless the user explicitly asked to change the lock itself:** `resolveSyncedCity` / `parseCityOverrides` in `scripts/lib/yuque-journal-sync.mjs`, the overlay in `scripts/sync-yuque-journals.mjs`, `validateJournalCityOverrides` in `scripts/validate-site.mjs`, or `src/data/journal-city-overrides.json` except to add a pin the user named. `CITY_KEYWORDS` is aliases/fold-ins only (定边→榆林); stop primary names come from `src/content/stops/` labels — do not re-register 济南/威海/天津 there.
 
 ## Detailed Docs
 

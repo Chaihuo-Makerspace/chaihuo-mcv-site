@@ -54,7 +54,7 @@ people: []              # 可选,id 指向 src/content/people/met/<id>.md
   - 计划段:没有真实日期,**不参与日期定位**——从今日指针起在当前月剩余宽度内均匀排开(保底 12% 宽度,不横跨后续月份),淡黄 `bg-brand/10`(当前段是 `bg-brand/25`);当前段判定只看非计划段,计划段永远不会被误判为"当前省"。计划行程里同省重复出现(如 蒙→京→蒙 的 呼和浩特→北京→赤峰)会并入首次出现的计划段,band 上每个 upcoming 省只显示一次。
 - 城市面板关联日记有两个来源,由 `getRouteJournals()`(`src/lib/journals.ts`)合并,同城同日本地优先:
   1. `src/content/journals/*.md` frontmatter `city: <stop-id>`(本地深度日记,站内详情页);
-  2. `src/data/yuque-journals.json` 的语雀日记(外链原文),其 `city` 由同步脚本的 `CITY_KEYWORDS` 词表推断(见同步清单第 6 项)。
+  2. `src/data/yuque-journals.json` 的语雀日记(外链原文)。`city` 首次由标题/正文推断,之后**粘滞**:同步不会因为改标题或加新站而把已归好的城改掉。人要订正某篇的城,改 `src/data/journal-city-overrides.json`(slug → stop id),不要手改生成 JSON。
 - 中英文页面(route.astro / en/route.astro)共用 `RouteContent`,只要 `.en.md` 齐了就自动双语言,不用改页面。
 
 ## 同步清单(新增/变更站点时逐项过)
@@ -66,7 +66,7 @@ people: []              # 可选,id 指向 src/content/people/met/<id>.md
    - `src/i18n/route.ts` 的 `route.pageDesc`(zh 和 en 各一条);
    - `src/app/components/HomeContent.tsx` 里**硬编码**的 `21 省 32 城`(搜 `省` 定位);
    - `src/app/components/RouteContent.tsx` 里有一条过时的 fallback 文案(死代码,顺手对齐)。
-5. 日记:如有该城市的 journal,frontmatter `city` 填 stop id(validator 强制存在)。
+5. 日记:如有该城市的 journal,frontmatter `city` 填 stop id(validator 强制存在)。语雀日记的城不要手改 `yuque-journals.json`;订正写入 `src/data/journal-city-overrides.json`(slug → `{ city, note }`),并把 JSON 里对应 `city` 改成同一 id(下一次同步也会套覆盖表)。
 5b. **`event.date` 尽量补上**(格式随意:`2026.07.24` / `2026.04.24/04.25` / `2026.05.05–07`,取第一个完整日期)。缺了不会报错,但该站点在时间-海拔脊上是插值位置(虚线引线),城市面板也没有"第 N 天"。
 6. **语雀日记词表**(新城市最容易漏):`scripts/lib/yuque-journal-sync.mjs` 的 `CITY_KEYWORDS` 加一条 `[<stop-id>, ['城市名', '别名…']]`,否则之后语雀同步的该城日记会落进 `city: "yuque"`,地图面板看不到。词表顺序即优先级(行程靠后的站点在前),"A→B" 中转标题归目的地;小地名/途经点直接并进所属站点(如 定边→榆林、赫章→毕节)。改完用 `node -e "import('./scripts/lib/yuque-journal-sync.mjs').then(m=>console.log(m.inferCityId('基地车日记|2026.0101 新城市')))"` 验证,并重算存量 JSON 的 city。
 6b. **封面派生图**:语雀封面是 960px 原图,页面只渲染到 132px。`scripts/generate-cover-thumbs.mjs` 生成 `public/yuque-journals/thumb/`(208px)与 `card/`(480px)两档 WebP,`pnpm build` / `pnpm dev` 会自动跑,派生图**不入库**(所以语雀同步的 Action 不需要装依赖)。手动重跑:`pnpm run images:covers`。派生图缺失时页面自动回退原图(`src/lib/journals.ts` 的 `withCoverDerivatives` 逐个 `existsSync`),不会瞎。

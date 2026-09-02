@@ -171,6 +171,36 @@ export function nearestStopId(lng, lat, stops, maxKm = 100) {
   return nearestStop(lng, lat, stops, maxKm)?.id ?? null;
 }
 
+// Human-pinned journal cities. Keys starting with `_` are comments.
+// Values may be a stop id string or `{ city, note? }`.
+export function parseCityOverrides(raw) {
+  const overrides = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return overrides;
+  for (const [slug, value] of Object.entries(raw)) {
+    if (!slug || slug.startsWith('_')) continue;
+    const city = typeof value === 'string' ? value : value?.city;
+    if (typeof city === 'string' && city.trim()) overrides[slug] = city.trim();
+  }
+  return overrides;
+}
+
+// After title/body inference: an override always wins; a previously assigned
+// real stop is sticky (title edits must not re-home a card on the map); `yuque`
+// is not sticky so a later stop/keyword can still catch an unmatched card.
+export function resolveSyncedCity(
+  inferredCity,
+  { previousCity = null, overrideCity = null } = {},
+) {
+  if (overrideCity) return { city: overrideCity, source: 'override' };
+  if (previousCity && previousCity !== 'yuque') {
+    return { city: previousCity, source: 'sticky' };
+  }
+  if (inferredCity && inferredCity !== 'yuque') {
+    return { city: inferredCity, source: 'inferred' };
+  }
+  return { city: inferredCity ?? 'yuque', source: 'unmatched' };
+}
+
 export function inferCityId(title, stopKeywords = loadStopCityKeywords()) {
   const entries = [...CITY_KEYWORDS, ...stopKeywords];
   const journalDate = parseJournalDate(title);

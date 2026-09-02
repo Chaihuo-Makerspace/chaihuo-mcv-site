@@ -481,10 +481,49 @@ function validateJournals({ routeCityIds, teamIds, equipmentIds }) {
   }
 }
 
+function validateJournalCityOverrides(routeCityIds) {
+  const relativePath = 'src/data/journal-city-overrides.json';
+  const overrides = readJson(relativePath);
+  check(
+    overrides && typeof overrides === 'object' && !Array.isArray(overrides),
+    `${relativePath}: must be an object keyed by Yuque slug`,
+  );
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) return;
+
+  let journalsBySlug = new Map();
+  try {
+    const { journals } = readJson('src/data/yuque-journals.json');
+    journalsBySlug = new Map((journals ?? []).map((journal) => [journal.slug, journal]));
+  } catch {
+    journalsBySlug = new Map();
+  }
+
+  for (const [slug, value] of Object.entries(overrides)) {
+    if (!slug || slug.startsWith('_')) continue;
+    const label = `${relativePath}:${slug}`;
+    const city = typeof value === 'string' ? value : value?.city;
+    check(Boolean(slug.trim()), `${label}: empty slug`);
+    check(typeof city === 'string' && city.trim(), `${label}: missing city`);
+    if (typeof city !== 'string' || !city.trim()) continue;
+    const cityId = city.trim();
+    check(routeCityIds.has(cityId), `${label}: unknown city "${cityId}"`);
+    const journal = journalsBySlug.get(slug);
+    check(Boolean(journal), `${label}: slug is not in yuque-journals.json`);
+    if (journal) {
+      check(
+        journal.city === cityId,
+        `${label}: yuque-journals.json city is "${journal.city}", override is "${cityId}"`,
+      );
+    }
+  }
+}
+
 compareLocaleDictionaries();
 validateRouteMirrors();
 validateLiveVideos();
-validateJournals(validateStructuredData());
+const structured = validateStructuredData();
+validateJournals(structured);
+validateJournalCityOverrides(structured.routeCityIds);
 
 if (failures.length > 0) {
   console.error(
