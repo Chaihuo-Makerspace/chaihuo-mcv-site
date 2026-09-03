@@ -1,7 +1,7 @@
 ---
 id: weihai
 order: 50
-visited: false
+visited: true
 label: 威海
 label_en: Weihai
 province: 山东省
