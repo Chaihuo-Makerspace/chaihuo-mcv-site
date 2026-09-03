@@ -95,6 +95,42 @@
       "title_en": "Chengdu, a city that you will hardly want to leave once you come ~",
       "description": "基地车走进成都",
       "description_en": "The Mobile Construction Vehicle enters Chengdu."
+    },
+    {
+      "bvid": "BV1Z5tE6XEGj",
+      "url": "https://www.bilibili.com/video/BV1Z5tE6XEGj",
+      "cover": "/live/videos/BV1Z5tE6XEGj.webp",
+      "date": "2026-09-03",
+      "eyebrow": "贵州",
+      "eyebrow_en": "Guizhou",
+      "title": "一路向黔，解锁贵州创客力量！",
+      "title_en": "Head to Guizhou, unlock the power of Guizhou's makers!",
+      "description": "寻找贵州创客",
+      "description_en": "Looking for Makers in Guizhou"
+    },
+    {
+      "bvid": "BV1rDtu6TEzy",
+      "url": "https://www.bilibili.com/video/BV1rDtu6TEzy",
+      "cover": "/live/videos/BV1rDtu6TEzy.webp",
+      "date": "2026-09-03",
+      "eyebrow": "贵州",
+      "eyebrow_en": "Guizhou",
+      "title": "小镇青年的maker生活",
+      "title_en": "The maker life of small-town youth",
+      "description": "创造，如何带给人选择的自由",
+      "description_en": "How does creation bring people the freedom of choice?"
+    },
+    {
+      "bvid": "BV1zgtE6xEoJ",
+      "url": "https://www.bilibili.com/video/BV1zgtE6xEoJ",
+      "cover": "/live/videos/BV1zgtE6xEoJ.webp",
+      "date": "2026-09-03",
+      "eyebrow": "广西",
+      "eyebrow_en": "Guangxi",
+      "title": "这一站，走进柳州！",
+      "title_en": "This stop, let's step into Liuzhou!",
+      "description": "遇见柳州新农人",
+      "description_en": "Meet the New Farmers of Liuzhou"
     }
   ]
 }
