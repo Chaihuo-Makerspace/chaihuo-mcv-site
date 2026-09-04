@@ -131,6 +131,30 @@
       "title_en": "This stop, let's step into Liuzhou!",
       "description": "遇见柳州新农人",
       "description_en": "Meet the New Farmers of Liuzhou"
+    },
+    {
+      "bvid": "BV1PWt96eE92",
+      "url": "https://www.bilibili.com/video/BV1PWt96eE92",
+      "cover": "/live/videos/BV1PWt96eE92.webp",
+      "date": "2026-09-04",
+      "eyebrow": "深圳",
+      "eyebrow_en": "Shenzhen",
+      "title": "柴火AI基地车正式发车！",
+      "title_en": "Chaihuo AI Base Vehicle officially departs!",
+      "description": "从深圳启程",
+      "description_en": "Depart from Shenzhen"
+    },
+    {
+      "bvid": "BV1sWt96eEZT",
+      "url": "https://www.bilibili.com/video/BV1sWt96eEZT",
+      "cover": "/live/videos/BV1sWt96eEZT.webp",
+      "date": "2026-09-04",
+      "eyebrow": "深圳",
+      "eyebrow_en": "Shenzhen",
+      "title": "揭秘基地车改造",
+      "title_en": "Unveiling the Secrets of Mobile Base Vehicle Modification",
+      "description": "改造进度50%",
+      "description_en": "Renovation progress: 50%"
     }
   ]
 }
