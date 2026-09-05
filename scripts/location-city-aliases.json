@@ -178,5 +178,29 @@
     "label": "威海",
     "label_en": "Weihai",
     "province": "山东省"
+  },
+  "兰考": {
+    "id": "lankao",
+    "label": "兰考",
+    "label_en": "Lankao",
+    "province": "河南省"
+  },
+  "兰考县": {
+    "id": "lankao",
+    "label": "兰考",
+    "label_en": "Lankao",
+    "province": "河南省"
+  },
+  "开封": {
+    "id": "kaifeng",
+    "label": "开封",
+    "label_en": "Kaifeng",
+    "province": "河南省"
+  },
+  "开封市": {
+    "id": "kaifeng",
+    "label": "开封",
+    "label_en": "Kaifeng",
+    "province": "河南省"
   }
 }

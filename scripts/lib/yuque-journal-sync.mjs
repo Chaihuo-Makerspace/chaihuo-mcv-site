@@ -14,6 +14,8 @@ const STOPS_DIR = path.resolve(
 // 由 loadStopCityKeywords() 从 stops 内容集合的 label 自动派生。
 // 顺序即优先级（靠后的站点在前），"A→B" 中转标题归到目的地。
 const CITY_KEYWORDS = [
+  ['kaifeng', ['开封']],
+  ['lankao', ['兰考']],
   ['weihai', ['威海']],
   ['jinan', ['济南']],
   ['xian', ['西安']],
