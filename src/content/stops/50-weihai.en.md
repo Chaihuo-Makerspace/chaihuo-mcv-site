@@ -9,22 +9,22 @@
 
 ## Activities
 
-- Planned arrival in Weihai to continue connecting coastal city scenes at the eastern end of the Shandong Peninsula
+- Arrived in Weihai to continue connecting coastal city scenes at the eastern end of the Shandong Peninsula
 
 ## Event
 
-On September 2, 2026, the mobile lab is scheduled to leave Jinan for Weihai, Shandong.
+On September 2, 2026, the mobile lab left Jinan and arrived in Weihai, Shandong.
 
 ## Expedition Log
 
 ### World
 
-After the provincial capital, the route continues toward the easternmost tip of the Shandong Peninsula.
+After the provincial capital, the route continued toward the easternmost tip of the Shandong Peninsula.
 
 ### Fire
 
-The pace gathered in Jinan will be carried into the next coastal city.
+The pace gathered in Jinan was carried into this coastal city.
 
 ### Frontier
 
-From Jinan to Weihai, the next in-province stretch is about to begin.
+From Jinan to Weihai, the next in-province stretch has landed.
