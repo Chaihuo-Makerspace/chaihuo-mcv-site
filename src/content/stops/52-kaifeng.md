@@ -1,7 +1,7 @@
 ---
 id: kaifeng
 order: 52
-visited: false
+visited: true
 label: 开封
 label_en: Kaifeng
 province: 河南省
