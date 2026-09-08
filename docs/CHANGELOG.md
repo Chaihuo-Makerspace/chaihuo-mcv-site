@@ -30,6 +30,8 @@ history.
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-09-08 | main | Live-videos 「分类」 is now a Feishu multi-select: sync reads string arrays (not `asText`), maps EN in-script, writes `eyebrows`/`eyebrows_en`, and homepage chips filter by any tag. |
+| 2026-09-08 | main | Set actual road mileage to 26,905 km. Homepage telemetry now shows `{n} 城` plus total km (no `visited/total` fraction). `/live` featured scrubber is a full-width segmented track that cannot overflow. Homepage 「路上的故事」 is a featured player + playlist/filmstrip with category chips instead of a 3-up horizontal carousel. |
 | 2026-09-05 | main | Added Lankao as the latest visited stop (arrival 2026-09-05) and Kaifeng as the next planned stop (2026-09-06); marked Weihai visited and added Henan / 豫/HA to the map province band. |
 | 2026-09-02 | main | Live-video covers now come from the Feishu Base 「封面」attachment (editors paste a screenshot or exported poster). Sync copies that file into `public/live/videos/<bvid>.webp` and no longer calls the Bilibili cover API from GitHub Actions. |
 | 2026-09-02 | main | Live-videos sync no longer aborts the whole job when GitHub Actions cannot reach the Bilibili cover API (HTTP 412); videos missing cover or date are skipped, and the three new 2026-09-01 films have committed WebP covers plus Base 发布日期 so they can sync from CI. |

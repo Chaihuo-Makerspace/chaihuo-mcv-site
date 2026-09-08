@@ -9,11 +9,12 @@ const Slider = (
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { ChevronDown, ChevronLeft, ChevronRight, Compass, Cpu, Mountain } from 'lucide-react';
+import expeditionConfig from '@/data/expedition-config.json';
 import { daysOnRoad } from '@/features/route-map/expedition-timeline';
 import { MAP_BG } from '@/features/route-map/map-style';
 import RoutePreview from '@/features/route-map/RoutePreview';
 import type { Stop } from '@/features/route-map/stops-loader';
-import type { ProjectableStop } from '@/features/route-map/types';
+import { isRouteOnlyCity, type ProjectableStop } from '@/features/route-map/types';
 import type { Locale } from '@/i18n/index';
 import { localePath } from '@/i18n/index';
 import {
@@ -129,12 +130,22 @@ export default function HomeContent({
   t,
 }: Props) {
   const sortedCities = useMemo(() => [...cities].sort((a, b) => a.order - b.order), [cities]);
-  const lastVisited = useMemo(
-    () => [...sortedCities].reverse().find((c) => c.visited) ?? null,
+  const officialCities = useMemo(
+    () => sortedCities.filter((city) => !isRouteOnlyCity(city)),
     [sortedCities],
   );
-  const visitedCount = useMemo(() => cities.filter((city) => city.visited).length, [cities]);
+  const lastVisited = useMemo(
+    () => [...officialCities].reverse().find((c) => c.visited) ?? null,
+    [officialCities],
+  );
+  const visitedCount = useMemo(
+    () => officialCities.filter((city) => city.visited).length,
+    [officialCities],
+  );
+  const cityTotal = officialCities.length;
+  const roadKm = expeditionConfig.actualRoadKm;
   const departureDays = daysOnRoad();
+  const kmLabel = roadKm.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN');
 
   // 媒体报道信息流：featured 置顶，其余按日期倒序；水平滑动卡片流
   const pressCards = useMemo(() => {
@@ -401,9 +412,12 @@ export default function HomeContent({
                     </span>
                     <span className="text-xs tabular-nums text-neutral-500">
                       {'· '}
-                      {(t['telemetry.progress'] ?? '已抵达 {visited}/{total} 城')
-                        .replace('{visited}', String(visitedCount))
-                        .replace('{total}', String(cities.length))}
+                      {(t['telemetry.cities'] ?? '{count} 城').replace(
+                        '{count}',
+                        String(visitedCount),
+                      )}
+                      {' · '}
+                      {(t['telemetry.km'] ?? '{km} 公里').replace('{km}', kmLabel)}
                     </span>
                   </p>
                   <div className="mt-4">
@@ -411,13 +425,13 @@ export default function HomeContent({
                       <div
                         className="absolute inset-y-0 left-0 rounded-full bg-brand"
                         style={{
-                          width: `${Math.min(100, (visitedCount / Math.max(1, cities.length)) * 100)}%`,
+                          width: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
                         }}
                       />
                       <span
                         className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-brand/30"
                         style={{
-                          left: `${Math.min(100, (visitedCount / Math.max(1, cities.length)) * 100)}%`,
+                          left: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
                         }}
                       />
                     </div>

@@ -26,7 +26,8 @@ const home: Record<Locale, Record<string, string>> = {
     'route.body':
       '这辆车从深圳出发，跨过三大地形阶梯、穿过六种气候带，把 AI 实验室带进山野、高原和边境小城。地图上的每一个点，都是一次真实环境里的技术实验。',
     'telemetry.daysTotal': '/ {total} 天',
-    'telemetry.progress': '已抵达 {visited}/{total} 城',
+    'telemetry.cities': '{count} 城',
+    'telemetry.km': '{km} 公里',
     'telemetry.terrain': '地貌',
     'telemetry.climate': '气候',
     'telemetry.challenge': '行车挑战',
@@ -68,8 +69,9 @@ const home: Record<Locale, Record<string, string>> = {
     'videos.subtitle': '走过的地方、遇见的人，被剪成了片子',
     'videos.play': '播放《{title}》',
     'videos.external': '在 B 站观看',
-    'videos.prev': '上一支',
-    'videos.next': '下一支',
+    'videos.all': '全部',
+    'videos.playlist': '影片列表',
+    'videos.filmstrip': '切换影片',
 
     'cta.label': '旅途日记',
     'press.label': '媒体报道',
@@ -107,7 +109,8 @@ const home: Record<Locale, Record<string, string>> = {
     'route.body':
       'From Shenzhen, the vehicle has crossed three terrain steps and six climate zones, carrying an AI lab into mountains, plateaus, and border towns. Every dot on this map is an experiment run in the real world.',
     'telemetry.daysTotal': '/ {total} days',
-    'telemetry.progress': '{visited} of {total} cities reached',
+    'telemetry.cities': '{count} cities',
+    'telemetry.km': '{km} km',
     'telemetry.terrain': 'Terrain',
     'telemetry.climate': 'Climate',
     'telemetry.challenge': 'Driving challenge',
@@ -154,8 +157,9 @@ const home: Record<Locale, Record<string, string>> = {
     'videos.subtitle': 'The places we drove through and the people we met, cut into short films',
     'videos.play': 'Play {title}',
     'videos.external': 'Watch on Bilibili',
-    'videos.prev': 'Previous film',
-    'videos.next': 'Next film',
+    'videos.all': 'All',
+    'videos.playlist': 'Film list',
+    'videos.filmstrip': 'Choose a film',
 
     'cta.label': 'Journals',
     'press.label': 'Media Coverage',

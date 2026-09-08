@@ -5,8 +5,16 @@
       "url": "https://www.bilibili.com/video/BV1JLtR6fEVs",
       "cover": "/live/videos/BV1JLtR6fEVs.webp",
       "date": "2026-09-04",
-      "eyebrow": "function link() { [native code] }function link() { [native code] }",
-      "eyebrow_en": "Ningxia · Gansu",
+      "eyebrow": "宁夏、甘肃",
+      "eyebrow_en": "Ningxia, Gansu",
+      "eyebrows": [
+        "宁夏",
+        "甘肃"
+      ],
+      "eyebrows_en": [
+        "Ningxia",
+        "Gansu"
+      ],
       "title": "当基地车开进甘宁段，我们遇到了一群“点火人”",
       "title_en": "When the base convoy drove into the Gansu-Ningxia section, we encountered a group of \"fire starters\".",
       "description": "柴火基地车驶入甘肃、宁夏，这一路的风景不只是草原和沙漠，更是人与科技的碰撞。",
@@ -17,8 +25,14 @@
       "url": "https://www.bilibili.com/video/BV1r38v62EXG",
       "cover": "/live/videos/BV1r38v62EXG.webp",
       "date": "2026-08-25",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "共创者",
       "eyebrow_en": "Makers",
+      "eyebrows": [
+        "共创者"
+      ],
+      "eyebrows_en": [
+        "Makers"
+      ],
       "title": "志愿者说：从工程师到教师，技术一直在路上",
       "title_en": "Volunteers say: From engineers to teachers, technology is always on the move.",
       "description": "西安—呼和浩特段的技术担当是矽递前员工。身份在变，对技术的热爱未变",
@@ -29,8 +43,14 @@
       "url": "https://www.bilibili.com/video/BV1sF3f6qE5a",
       "cover": "/live/videos/BV1sF3f6qE5a.webp",
       "date": "2026-08-03",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "共创者",
       "eyebrow_en": "Makers",
+      "eyebrows": [
+        "共创者"
+      ],
+      "eyebrows_en": [
+        "Makers"
+      ],
       "title": "生物老师跨界玩数字制造",
       "title_en": "A biology teacher ventures into digital manufacturing",
       "description": "用激光切割复刻中国古建筑，把传统建筑文化变成可触摸、可体验的作品。",
@@ -41,8 +61,14 @@
       "url": "https://www.bilibili.com/video/BV11L3v6uEWA",
       "cover": "/live/videos/BV11L3v6uEWA.webp",
       "date": "2026-07-29",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "甘肃",
       "eyebrow_en": "Gansu",
+      "eyebrows": [
+        "甘肃"
+      ],
+      "eyebrows_en": [
+        "Gansu"
+      ],
       "title": "从丝路古道到 AI 时代，甘肃正在焕新",
       "title_en": "From the ancient Silk Road to the AI era, Gansu is undergoing a transformation and revitalization.",
       "description": "从农业生产到乡村建设，AI 正在这片古老的土地上连接传统与未来。",
@@ -53,8 +79,14 @@
       "url": "https://www.bilibili.com/video/BV1wA3i6TEYC",
       "cover": "/live/videos/BV1wA3i6TEYC.webp",
       "date": "2026-07-28",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "新疆",
       "eyebrow_en": "Xinjiang",
+      "eyebrows": [
+        "新疆"
+      ],
+      "eyebrows_en": [
+        "Xinjiang"
+      ],
       "title": "当 AI 走进新疆，一场农业革命正在发生",
       "title_en": "When AI Steps into Xinjiang, an Agricultural Revolution is Taking Place",
       "description": "AI 走进果园，机器人帮着采摘、管理与监测，科技从实验室进入田间地头。",
@@ -65,8 +97,14 @@
       "url": "https://www.bilibili.com/video/BV1JmKG6nE3J",
       "cover": "/live/videos/BV1JmKG6nE3J.webp",
       "date": "2026-07-16",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "G318 · 川藏线",
       "eyebrow_en": "G318 · Sichuan–Tibet",
+      "eyebrows": [
+        "G318 · 川藏线"
+      ],
+      "eyebrows_en": [
+        "G318 · Sichuan–Tibet"
+      ],
       "title": "318科技纪事：把科技带向远方",
       "title_en": "318 Science and Technology Chronicle: Bringing Technology to Distant Places",
       "description": "不断遇见，不断帮助，基地车 G318 之旅留下的精彩瞬间。",
@@ -77,8 +115,14 @@
       "url": "https://www.bilibili.com/video/BV1W4tg6kEd5",
       "cover": "/live/videos/BV1W4tg6kEd5.webp",
       "date": "2026-09-01",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "G318 · 川藏线",
       "eyebrow_en": "G318 · Sichuan–Tibet",
+      "eyebrows": [
+        "G318 · 川藏线"
+      ],
+      "eyebrows_en": [
+        "G318 · Sichuan–Tibet"
+      ],
       "title": "牧民多吉说，科技如何进入更多传统场景？",
       "title_en": "Herdsman Dorje asked, how can technology be integrated into more traditional scenarios?",
       "description": "需要更多平衡与考量",
@@ -89,8 +133,14 @@
       "url": "https://www.bilibili.com/video/BV1kDtu6TEPL",
       "cover": "/live/videos/BV1kDtu6TEPL.webp",
       "date": "2026-09-01",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "G318 · 川藏线",
       "eyebrow_en": "G318 · Sichuan–Tibet",
+      "eyebrows": [
+        "G318 · 川藏线"
+      ],
+      "eyebrows_en": [
+        "G318 · Sichuan–Tibet"
+      ],
       "title": "「首位志愿者」聊聊西行远征",
       "title_en": "\"The First Volunteer\": Talking about the Westward Expedition",
       "description": "遇见心怀热忱、热爱科技、奔赴山海的同路人。",
@@ -101,8 +151,14 @@
       "url": "https://www.bilibili.com/video/BV1SYtu6UEky",
       "cover": "/live/videos/BV1SYtu6UEky.webp",
       "date": "2026-09-01",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "四川",
       "eyebrow_en": "Sichuan",
+      "eyebrows": [
+        "四川"
+      ],
+      "eyebrows_en": [
+        "Sichuan"
+      ],
       "title": "成都，一座来了就很难走脱的城市～",
       "title_en": "Chengdu, a city that you will hardly want to leave once you come ~",
       "description": "基地车走进成都",
@@ -113,8 +169,14 @@
       "url": "https://www.bilibili.com/video/BV1Z5tE6XEGj",
       "cover": "/live/videos/BV1Z5tE6XEGj.webp",
       "date": "2026-09-03",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "贵州",
       "eyebrow_en": "Guizhou",
+      "eyebrows": [
+        "贵州"
+      ],
+      "eyebrows_en": [
+        "Guizhou"
+      ],
       "title": "一路向黔，解锁贵州创客力量！",
       "title_en": "Head to Guizhou, unlock the power of Guizhou's makers!",
       "description": "寻找贵州创客",
@@ -125,8 +187,14 @@
       "url": "https://www.bilibili.com/video/BV1rDtu6TEzy",
       "cover": "/live/videos/BV1rDtu6TEzy.webp",
       "date": "2026-09-03",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "贵州",
       "eyebrow_en": "Guizhou",
+      "eyebrows": [
+        "贵州"
+      ],
+      "eyebrows_en": [
+        "Guizhou"
+      ],
       "title": "小镇青年的maker生活",
       "title_en": "The maker life of small-town youth",
       "description": "创造，如何带给人选择的自由",
@@ -137,8 +205,14 @@
       "url": "https://www.bilibili.com/video/BV1zgtE6xEoJ",
       "cover": "/live/videos/BV1zgtE6xEoJ.webp",
       "date": "2026-09-03",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "广西",
       "eyebrow_en": "Guangxi",
+      "eyebrows": [
+        "广西"
+      ],
+      "eyebrows_en": [
+        "Guangxi"
+      ],
       "title": "这一站，走进柳州！",
       "title_en": "This stop, let's step into Liuzhou!",
       "description": "遇见柳州新农人",
@@ -149,8 +223,14 @@
       "url": "https://www.bilibili.com/video/BV1PWt96eE92",
       "cover": "/live/videos/BV1PWt96eE92.webp",
       "date": "2026-09-04",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "深圳",
       "eyebrow_en": "Shenzhen",
+      "eyebrows": [
+        "深圳"
+      ],
+      "eyebrows_en": [
+        "Shenzhen"
+      ],
       "title": "柴火AI基地车正式发车！",
       "title_en": "Chaihuo AI Base Vehicle officially departs!",
       "description": "从深圳启程",
@@ -161,8 +241,14 @@
       "url": "https://www.bilibili.com/video/BV1sWt96eEZT",
       "cover": "/live/videos/BV1sWt96eEZT.webp",
       "date": "2026-09-04",
-      "eyebrow": "function link() { [native code] }",
+      "eyebrow": "深圳",
       "eyebrow_en": "Shenzhen",
+      "eyebrows": [
+        "深圳"
+      ],
+      "eyebrows_en": [
+        "Shenzhen"
+      ],
       "title": "揭秘基地车改造",
       "title_en": "Unveiling the Secrets of Mobile Base Vehicle Modification",
       "description": "改造进度50%",

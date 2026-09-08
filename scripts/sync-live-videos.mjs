@@ -80,11 +80,58 @@ function asText(value) {
   if (value == null) return '';
   if (Array.isArray(value))
     return value
-      .map((seg) => seg?.text ?? seg?.link ?? '')
+      .map((seg) => {
+        if (seg == null) return '';
+        if (typeof seg === 'string' || typeof seg === 'number') return String(seg);
+        return seg.text ?? seg.link ?? '';
+      })
       .join('')
       .trim();
   if (typeof value === 'object') return String(value.link ?? value.text ?? '').trim();
   return String(value).trim();
+}
+
+// 「分类」已改为多选：API 一律是字符串数组（单选时也是 ["甘肃"]）。
+// asText 会把 ["宁夏","甘肃"] 拼成 "宁夏甘肃" 或空串，不能拿来当分类。
+function asSelectLabels(value) {
+  if (value == null || value === '') return [];
+  const items = Array.isArray(value) ? value : [value];
+  const labels = [];
+  for (const item of items) {
+    if (item == null || item === '') continue;
+    if (typeof item === 'string' || typeof item === 'number') {
+      const label = String(item).trim();
+      if (label) labels.push(label);
+      continue;
+    }
+    if (typeof item === 'object') {
+      const label = String(item.text ?? item.name ?? item.label ?? '').trim();
+      if (label) labels.push(label);
+    }
+  }
+  return labels;
+}
+
+// 分类 EN 在表里是公式；多选后 IF([分类]="甘肃") 对数组不相等，会空。脚本自己映射，公式只作单值兜底。
+const CATEGORY_EN = {
+  共创者: 'Makers',
+  甘肃: 'Gansu',
+  新疆: 'Xinjiang',
+  'G318 · 川藏线': 'G318 · Sichuan–Tibet',
+  内蒙古: 'Inner Mongolia',
+  四川: 'Sichuan',
+  贵州: 'Guizhou',
+  广西: 'Guangxi',
+  深圳: 'Shenzhen',
+  宁夏: 'Ningxia',
+  甘宁: 'Gansu–Ningxia',
+  guizhou: 'Guizhou',
+};
+
+function translateCategories(zhLabels, formulaEn) {
+  const enLabels = zhLabels.map((zh) => CATEGORY_EN[zh] ?? '');
+  if (zhLabels.length === 1 && !enLabels[0] && formulaEn) enLabels[0] = formulaEn;
+  return enLabels.map((en, i) => en || zhLabels[i]);
 }
 
 // 解析「视频链接」里随手贴的分享短链 / 带参搜索链 / 纯 BV 号。短链需要联网，所以是 async。
@@ -138,13 +185,25 @@ function toVideo(resolved, warnings) {
   const sortNum =
     rawSort === null || rawSort === undefined || rawSort === '' ? null : Number(rawSort);
 
+  const categories = asSelectLabels(f['分类']);
+  const categoriesEn = translateCategories(categories, asText(f['分类 EN']));
+  const unmapped = categories.filter((zh) => !CATEGORY_EN[zh]);
+  if (unmapped.length > 0) {
+    warnings.push(
+      `${bvid} 分类无英文映射（英文暂用中文）：${unmapped.join('、')}。请补 CATEGORY_EN 与表里「分类 EN」公式`,
+    );
+  }
+
   const entry = {
     bvid,
     url: canonicalUrl,
     cover: `/live/videos/${bvid}.webp`,
     date: formatDate(f['发布日期']),
-    eyebrow: asText(f['分类']),
-    eyebrow_en: asText(f['分类 EN']),
+    // 分类名里已有间隔号（G318 · 川藏线），多选拼接不能再用 ·，否则无法区分名字和分隔符。
+    eyebrow: categories.join('、'),
+    eyebrow_en: categoriesEn.join(', '),
+    eyebrows: categories,
+    eyebrows_en: categoriesEn,
     title: asText(f['标题']),
     title_en: asText(f['标题 EN']),
     description: asText(f['描述']),
@@ -161,6 +220,7 @@ function toVideo(resolved, warnings) {
     'description',
     'description_en',
   ].filter((key) => !entry[key]);
+  if (categories.length === 0) missing.push('分类');
   if (!entry.date) missing.push('发布日期');
   const coverPath = path.join(COVER_DIR, `${bvid}.webp`);
   if (!coverFileToken && !existsSync(coverPath)) missing.push('封面（表格附件）');

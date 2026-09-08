@@ -434,6 +434,16 @@ function validateLiveVideos() {
       check(Boolean(video[field]), `${label}: missing zh ${field}`);
       check(Boolean(video[`${field}_en`]), `${label}: missing en ${field}_en`);
     }
+    if (video.eyebrows != null || video.eyebrows_en != null) {
+      check(
+        Array.isArray(video.eyebrows) && video.eyebrows.length > 0,
+        `${label}: eyebrows must be a non-empty array`,
+      );
+      check(
+        Array.isArray(video.eyebrows_en) && video.eyebrows_en.length === video.eyebrows.length,
+        `${label}: eyebrows_en must match eyebrows length`,
+      );
+    }
 
     // 顺序由飞书多维表格的「排序」字段决定（sync-live-videos.mjs 生成），不再校验日期倒序
   }

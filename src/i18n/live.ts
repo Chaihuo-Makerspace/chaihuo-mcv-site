@@ -30,7 +30,9 @@ const live: Record<Locale, Record<string, string>> = {
     'featured.subtitle': '值得留下的画面，由车上的人每天挑出',
     'featured.prev': '上一张',
     'featured.next': '下一张',
+    'featured.position': '{current} / {total}',
     'featured.imageAlt': '{date} 路上的瞬间',
+    'featured.goto': '查看 {date} 的画面',
   },
   en: {
     title: 'Live View',
@@ -65,7 +67,9 @@ const live: Record<Locale, Record<string, string>> = {
     'featured.subtitle': 'Frames worth keeping, picked daily by the crew on board',
     'featured.prev': 'Previous',
     'featured.next': 'Next',
+    'featured.position': '{current} / {total}',
     'featured.imageAlt': 'A moment from the road on {date}',
+    'featured.goto': 'View the frame from {date}',
   },
 };
 

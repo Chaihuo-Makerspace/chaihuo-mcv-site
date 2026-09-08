@@ -35,7 +35,7 @@ const cities = await loadLocalizedStops(locale);
 
 // Videos rail synced from the Feishu Base (scripts/sync-live-videos.mjs)
 const videos = videosData.videos.map((video) =>
-  localize(video, ['eyebrow', 'title', 'description'], locale),
+  localize(video, ['eyebrow', 'eyebrows', 'title', 'description'], locale),
 ) as LiveVideo[];
 
 // Island payload:HomeContent/RoutePreview 只读地图几何与当前站点事实卡字段,

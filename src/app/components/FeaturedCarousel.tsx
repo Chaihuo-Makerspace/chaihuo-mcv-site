@@ -84,41 +84,73 @@ export default function FeaturedCarousel({ locale = 'zh', t, entries }: Featured
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <button
-            type="button"
-            onClick={() => step(-1)}
-            aria-label={t['featured.prev']}
-            className="cursor-pointer rounded-full border border-neutral-300 p-2 text-neutral-700 transition-colors duration-200 hover:border-brand"
-          >
-            <ChevronLeftIcon className="h-4 w-4" />
-          </button>
+        <div className="mt-4 min-w-0">
+          <div className="flex items-center gap-3">
+            {count > 1 && (
+              <button
+                type="button"
+                onClick={() => step(-1)}
+                aria-label={t['featured.prev']}
+                className="shrink-0 cursor-pointer rounded-full border border-neutral-300 p-2 text-neutral-700 transition-colors duration-200 hover:border-brand"
+              >
+                <ChevronLeftIcon className="h-4 w-4" />
+              </button>
+            )}
 
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-sm text-neutral-500">{currentDate}</span>
-            <div className="flex items-center gap-2">
-              {entries.map((entry, i) => (
+            <span className="font-mono text-sm text-neutral-500" aria-live="polite">
+              {currentDate}
+            </span>
+
+            {count > 1 && (
+              <>
+                <span className="ml-auto shrink-0 font-mono text-xs tabular-nums text-neutral-400">
+                  {fill(t['featured.position'] ?? '{current} / {total}', {
+                    current: String((index % count) + 1),
+                    total: String(count),
+                  })}
+                </span>
+
                 <button
-                  key={entry.file}
                   type="button"
-                  onClick={() => setIndex(i)}
-                  aria-label={`${i + 1} / ${count}`}
-                  className={`h-2 w-2 cursor-pointer rounded-full transition-colors duration-200 ${
-                    i === index % count ? 'bg-brand' : 'bg-neutral-300 hover:bg-neutral-400'
-                  }`}
-                />
-              ))}
-            </div>
+                  onClick={() => step(1)}
+                  aria-label={t['featured.next']}
+                  className="shrink-0 cursor-pointer rounded-full border border-neutral-300 p-2 text-neutral-700 transition-colors duration-200 hover:border-brand"
+                >
+                  <ChevronRightIcon className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => step(1)}
-            aria-label={t['featured.next']}
-            className="cursor-pointer rounded-full border border-neutral-300 p-2 text-neutral-700 transition-colors duration-200 hover:border-brand"
-          >
-            <ChevronRightIcon className="h-4 w-4" />
-          </button>
+          {count > 1 && (
+            <div
+              role="tablist"
+              aria-label={t['featured.title']}
+              className="mt-3 flex min-w-0 items-stretch gap-px"
+            >
+              {entries.map((entry, i) => {
+                const date = formatFileDate(entry.file, locale);
+                const active = i === index % count;
+                return (
+                  <button
+                    key={entry.file}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    aria-label={fill(t['featured.goto'] ?? t['featured.imageAlt'], { date })}
+                    onClick={() => setIndex(i)}
+                    className="group flex h-6 min-w-0 flex-1 cursor-pointer items-center"
+                  >
+                    <span
+                      className={`block h-1 w-full rounded-full transition-colors duration-200 ${
+                        active ? 'bg-brand' : 'bg-neutral-300 group-hover:bg-neutral-400'
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </section>

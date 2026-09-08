@@ -69,7 +69,7 @@ const cities = await loadLocalizedStops(locale);
 
 // 首页「路上的故事」视频条（飞书 Base 同步产物，scripts/sync-live-videos.mjs）
 const videos = videosData.videos.map((video) =>
-  localize(video, ['eyebrow', 'title', 'description'], locale),
+  localize(video, ['eyebrow', 'eyebrows', 'title', 'description'], locale),
 ) as LiveVideo[];
 
 // Island payload:HomeContent/RoutePreview 只读地图几何与当前站点事实卡字段,
