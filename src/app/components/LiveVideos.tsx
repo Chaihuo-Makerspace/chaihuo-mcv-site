@@ -247,7 +247,8 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
             )}
           </div>
 
-          {filtered.length > 1 && (
+          {/* 一条结果也列出，否则筛选后右栏空白，看起来像没命中 */}
+          {filtered.length > 0 && (
             <div className="hidden min-w-0 lg:col-span-5 lg:block">
               <ul
                 ref={listRef}
