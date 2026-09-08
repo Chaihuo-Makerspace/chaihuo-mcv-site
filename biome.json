@@ -17,6 +17,8 @@
       "!.astro",
       "!pnpm-lock.yaml",
       "!src/data/china-provinces.json",
+      "!src/data/live-videos.json",
+      "!src/data/yuque-journals.json",
       "!**/*.css",
       "!**/*.astro"
     ]
