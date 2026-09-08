@@ -138,5 +138,15 @@
     "date": "2026-05-25",
     "tier": "full",
     "category": "wechat"
+  },
+  {
+    "source": "Inno Hub",
+    "source_en": "Inno Hub",
+    "sourceUrl": "https://mp.weixin.qq.com/s/4az49nHEqLuMufIamYY4rg",
+    "title": "【企业观察】24小时卖爆260万美元的机器人，背后是谁？",
+    "title_en": "",
+    "date": "2026-09-07",
+    "tier": "full",
+    "category": "wechat"
   }
 ]
