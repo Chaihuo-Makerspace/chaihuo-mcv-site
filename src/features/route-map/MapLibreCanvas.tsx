@@ -104,6 +104,10 @@ export default function MapLibreCanvas({
   const pinElsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
   const leaderSvgRef = useRef<SVGSVGElement | null>(null);
   const [ready, setReady] = useState(false);
+  // Theme lens only re-filters the photo pins: matching cities' covers surface,
+  // the rest are withheld. Dots/labels/route stay put — the cover appearing IS
+  // the signal; dimming fifty dots would just be visual noise.
+  const themeMatchedIdsRef = useRef<Set<string> | null>(null);
 
   // Per-city journal count + newest cover — drives dot size and pin content.
   const pinData = useMemo(() => {
@@ -177,8 +181,10 @@ export default function MapLibreCanvas({
       // desktop map and an unreadable collage on a 390px phone. Busiest stops
       // win the slots.
       const pinBudget = Math.max(3, Math.min(18, Math.round((bw * bh) / 24_000)));
+      const themeMatched = themeMatchedIdsRef.current;
       const candidates = projected
         .filter((c) => !!pinDataRef.current.get(c.id)?.cover)
+        .filter((c) => !themeMatched || themeMatched.has(c.id))
         .sort(
           (a, b) => (pinDataRef.current.get(b.id)?.n ?? 0) - (pinDataRef.current.get(a.id)?.n ?? 0),
         )
@@ -495,24 +501,16 @@ export default function MapLibreCanvas({
     relayoutRef.current();
   }, [viewMode, ready, activeTheme]);
 
-  // Theme lens: matched pop, non-matched non-origin dim, origin exempt; route fades.
+  // Theme lens: refresh which covers the map shows. Matching cities' photo pins
+  // surface, the rest are withheld; markers, labels and the route are untouched.
   useEffect(() => {
     if (!ready) return;
-    for (const city of cities) {
-      if (isRouteOnlyCity(city)) continue;
-      const el = markerElsRef.current.get(city.label);
-      if (!el) continue;
-      const matched = !!activeTheme && !city.isOrigin && city.themes.includes(activeTheme);
-      const dimmed = !!activeTheme && !city.isOrigin && !city.themes.includes(activeTheme);
-      el.classList.toggle('mlc-marker--match', matched);
-      el.classList.toggle('mlc-marker--dimmed', dimmed);
-      const pin = pinElsRef.current.get(city.id);
-      pin?.classList.toggle('mlc-pin--dimmed', dimmed);
-      if (dimmed) el.dataset.dimmed = 'true';
-      else delete el.dataset.dimmed;
-      if (matched) el.dataset.themeMatch = 'true';
-      else delete el.dataset.themeMatch;
-    }
+    themeMatchedIdsRef.current = activeTheme
+      ? new Set(
+          cities.filter((c) => !c.isOrigin && c.themes.includes(activeTheme)).map((c) => c.id),
+        )
+      : null;
+    relayoutRef.current();
   }, [activeTheme, ready, cities]);
 
   // Selection: highlight the selected marker + ease the map to it.

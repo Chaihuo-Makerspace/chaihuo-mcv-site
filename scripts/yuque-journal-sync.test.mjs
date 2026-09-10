@@ -8,8 +8,10 @@ import {
   imageExtensionFromUrl,
   loadStopTimeline,
   normalizeYuqueToc,
+  parseCategoryOverrides,
   parseCityOverrides,
   parseJournalDate,
+  resolveSyncedCategory,
   resolveSyncedCity,
   stopIdAtDate,
 } from './lib/yuque-journal-sync.mjs';
@@ -146,6 +148,29 @@ describe('yuque journal sync helpers', () => {
       city: 'jinan',
       source: 'override',
     });
+  });
+
+  it('parses journal category overrides and defaults new cards to science', () => {
+    assert.deepEqual(
+      parseCategoryOverrides({
+        a: 'education',
+        b: { category: 'maker', note: 'sheet' },
+        _comment: 'ignore',
+        c: { note: 'missing' },
+        d: 'nope',
+        e: '  industry  ',
+      }),
+      { a: 'education', b: 'maker', e: 'industry' },
+    );
+    assert.deepEqual(resolveSyncedCategory({}), { category: 'science', source: 'default' });
+    assert.deepEqual(resolveSyncedCategory({ previousCategory: 'maker' }), {
+      category: 'maker',
+      source: 'sticky',
+    });
+    assert.deepEqual(
+      resolveSyncedCategory({ previousCategory: 'science', overrideCategory: 'education' }),
+      { category: 'education', source: 'override' },
+    );
   });
 
   it('maps a journal date to the stop the vehicle was at', () => {

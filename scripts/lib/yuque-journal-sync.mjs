@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_SCENE, isSceneId, SCENES } from '../../src/lib/scenes.mjs';
 
 const YUQUE_ORIGIN = 'https://www.yuque.com';
 
@@ -184,6 +185,31 @@ export function parseCityOverrides(raw) {
     if (typeof city === 'string' && city.trim()) overrides[slug] = city.trim();
   }
   return overrides;
+}
+
+export const JOURNAL_CATEGORIES = SCENES;
+export const DEFAULT_JOURNAL_CATEGORY = DEFAULT_SCENE;
+
+export function parseCategoryOverrides(raw) {
+  const overrides = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return overrides;
+  for (const [slug, value] of Object.entries(raw)) {
+    if (!slug || slug.startsWith('_')) continue;
+    const category = typeof value === 'string' ? value : value?.category;
+    const trimmed = typeof category === 'string' ? category.trim() : '';
+    if (isSceneId(trimmed)) overrides[slug] = trimmed;
+  }
+  return overrides;
+}
+
+export function resolveSyncedCategory({ previousCategory = null, overrideCategory = null } = {}) {
+  if (isSceneId(overrideCategory)) {
+    return { category: overrideCategory, source: 'override' };
+  }
+  if (isSceneId(previousCategory)) {
+    return { category: previousCategory, source: 'sticky' };
+  }
+  return { category: DEFAULT_SCENE, source: 'default' };
 }
 
 // After title/body inference: an override always wins; a previously assigned

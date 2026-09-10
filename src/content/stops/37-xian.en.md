@@ -9,22 +9,15 @@
 
 ## Activities
 
-- To be updated
-
 ## Event
 
-The mobile lab has arrived in Xi'an, Shaanxi, and the route map now records this city stop. The detailed field note will be updated later.
+On 24 July 2026, the mobile lab arrived in Xi'an.
 
 ## Expedition Log
 
 ### World
 
-To be updated
-
 ### Fire
-
-To be updated
 
 ### Frontier
 
-To be updated

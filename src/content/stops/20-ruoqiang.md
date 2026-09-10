@@ -11,6 +11,9 @@ altitude: "890"
 relationType: community
 themes:
   - maker
+event:
+  date: "2026.06.13"
+  link: https://www.yuque.com/mouseart/mcv/itsrqkag36u40c6h
 ---
 
 # 若羌
@@ -24,9 +27,11 @@ themes:
 
 ## 在地共创
 
-- 入疆转场节点
-- 盆地边缘环境记录
+- 入疆第一站
+- 楼兰博物馆停留
 
 ## 现场记
 
-从茫崖进入新疆，在若羌完成从高原荒漠到塔里木盆地边缘的转场记录。
+6 月 13 日早起看过艾肯泉后，上 G315 往若羌。上午十点半路边看见「欢迎来到新疆」的牌子。依吞布拉克镇把电补满后上西和高速，中午到若羌，参观楼兰博物馆。下午六点从博物馆出来，上乌若高速继续向库尔勒。
+
+语雀日记：[2026.06.12-14｜格尔木-茫崖-若羌-库尔勒-阿克苏](https://www.yuque.com/mouseart/mcv/itsrqkag36u40c6h)

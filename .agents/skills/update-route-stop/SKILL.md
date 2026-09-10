@@ -21,14 +21,19 @@ label_en: Hami
 province: 新疆维吾尔自治区  # 完整行政区名
 lng: 93.51 / lat: 42.83
 altitude: "764"
-relationType: community # departure|education|community|industry
-themes: [maker]         # science|maker|industry
 event: { date: "…", link: "…" }  # 可选;有 event 正文必须有 ## 现场记
 people: []              # 可选,id 指向 src/content/people/met/<id>.md
 ---
 ```
 
-正文有固定小节(`## 在地遥测` / `## 在地共创` / `## 现场记` / `## 远征日志` / 可选 `## 照片`),由 `stops-body-parser.mjs` 解析;**中文文件 H1 必须等于 `label`,英文文件 H1 必须等于 `label_en`**。
+正文由 `stops-body-parser.mjs` 解析。站点讲「这一程发生了什么」,不是地理课:
+
+- **必须:** H1 = `label`(英文件 = `label_en`);有 `event` 时要有 `## 现场记` 标题(正文可空)。
+- **现场记:** 从该城语雀日记摘 1–3 句(在这里做了什么)+ 链回原文。不要只写「抵达 X」。
+- **可选:** `## 在地共创`(真活动,禁止「抵达 X」)、`## 远征日志`、`## 照片`、`people`。没有内容就不要写这些节。
+- **不要写:** `## 在地遥测`(地形/阶梯/气候/极境挑战)——前端不展示。
+
+新站骨架(`create-stops-from-journals.mjs`)只输出 frontmatter + H1 + `## 现场记`。
 
 特殊情况:只弯折路线不显示的隐藏途经点,加 `routeOnly: true`(如 `23-korla-return.md`)。
 
@@ -47,6 +52,7 @@ people: []              # 可选,id 指向 src/content/people/met/<id>.md
   - 尾部计划段(最后一个有日期的站点之后)不编日期,单独排在右侧预留区;
   - "N 天零篇日记"那条空白带只用**手写日期**(非插值)来算,所以补日期会直接影响它。
 - 左栏四个数字(天数 / 公里 / 城 / 篇日记)**全部派生**,别去写死:天数来自时间轴、公里是站点坐标的大圆弧累加、城是 `visited/总数`、日记数是 `getRouteJournals()` 的长度。
+- **场景筛选**（科普/产业/创客社区/教育）来自日记 `category`，schema 在 `src/lib/scenes.mjs`。不要在 stop Markdown 写 `themes`。
 - 「马年愿景」是视图模式,不是常驻图层;加站点不影响它。
 - 省份填色:唯一来源 `src/features/route-map/visited-provinces.ts` 的 `PROVINCE_VISITED` 数组(MapLibre 和 SVG 预览共用)。
 - 首页时间轴路段带:`src/features/route-map/route-legs.ts` 的 `buildRouteLegs(stops, locale)` 按 **连续同省站点归并省际段落**(粤→桂→黔→…),喂给首页 `RoleTimeline` 的 legs band + 当前省竖列高亮。每段带 `planned` 标记(段内站点全部 `visited: false` 即计划段):
@@ -71,8 +77,8 @@ people: []              # 可选,id 指向 src/content/people/met/<id>.md
 6. **语雀日记词表**(新城市最容易漏):`scripts/lib/yuque-journal-sync.mjs` 的 `CITY_KEYWORDS` 加一条 `[<stop-id>, ['城市名', '别名…']]`,否则之后语雀同步的该城日记会落进 `city: "yuque"`,地图面板看不到。词表顺序即优先级(行程靠后的站点在前),"A→B" 中转标题归目的地;小地名/途经点直接并进所属站点(如 定边→榆林、赫章→毕节)。改完用 `node -e "import('./scripts/lib/yuque-journal-sync.mjs').then(m=>console.log(m.inferCityId('基地车日记|2026.0101 新城市')))"` 验证,并重算存量 JSON 的 city。
 6b. **封面派生图**:语雀封面是 960px 原图,页面只渲染到 132px。`scripts/generate-cover-thumbs.mjs` 生成 `public/yuque-journals/thumb/`(208px)与 `card/`(480px)两档 WebP,`pnpm build` / `pnpm dev` 会自动跑,派生图**不入库**(所以语雀同步的 Action 不需要装依赖)。手动重跑:`pnpm run images:covers`。派生图缺失时页面自动回退原图(`src/lib/journals.ts` 的 `withCoverDerivatives` 逐个 `existsSync`),不会瞎。
 7. 遇见的人:`people:` id → 对应 `src/content/people/met/<id>.md` 要存在;照片放 `public/` 并在 `## 照片` 引用。**所有新入库图片先转 WebP,见下面「图片规范」。**
-8. 自动定位流:在 `scripts/location-city-aliases.json` 加中文地名(含"X市"变体)→ `{id, label, label_en, province}` 映射。
-9. `AGENTS.md` 的 Current Status / Changelog(项目惯例,历史加站 commit 都更新了)。
+8. 新城市稳定 id：在 `scripts/location-city-aliases.json` 加中文地名(含"X市"变体)→ `{id, label, label_en, province}`，给 `scripts/create-stops-from-journals.mjs` 建站用。
+9. `docs/CHANGELOG.md`(项目惯例,历史加站 commit 都更新了)。
 
 ## 图片规范(用户发来照片时必须先做)
 
@@ -89,9 +95,7 @@ node -e "const s=require('sharp');const [i,o,w]=process.argv.slice(1);s(i).resiz
 - 例外:`public/yuque-journals/*.jpg` 是语雀同步脚本自动抓的封面原图,由 `scripts/generate-cover-thumbs.mjs` 在构建期生成 WebP 派生图(第 6b 项),**不要手动改这些文件**。手动加的图不走那条流水线,所以必须自己转好。
 - `pnpm check` 只校验图片存在,不校验格式和体积——转 WebP 这步没人替你兜底。
 
-## 自动流程:`pnpm update:city`
-
-`scripts/check-arrival.mjs`(文档 `docs/location-city-update.md`):拉 SenseCAP GPS → 反地理编码 → `--apply` 自动生成 `NN-id.md` + `.en.md` 骨架并补 `visited-provinces.ts`。**它不会改**:第 3 项的 `PROVINCE_SHORT`、第 4 项的"N 省 N 城"文案、第 6 项的 `CITY_KEYWORDS`、正文占位符(`待补充`)、`AGENTS.md`——这些都要手动跟进。别名表(第 8 项)决定自动生成的 id/名称质量,新区域先补别名再跑脚本。
+到达以语雀日记为准：`scripts/update-route-stops-from-journals.mjs` 翻转已规划站的 `visited`，`scripts/create-stops-from-journals.mjs` 为日记里尚未建站的新城市补骨架。现场记从对应语雀日记提取，不要留定位器套话。
 
 ## 验证
 

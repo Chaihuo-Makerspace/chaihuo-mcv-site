@@ -1,17 +1,10 @@
-import {
-  AlertCircle,
-  ArrowRight,
-  ChevronDown,
-  Clock,
-  Compass,
-  MapPin,
-  Mountain,
-} from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { ArrowRight, ChevronDown, Clock, Compass, MapPin } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
 import type { Locale } from '@/i18n/index';
 import { localePath } from '@/i18n/index';
 import type { LocalizedJournal } from '@/lib/journals';
+import { DEFAULT_SCENE, isSceneId, SCENES, type SceneId, sceneLabel } from '@/lib/scenes.mjs';
 import { fadeUp, springTransition, stagger } from './motion';
 
 interface Props {
@@ -22,13 +15,10 @@ interface Props {
   t: Record<string, string>;
 }
 
-// Slimmed stop shape shipped to the island: filter label + placeholder telemetry
+// Slimmed stop shape shipped to the island: city filter labels only
 interface CityFilterOption {
   id: string;
   label: string;
-  altitude: string;
-  terrain: string;
-  challenge: string;
 }
 
 interface YuqueJournalCard {
@@ -39,6 +29,7 @@ interface YuqueJournalCard {
   city: string;
   href: string;
   coverImage: string | null;
+  category?: SceneId | string;
 }
 
 export default function JournalsContent({
@@ -51,7 +42,7 @@ export default function JournalsContent({
   // Read search parameters for initial filters
   const [activeCity, setActiveCity] = useState<string>('all');
   const [activeStatus, setActiveStatus] = useState<string>('all');
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
   // Stable across renders (only uses stable state setters), so the effects below
   // still run once on mount — behaviour identical to empty deps.
@@ -60,6 +51,7 @@ export default function JournalsContent({
     const params = new URLSearchParams(window.location.search);
     setActiveCity(params.get('city') ?? 'all');
     setActiveStatus(params.get('status') ?? 'all');
+    setActiveCategory(params.get('category') ?? 'all');
   }, []);
 
   // Sync state with URL Search Params on mount
@@ -77,15 +69,20 @@ export default function JournalsContent({
   // Update URL Search Params when filters change
   const handleCityChange = (cityId: string) => {
     setActiveCity(cityId);
-    updateQueryParams(cityId, activeStatus);
+    updateQueryParams(cityId, activeStatus, activeCategory);
   };
 
   const handleStatusChange = (status: string) => {
     setActiveStatus(status);
-    updateQueryParams(activeCity, status);
+    updateQueryParams(activeCity, status, activeCategory);
   };
 
-  const updateQueryParams = (city: string, status: string) => {
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    updateQueryParams(activeCity, activeStatus, category);
+  };
+
+  const updateQueryParams = (city: string, status: string, category: string) => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (city === 'all') {
@@ -97,6 +94,11 @@ export default function JournalsContent({
         params.delete('status');
       } else {
         params.set('status', status);
+      }
+      if (category === 'all') {
+        params.delete('category');
+      } else {
+        params.set('category', category);
       }
       const newSearch = params.toString();
       const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ''}`;
@@ -111,11 +113,17 @@ export default function JournalsContent({
     return cityMatch && statusMatch;
   });
   const hasYuqueJournals = yuqueJournals.length > 0;
+  const journalCategory = (j: YuqueJournalCard): SceneId =>
+    isSceneId(j.category) ? j.category : DEFAULT_SCENE;
   const filteredYuqueJournals = yuqueJournals.filter((j) => {
     const cityMatch = activeCity === 'all' || j.city === activeCity;
     const statusMatch = activeStatus === 'all' || activeStatus === 'published';
-    return cityMatch && statusMatch;
+    const categoryMatch = activeCategory === 'all' || journalCategory(j) === activeCategory;
+    return cityMatch && statusMatch && categoryMatch;
   });
+  const categoryCounts = Object.fromEntries(
+    SCENES.map((key) => [key, yuqueJournals.filter((j) => journalCategory(j) === key).length]),
+  ) as Record<SceneId, number>;
   const totalCount = hasYuqueJournals ? yuqueJournals.length : journals.length;
   const publishedCount = hasYuqueJournals
     ? yuqueJournals.length
@@ -128,17 +136,6 @@ export default function JournalsContent({
   const citiesList = Array.from(new Map(cities.map((city) => [city.id, city.label]))).map(
     ([id, label]) => ({ id, label }),
   );
-
-  // Helper to retrieve city details for a given city ID
-  const getCityTelemetry = (cityId: string) => {
-    const city = cities.find((c) => c.id === cityId);
-    if (!city) return null;
-    return {
-      altitude: city.altitude,
-      terrain: city.terrain,
-      challenge: city.challenge,
-    };
-  };
 
   return (
     <div className="min-h-screen bg-surface">
@@ -170,6 +167,48 @@ export default function JournalsContent({
           </motion.div>
         </div>
       </section>
+
+      {hasYuqueJournals && (
+        <section className="sticky top-[64px] z-40 border-b border-neutral-300 bg-surface-card py-4 shadow-xs">
+          <div className="page-rail flex flex-wrap items-center justify-between gap-4">
+            {/* biome-ignore lint/a11y/useSemanticElements: 筛选 chip 组无对应原生元素 */}
+            <div
+              role="group"
+              aria-label={t['filter.categoryAria']}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <button
+                type="button"
+                onClick={() => handleCategoryChange('all')}
+                className={`cursor-pointer rounded-full px-3 py-1.5 text-sm transition-colors duration-200 ${
+                  activeCategory === 'all'
+                    ? 'bg-neutral-900 text-white'
+                    : 'border border-neutral-300 text-neutral-700 hover:border-neutral-900'
+                }`}
+              >
+                {t['filter.all']} {totalCount}
+              </button>
+              {SCENES.map((key) => {
+                const selected = activeCategory === key;
+                return (
+                  <button
+                    type="button"
+                    key={key}
+                    onClick={() => handleCategoryChange(key)}
+                    className={`cursor-pointer rounded-full px-3 py-1.5 text-sm transition-colors duration-200 ${
+                      selected
+                        ? 'bg-neutral-900 text-white'
+                        : 'border border-neutral-300 text-neutral-700 hover:border-neutral-900'
+                    }`}
+                  >
+                    {sceneLabel(locale, key)} {categoryCounts[key]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {!hasYuqueJournals && (
         <section className="sticky top-[64px] z-40 border-b border-neutral-300 bg-surface-card py-6 shadow-xs">
@@ -278,6 +317,8 @@ export default function JournalsContent({
                           {formatYuqueCardTitle(entry.title)}
                         </h3>
                         <p className="text-sm text-neutral-500 mt-3">
+                          {sceneLabel(locale, journalCategory(entry))}
+                          {' · '}
                           {formatYuqueJournalDate(entry.date, locale)}
                         </p>
                       </div>
@@ -355,27 +396,13 @@ export default function JournalsContent({
                     </motion.div>
                   );
                 } else {
-                  // Placeholder Card
-                  const telemetry = getCityTelemetry(entry.city);
-
                   return (
                     <motion.div
                       key={entry.slug}
                       variants={fadeUp}
-                      className="relative group rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                      tabIndex={0}
-                      aria-label={
-                        locale === 'en'
-                          ? `${entry.cityLabel} expedition telemetry`
-                          : `${entry.cityLabel} 探险数据`
-                      }
-                      onMouseEnter={() => setHoveredCardId(entry.slug)}
-                      onMouseLeave={() => setHoveredCardId(null)}
-                      onFocus={() => setHoveredCardId(entry.slug)}
-                      onBlur={() => setHoveredCardId(null)}
+                      className="relative group rounded-xl"
                     >
                       <div className="block bg-surface text-neutral-700 rounded-xl border border-dashed border-neutral-300 p-5 shadow-none min-h-44 flex flex-col justify-between overflow-hidden">
-                        {/* Top: date / city / status chip */}
                         <div>
                           <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-neutral-500">
                             <span>{entry.date}</span>
@@ -391,75 +418,11 @@ export default function JournalsContent({
                               {t['card.placeholder.label']}
                             </span>
                           </div>
-                          {/* Author-written excerpt is the right preview here.
-                              Telemetry stays in the hover popover only. */}
                           <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
                             {entry.excerpt}
                           </p>
                         </div>
                       </div>
-
-                      {/* Popover showing geographical telemetry data */}
-                      <AnimatePresence>
-                        {hoveredCardId === entry.slug && telemetry && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            transition={{ duration: 0.15, ease: 'easeOut' }}
-                            className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-3 w-80 max-w-[calc(100vw-2rem)] bg-neutral-950/95 backdrop-blur-md border border-neutral-900 rounded-xl p-4 shadow-2xl pointer-events-none text-white"
-                          >
-                            <h4 className="text-xs font-black tracking-widest text-brand mb-3 uppercase flex items-center gap-1.5 border-b border-neutral-900 pb-2">
-                              <Compass className="w-3.5 h-3.5 text-brand" />
-                              {entry.cityLabel} • {locale === 'en' ? 'TELEMETRY' : '探险数据'}
-                            </h4>
-
-                            <div className="space-y-3">
-                              {/* Altitude */}
-                              <div className="flex items-start gap-2.5">
-                                <Mountain className="w-4 h-4 text-neutral-500 shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="text-[10px] font-bold text-neutral-500 tracking-wider uppercase leading-none">
-                                    {locale === 'en' ? 'ALTITUDE' : '海拔高度'}
-                                  </p>
-                                  <p className="text-xs font-semibold text-neutral-100 mt-1 font-mono">
-                                    {telemetry.altitude} m
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* Terrain */}
-                              <div className="flex items-start gap-2.5">
-                                <Compass className="w-4 h-4 text-neutral-500 shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="text-[10px] font-bold text-neutral-500 tracking-wider uppercase leading-none">
-                                    {locale === 'en' ? 'TERRAIN' : '地形阶梯'}
-                                  </p>
-                                  <p className="text-xs font-semibold text-neutral-100 mt-1">
-                                    {telemetry.terrain}
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* Challenge */}
-                              <div className="flex items-start gap-2.5">
-                                <AlertCircle className="w-4 h-4 text-brand shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="text-[10px] font-bold text-brand tracking-wider uppercase leading-none">
-                                    {locale === 'en' ? 'EXPEDITION CHALLENGE' : '旅途技术挑战'}
-                                  </p>
-                                  <p className="text-xs font-medium text-neutral-100 mt-1 leading-relaxed">
-                                    {telemetry.challenge}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Little down arrow for popover bubble */}
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-[6px] border-transparent border-t-neutral-950/95" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </motion.div>
                   );
                 }

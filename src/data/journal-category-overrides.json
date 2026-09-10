@@ -1,0 +1,187 @@
+{
+  "_comment": "Yuque slug → category. Source: 柴火基地车项目记录表 / 详细总表 J「场景」when the value is exactly 科普/产业/创客社区/教育 and the row matches one existing journal by a single calendar date. New journals default to science in sync. Do not infer from titles or venue-name cells in 场景.",
+  "ro087qvawn7ekyk3": {
+    "category": "education",
+    "note": "详细总表 row 10 2026-05-06 场景=教育 城市/站点=贵阳八中"
+  },
+  "ykbof5ti7dbcprgg": {
+    "category": "education",
+    "note": "详细总表 row 11 2026-05-07 场景=教育 城市/站点=贵州师范学院"
+  },
+  "gv1o1bvqr2t39l39": {
+    "category": "education",
+    "note": "详细总表 row 14 2026-05-10 场景=教育 城市/站点=成都市科技中学"
+  },
+  "ht67cbpabglkcrgl": {
+    "category": "maker",
+    "note": "详细总表 row 17 2026-05-13 场景=创客社区 城市/站点=成都柴火"
+  },
+  "xeak3peemzg2b32o": {
+    "category": "maker",
+    "note": "详细总表 row 19 2026-05-14 场景=创客社区 城市/站点=成都柴火"
+  },
+  "qn4vmwgmt6nyfaxf": {
+    "category": "maker",
+    "note": "详细总表 row 21 2026-05-15 场景=创客社区 城市/站点=播撒社区"
+  },
+  "ggdgbhe1x7mdacpr": {
+    "category": "maker",
+    "note": "详细总表 row 23 2026-05-16 场景=创客社区 城市/站点=搭伙儿"
+  },
+  "tyfswi0moe2b5r5i": {
+    "category": "science",
+    "note": "详细总表 row 25 2026-05-17 场景=科普 城市/站点=四川省科技馆"
+  },
+  "xpaaxhs5n9ggfi8z": {
+    "category": "maker",
+    "note": "详细总表 row 27 2026-05-21 场景=创客社区 城市/站点=绵阳众创空间"
+  },
+  "fl2az70zwct5yps4": {
+    "category": "industry",
+    "note": "详细总表 row 29 2026-05-26 场景=产业 城市/站点=塔公草原"
+  },
+  "dggke23q2tsftcte": {
+    "category": "maker",
+    "note": "详细总表 row 32 2026-06-01 场景=创客社区 城市/站点=众创空间"
+  },
+  "oqaxbqur8t86ihis": {
+    "category": "education",
+    "note": "详细总表 row 33 2026-06-02 场景=教育 城市/站点=拉萨第二职业学校"
+  },
+  "or38qx04yio0qiuy": {
+    "category": "education",
+    "note": "详细总表 row 34 2026-06-03 场景=教育 城市/站点=拉萨师范大学"
+  },
+  "oyegfy7rvqugke4m": {
+    "category": "science",
+    "note": "详细总表 row 39 2026-06-25 场景=科普 城市/站点=克拉玛依青少年活动中心"
+  },
+  "nwn7u7dg8ty4lcvy": {
+    "category": "science",
+    "note": "详细总表 row 5 2026-04-26 场景=科普 城市/站点=阳江科技馆"
+  },
+  "wv6ptmyym0sp6v8i": {
+    "category": "education",
+    "note": "详细总表 row 51 2026-07-09 场景=教育 城市/站点=敦煌市科协安排 敦煌二中"
+  },
+  "gcoizsxrotu7d8cm": {
+    "category": "education",
+    "note": "详细总表 row 53 2026-07-10 场景=教育 城市/站点=玉门二中"
+  },
+  "gc0ri1200tv50240": {
+    "category": "education",
+    "note": "详细总表 row 56 2026-07-12 场景=教育 城市/站点=酒泉职业技术学院-合作伙伴对接"
+  },
+  "kr2gmnwvo5bhxese": {
+    "category": "education",
+    "note": "详细总表 row 59 2026-07-14 场景=教育 城市/站点=兰州外国语学校"
+  },
+  "gp0di92ghrxehzxp": {
+    "category": "science",
+    "note": "详细总表 row 6 2026-04-28 场景=科普 城市/站点=玉林科技馆"
+  },
+  "wgr8543buil97dq9": {
+    "category": "maker",
+    "note": "详细总表 row 60 2026-07-15 场景=创客社区 城市/站点=高飞老师访谈+车子保养"
+  },
+  "gmas6qd0f5vpw433": {
+    "category": "science",
+    "note": "详细总表 row 61 2026-07-16 场景=科普 城市/站点=甘肃省科技馆"
+  },
+  "smkksd6hgzy6m9zv": {
+    "category": "education",
+    "note": "详细总表 row 62 2026-07-17 场景=教育 城市/站点=兰州理工大学科技园、兰州极沃科技"
+  },
+  "nrs33tdun6owapv1": {
+    "category": "industry",
+    "note": "详细总表 row 63 2026-07-18 场景=产业 城市/站点=新农人苑老大"
+  },
+  "nurb5wf2v30exvgy": {
+    "category": "science",
+    "note": "详细总表 row 65 2026-07-19 场景=科普 城市/站点=宁夏科技馆站点"
+  },
+  "mpxvkiage3i8c2nr": {
+    "category": "industry",
+    "note": "详细总表 row 66 2026-07-20 场景=产业 城市/站点=定边农技站站长"
+  },
+  "egvgofzbyzk5cox8": {
+    "category": "industry",
+    "note": "详细总表 row 67 2026-07-21 场景=产业 城市/站点=路上 定边县农技站"
+  },
+  "rvk9tl7gl5c57hsm": {
+    "category": "industry",
+    "note": "详细总表 row 69 2026-07-22 场景=产业 城市/站点=秋香合作社"
+  },
+  "ktc4kr4o0w4auwiy": {
+    "category": "science",
+    "note": "详细总表 row 7 2026-04-29 场景=科普 城市/站点=广西科技馆"
+  },
+  "ss3xbv3hz5dwsqlv": {
+    "category": "science",
+    "note": "详细总表 row 72 2026-07-25 场景=科普 城市/站点=陕西省科技馆（上午）"
+  },
+  "el62gh9cfnhr51gs": {
+    "category": "education",
+    "note": "详细总表 row 74 2026-07-26 场景=教育 城市/站点=西安培华学院，已确定-叶雨"
+  },
+  "eo9vtdg4sicftv1z": {
+    "category": "education",
+    "note": "详细总表 row 75 2026-07-27 场景=教育 城市/站点=西安理工大学"
+  },
+  "xvd2shgug2f7sq9q": {
+    "category": "education",
+    "note": "详细总表 row 76 2026-07-28 场景=教育 城市/站点=社区伙伴-西安欧亚学院（对接人也在做steam教育）"
+  },
+  "cecmz7p6dyevu4pm": {
+    "category": "maker",
+    "note": "详细总表 row 78 2026-07-30 场景=创客社区 城市/站点=路上+柴火会员盖老师"
+  },
+  "qbfnsdc1ninom6yu": {
+    "category": "education",
+    "note": "详细总表 row 79 2026-07-31 场景=教育 城市/站点=临汾三中"
+  },
+  "gzlp7usk115m7dns": {
+    "category": "industry",
+    "note": "详细总表 row 8 2026-04-30 场景=产业 城市/站点=柳州-梁彩梅-新农人培训"
+  },
+  "turveaes2lfcsah2": {
+    "category": "industry",
+    "note": "详细总表 row 81 2026-08-02 场景=产业 城市/站点=太原科技馆（放鸽子） 换成大区对接的一家农业机构"
+  },
+  "qu9ni4m0w8iwudw0": {
+    "category": "education",
+    "note": "详细总表 row 82 2026-08-03 场景=教育 城市/站点=山西省青少年机器人教育协会（培训机构）/太原十二中"
+  },
+  "lr3zyg226loebllv": {
+    "category": "science",
+    "note": "详细总表 row 86 2026-08-06 场景=科普 城市/站点=内蒙古科技馆"
+  },
+  "iuyg11esnip5klzd": {
+    "category": "education",
+    "note": "详细总表 row 88 2026-08-08 场景=教育 城市/站点=上午清华大学"
+  },
+  "oy0cvk2b743yo0ct": {
+    "category": "maker",
+    "note": "详细总表 row 9 2026-05-05 场景=创客社区 城市/站点=陆志荣/创客默采访"
+  },
+  "hsfttg03w452m5ks": {
+    "category": "maker",
+    "note": "详细总表 row 90 2026-08-09 场景=创客社区 城市/站点=中关村AI北纬社区"
+  },
+  "grxqxncqi5h642l0": {
+    "category": "science",
+    "note": "详细总表 row 91 2026-08-10 场景=科普 城市/站点=中国科技馆"
+  },
+  "db3gthhm0cnct9ii": {
+    "category": "industry",
+    "note": "详细总表 row 93 2026-08-12 场景=产业 城市/站点=赤峰番茄基地（且曦具体对接）-上午"
+  },
+  "sey7hhpk4ezq51m0": {
+    "category": "industry",
+    "note": "详细总表 row 95 2026-08-14 场景=产业 城市/站点=北大荒信息有限公司"
+  },
+  "xwhsd16ezwz84l7u": {
+    "category": "industry",
+    "note": "详细总表 row 98 2026-08-16 场景=产业 城市/站点=1、黑龙江省科技馆"
+  }
+}

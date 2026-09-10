@@ -1,7 +1,13 @@
 import { ChevronLeft, MapPin, PanelRightOpen } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CityPanel, countThemes, MapLibreCanvas, ThemeFilter } from '@/features/route-map';
+import {
+  attachThemesFromJournals,
+  CityPanel,
+  countThemes,
+  MapLibreCanvas,
+  ThemeFilter,
+} from '@/features/route-map';
 import {
   buildCumulativeKm,
   buildTimeline,
@@ -19,6 +25,7 @@ interface SerializedJournal {
   date: string;
   status: string;
   city: string;
+  category?: string;
   href?: string;
   coverImage?: string;
   coverThumb?: string;
@@ -44,9 +51,15 @@ const FIT_PADDING_NO_PANEL = { top: 130, bottom: 40, left: 56, right: 56 };
 
 export default function RouteContent({ cities, journals, locale = 'zh', t }: Props) {
   const sortedCities = useMemo(() => [...cities].sort((a, b) => a.order - b.order), [cities]);
+  // Themes come from journal 场景, attached here so both the chip counts AND the
+  // map's theme lens read the same per-city themes (the raw stops carry none).
+  const themedCities = useMemo(
+    () => attachThemesFromJournals(sortedCities, journals),
+    [sortedCities, journals],
+  );
   const visibleCities = useMemo(
-    () => sortedCities.filter((c) => !isRouteOnlyCity(c)),
-    [sortedCities],
+    () => themedCities.filter((c) => !isRouteOnlyCity(c)),
+    [themedCities],
   );
 
   const timeline = useMemo(() => buildTimeline(sortedCities), [sortedCities]);
@@ -180,7 +193,13 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
 
       {viewMode === 'track' && (
         <div className="mt-2">
-          <ThemeFilter counts={themeCounts} active={activeTheme} onSelect={setActiveTheme} t={t} />
+          <ThemeFilter
+            counts={themeCounts}
+            active={activeTheme}
+            onSelect={setActiveTheme}
+            locale={locale}
+            t={t}
+          />
         </div>
       )}
     </>
@@ -261,7 +280,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
         {/* ── Map: mobile = in-flow 45vh below header; desktop = fills the row ── */}
         <div className="mt-4 h-[45vh] min-h-[300px] w-full lg:absolute lg:inset-0 lg:mt-0 lg:h-auto lg:min-h-0 lg:z-0">
           <MapLibreCanvas
-            cities={cities}
+            cities={themedCities}
             selectedKey={selectedCityId}
             onSelect={handleCitySelect}
             activeTheme={activeTheme}

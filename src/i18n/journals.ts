@@ -11,6 +11,7 @@ const journals: Record<Locale, Record<string, string>> = {
     'filter.all': '全部',
     'filter.published': '已发布',
     'filter.placeholder': '整理中',
+    'filter.categoryAria': '按场景筛选日记',
 
     'card.placeholder.label': '整理中',
     'card.read': '阅读全文',
@@ -36,6 +37,7 @@ const journals: Record<Locale, Record<string, string>> = {
     'filter.all': 'All',
     'filter.published': 'Published',
     'filter.placeholder': 'In progress',
+    'filter.categoryAria': 'Filter journals by scene',
 
     'card.placeholder.label': 'In progress',
     'card.read': 'Read more',

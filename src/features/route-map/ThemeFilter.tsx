@@ -1,17 +1,21 @@
-import { Factory, GraduationCap, type LucideIcon, Wrench } from 'lucide-react';
+import { BookOpen, Factory, GraduationCap, type LucideIcon, Wrench } from 'lucide-react';
+import type { Locale } from '@/i18n/index';
+import { sceneLabel } from '@/lib/scenes.mjs';
 import type { ThemeType } from './theme';
 import { THEME_ORDER } from './theme';
 
 const THEME_ICON: Record<ThemeType, LucideIcon> = {
   science: GraduationCap,
-  maker: Wrench,
   industry: Factory,
+  maker: Wrench,
+  education: BookOpen,
 };
 
 interface Props {
   counts: Record<ThemeType, number>;
   active: ThemeType | null;
   onSelect: (theme: ThemeType | null) => void;
+  locale: Locale;
   t: Record<string, string>;
 }
 
@@ -20,7 +24,7 @@ const CHIP_BASE =
 const ACTIVE_CLS = 'bg-brand text-brand-foreground border-brand';
 const IDLE_CLS = 'bg-white text-neutral-700 border-neutral-200 hover:border-neutral-900';
 
-export default function ThemeFilter({ counts, active, onSelect, t }: Props) {
+export default function ThemeFilter({ counts, active, onSelect, locale, t }: Props) {
   // Chips wrap instead of scrolling horizontally: the route page's left rail is
   // 320px wide, and a scroll row cropped the last chip down to half an icon.
   return (
@@ -53,7 +57,7 @@ export default function ThemeFilter({ counts, active, onSelect, t }: Props) {
             className={`${CHIP_BASE} ${isActive ? ACTIVE_CLS : IDLE_CLS}`}
           >
             <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>{t[`theme.${key}`] ?? key}</span>
+            <span>{sceneLabel(locale, key)}</span>
             <span className={isActive ? 'text-brand-foreground/80' : 'text-neutral-400'}>
               {counts[key] ?? 0}
             </span>

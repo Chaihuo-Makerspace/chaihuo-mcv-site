@@ -9,22 +9,15 @@
 
 ## Activities
 
-- To be updated
-
 ## Event
 
-The mobile lab has arrived in Lanzhou, and the route map now records this city stop. The detailed field note will be updated later.
+On 14 July 2026, the mobile lab arrived in Lanzhou.
 
 ## Expedition Log
 
 ### World
 
-To be updated
-
 ### Fire
-
-To be updated
 
 ### Frontier
 
-To be updated

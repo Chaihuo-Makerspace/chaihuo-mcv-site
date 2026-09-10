@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import { parse as parseYaml } from 'yaml';
 import { parseStopBody } from '../src/features/route-map/stops-body-parser.mjs';
+import { isSceneId } from '../src/lib/scenes.mjs';
 
 const root = process.cwd();
 const failures = [];
@@ -317,8 +318,9 @@ function validateStructuredData() {
     }
     try {
       const parts = parseStopBody(body, 'zh');
-      // frontmatter event present but body has no 现场记 section → content omission
-      if (data.event && !parts.event) {
+      // frontmatter event present but body has no 现场记 heading → content omission.
+      // Empty 现场记 is allowed: the city panel hides blank summaries.
+      if (data.event && !/^## 现场记\s*$/m.test(body)) {
         check(false, `${file}: frontmatter has event but body is missing the "## 现场记" section`);
       }
       // body event link must agree with frontmatter event.link
@@ -528,12 +530,56 @@ function validateJournalCityOverrides(routeCityIds) {
   }
 }
 
+function validateJournalCategories() {
+  const journalsPath = 'src/data/yuque-journals.json';
+  const overridesPath = 'src/data/journal-category-overrides.json';
+  let journals = [];
+  try {
+    journals = readJson(journalsPath).journals ?? [];
+  } catch {
+    check(false, `${journalsPath}: missing`);
+    return;
+  }
+
+  const journalsBySlug = new Map(journals.map((journal) => [journal.slug, journal]));
+  for (const journal of journals) {
+    const label = `${journalsPath}:${journal.slug}`;
+    check(
+      isSceneId(journal.category),
+      `${label}: category must be a scene id, got "${journal.category}"`,
+    );
+  }
+
+  const overrides = readJson(overridesPath);
+  check(
+    overrides && typeof overrides === 'object' && !Array.isArray(overrides),
+    `${overridesPath}: must be an object keyed by Yuque slug`,
+  );
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) return;
+
+  for (const [slug, value] of Object.entries(overrides)) {
+    if (!slug || slug.startsWith('_')) continue;
+    const label = `${overridesPath}:${slug}`;
+    const category = typeof value === 'string' ? value : value?.category;
+    check(isSceneId(category), `${label}: invalid scene "${category}"`);
+    const journal = journalsBySlug.get(slug);
+    check(Boolean(journal), `${label}: slug is not in yuque-journals.json`);
+    if (journal && isSceneId(category)) {
+      check(
+        journal.category === category,
+        `${label}: yuque-journals.json category is "${journal.category}", override is "${category}"`,
+      );
+    }
+  }
+}
+
 compareLocaleDictionaries();
 validateRouteMirrors();
 validateLiveVideos();
 const structured = validateStructuredData();
 validateJournals(structured);
 validateJournalCityOverrides(structured.routeCityIds);
+validateJournalCategories();
 
 if (failures.length > 0) {
   console.error(

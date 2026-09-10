@@ -14,8 +14,10 @@ import {
   loadStopTimeline,
   nearestStop,
   normalizeYuqueToc,
+  parseCategoryOverrides,
   parseCityOverrides,
   parseJournalDate,
+  resolveSyncedCategory,
   resolveSyncedCity,
   stopIdAtDate,
 } from './lib/yuque-journal-sync.mjs';
@@ -26,6 +28,7 @@ const root = path.resolve(__dirname, '..');
 const bookUrl = process.env.YUQUE_BOOK_URL ?? 'https://www.yuque.com/mouseart/mcv';
 const outputPath = path.join(root, 'src/data/yuque-journals.json');
 const overridesPath = path.join(root, 'src/data/journal-city-overrides.json');
+const categoryOverridesPath = path.join(root, 'src/data/journal-category-overrides.json');
 const imageDir = path.join(root, 'public/yuque-journals');
 // Nominatim 地理编码结果缓存（入库提交）：结果稳定可审查，也避免每 10 分钟
 // 重复请求公共实例。
@@ -108,16 +111,23 @@ async function main() {
 
   const previousBySlug = await readExistingBySlug(outputPath);
   const overrides = parseCityOverrides(await readJsonObject(overridesPath));
+  const categoryOverrides = parseCategoryOverrides(await readJsonObject(categoryOverridesPath));
   for (const entry of withCovers) {
     const inferred = entry.city;
+    const previous = previousBySlug.get(entry.slug);
     const { city, source } = resolveSyncedCity(inferred, {
-      previousCity: previousBySlug.get(entry.slug)?.city ?? null,
+      previousCity: previous?.city ?? null,
       overrideCity: overrides[entry.slug] ?? null,
     });
     if (city !== inferred) {
       console.log(`[sync] 《${entry.title}》city ${inferred} → ${city} (${source})`);
     }
     entry.city = city;
+    const { category } = resolveSyncedCategory({
+      previousCategory: previous?.category ?? null,
+      overrideCategory: categoryOverrides[entry.slug] ?? null,
+    });
+    entry.category = category;
   }
   unmatched = withCovers.filter((entry) => entry.city === 'yuque');
 

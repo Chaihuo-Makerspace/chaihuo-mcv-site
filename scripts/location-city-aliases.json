@@ -202,5 +202,17 @@
     "label": "开封",
     "label_en": "Kaifeng",
     "province": "河南省"
+  },
+  "郑州": {
+    "id": "zhengzhou",
+    "label": "郑州",
+    "label_en": "Zhengzhou",
+    "province": "河南省"
+  },
+  "郑州市": {
+    "id": "zhengzhou",
+    "label": "郑州",
+    "label_en": "Zhengzhou",
+    "province": "河南省"
   }
 }

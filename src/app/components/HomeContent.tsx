@@ -8,12 +8,11 @@ const Slider = (
 ) as typeof ReactSlick;
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { ChevronDown, ChevronLeft, ChevronRight, Compass, Cpu, Mountain } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import expeditionConfig from '@/data/expedition-config.json';
 import { daysOnRoad } from '@/features/route-map/expedition-timeline';
 import { MAP_BG } from '@/features/route-map/map-style';
 import RoutePreview from '@/features/route-map/RoutePreview';
-import type { Stop } from '@/features/route-map/stops-loader';
 import { isRouteOnlyCity, type ProjectableStop } from '@/features/route-map/types';
 import type { Locale } from '@/i18n/index';
 import { localePath } from '@/i18n/index';
@@ -96,8 +95,10 @@ interface Props {
   t: Record<string, string>;
 }
 
-// Slimmed stop payload shipped to the island: map geometry + lastVisited fact card
-type HomeStop = ProjectableStop & Pick<Stop, 'terrain' | 'climate' | 'challenge'>;
+// Slimmed stop payload: map geometry + current-stop field note (if any)
+type HomeStop = ProjectableStop & {
+  event?: { summary: string; link?: string };
+};
 
 // 官方计划全程天数(见 src/content/stops/00-shenzhen.md 与 press.json 报道标题)
 const TOTAL_ROUTE_DAYS = 200;
@@ -442,36 +443,9 @@ export default function HomeContent({
                       <span className="font-bold text-neutral-900">{lastVisited.label}</span>
                     </div>
                   </div>
-                  {(lastVisited.terrain || lastVisited.climate) && (
-                    <dl className="mt-4 flex flex-col gap-2.5 text-left">
-                      {lastVisited.terrain && (
-                        <div className="flex gap-2.5">
-                          <Mountain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
-                          <div>
-                            <dt className="text-xs text-neutral-500">{t['telemetry.terrain']}</dt>
-                            <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
-                              {lastVisited.terrain}
-                            </dd>
-                          </div>
-                        </div>
-                      )}
-                      {lastVisited.climate && (
-                        <div className="flex gap-2.5">
-                          <Compass className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
-                          <div>
-                            <dt className="text-xs text-neutral-500">{t['telemetry.climate']}</dt>
-                            <dd className="text-xs text-neutral-700 leading-relaxed mt-0.5 line-clamp-2">
-                              {lastVisited.climate}
-                            </dd>
-                          </div>
-                        </div>
-                      )}
-                    </dl>
-                  )}
-                  {lastVisited.challenge && (
-                    <p className="mt-3 flex gap-2.5 items-start border-l-2 border-brand pl-3 text-xs text-neutral-700 leading-relaxed">
-                      <Cpu className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
-                      <span className="line-clamp-3">{lastVisited.challenge}</span>
+                  {lastVisited.event?.summary && (
+                    <p className="mt-4 text-sm leading-relaxed text-neutral-700 line-clamp-2">
+                      {lastVisited.event.summary}
                     </p>
                   )}
                 </motion.div>

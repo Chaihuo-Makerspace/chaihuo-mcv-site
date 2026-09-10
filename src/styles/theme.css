@@ -396,22 +396,7 @@
 .mlc-marker:hover .mlc-label {
   color: var(--brand-dark);
 }
-/* Theme lens — matched pops: scale + brand-dark ring + bold label. The ring
-   reads as emphasis without turning a dozen dots into yellow blobs. */
-.mlc-marker--match .mlc-dot {
-  transform: scale(1.35);
-  background: var(--neutral-900);
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4.5px var(--brand-dark), 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-.mlc-marker--match .mlc-label {
-  font-weight: 800;
-  color: var(--brand-dark);
-}
-/* Theme lens — non-matching recedes but stays visible (no grayscale-to-death). */
-.mlc-marker--dimmed {
-  opacity: 0.4;
-}
-/* Selected: most prominent — large ring + scale (wins over match when both). */
+/* Selected: most prominent — large ring + scale. */
 .mlc-marker--selected .mlc-dot {
   transform: scale(1.7);
   background: var(--brand);
@@ -488,9 +473,6 @@
   font-weight: 800;
   line-height: 17px;
   text-align: center;
-}
-.mlc-pin--dimmed {
-  opacity: 0.35;
 }
 .mlc-pin--selected .mlc-pin-body {
   box-shadow: 0 0 0 2.5px var(--brand), 0 4px 12px rgba(60, 50, 20, 0.3);

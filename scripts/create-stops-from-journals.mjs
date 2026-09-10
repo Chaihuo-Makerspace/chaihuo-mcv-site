@@ -16,9 +16,9 @@
 //      first, Photon (free, no key, China-OK) as fallback
 //   4. if the resolved point is within 100 km of an existing stop, skip
 //      (same place — the sync's nearest-stop folding already covers it)
-//   5. otherwise create stop files (reusing check-arrival's buildStopFiles
-//      template), fill the visited province, and sediment the city into the
-//      alias table so future runs are idempotent
+//   5. otherwise create stop files from the local skeleton, fill the visited
+//      province, and sediment the city into the alias table so future runs
+//      are idempotent
 //
 // Everything unresolved (low confidence / no coordinates) goes to a pending
 // list printed at the end — never auto-created.
@@ -233,9 +233,9 @@ function toDotDate(isoDate) {
 
 function buildStopFiles({ order, id, label, labelEn, province, lng, lat, date }) {
   const enLabel = labelEn || label;
-  const frontmatter = `---\nid: ${id}\norder: ${order}\nvisited: true\nlabel: ${label}\n${labelEn ? `label_en: ${labelEn}\n` : ''}province: ${province}\nlng: ${lng}\nlat: ${lat}\naltitude: "0"\nrelationType: community\nthemes:\n  - maker\nevent:\n  date: "${date}"\n---`;
-  const zh = `${frontmatter}\n\n# ${label}\n\n## 在地遥测\n\n- 地形: 待补充\n- 阶梯: 待补充\n- 气候: 待补充\n- 极境挑战: 待补充\n\n## 在地共创\n\n- 待补充\n\n## 现场记\n\n基地车已抵达${label}，路线图已自动记录该城市节点。详细现场记录待补充。\n\n## 远征日志\n\n### 新世界\n\n待补充\n\n### 火种\n\n待补充\n\n### 越界\n\n待补充\n`;
-  const en = `# ${enLabel}\n\n## Telemetry\n\n- Terrain: To be updated\n- Step: To be updated\n- Climate: To be updated\n- Challenge: To be updated\n\n## Activities\n\n- To be updated\n\n## Event\n\nThe mobile lab arrived in ${enLabel}. The detailed field note will be updated later.\n\n## Expedition Log\n\n### World\n\nTo be updated\n\n### Fire\n\nTo be updated\n\n### Frontier\n\nTo be updated\n`;
+  const frontmatter = `---\nid: ${id}\norder: ${order}\nvisited: true\nlabel: ${label}\n${labelEn ? `label_en: ${labelEn}\n` : ''}province: ${province}\nlng: ${lng}\nlat: ${lat}\naltitude: "0"\nevent:\n  date: "${date}"\n---`;
+  const zh = `${frontmatter}\n\n# ${label}\n\n## 现场记\n`;
+  const en = `# ${enLabel}\n\n## Event\n`;
   return { zh, en };
 }
 

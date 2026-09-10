@@ -82,8 +82,11 @@ test('parseStopBody omits optional sections when absent', () => {
   expect(r.photos).toBeUndefined();
 });
 
-test('parseStopBody throws when a required section is missing', () => {
-  expect(() => parseStopBody('## 在地共创\n\n- x\n', 'zh')).toThrow(/在地遥测|Telemetry/);
+test('parseStopBody allows a body with only 现场记', () => {
+  const r = parseStopBody('## 现场记\n\n抵达柳州。\n', 'zh');
+  expect(r.terrain).toBe('');
+  expect(r.relationStats).toEqual([]);
+  expect(r.event?.summary).toBe('抵达柳州。');
 });
 
 test('parseStopBody throws when present sections are out of order', () => {
@@ -106,12 +109,6 @@ test('parseStopBody throws when telemetry label is not canonical', () => {
 
 - 地形: a
 - WRONG: b
-- 气候: c
-- 极境挑战: d
-
-## 在地共创
-
-- x
 `;
   expect(() => parseStopBody(bad, 'zh')).toThrow(/telemetry|遥测|label/i);
 });

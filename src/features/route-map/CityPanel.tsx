@@ -2,7 +2,6 @@ import {
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
-  Cpu,
   Image as ImageIcon,
   MapPin,
   PanelRightClose,
@@ -203,14 +202,6 @@ export default function CityPanel({
           {city.event?.summary && (
             <p className="mb-5 text-[14px] leading-relaxed text-neutral-700">
               {city.event.summary}
-            </p>
-          )}
-
-          {/* 极境挑战:讲的是车和人,不是地理课 */}
-          {city.challenge && (
-            <p className="mb-5 flex gap-2.5 items-start border-l-2 border-brand pl-3 text-[13px] text-neutral-700 leading-relaxed">
-              <Cpu className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-brand-dark" />
-              <span>{city.challenge}</span>
             </p>
           )}
 

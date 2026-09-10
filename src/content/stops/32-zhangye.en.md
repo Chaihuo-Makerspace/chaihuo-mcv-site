@@ -9,22 +9,10 @@
 
 ## Activities
 
-- To be updated
+- Visit to the Sunan summer pasture
 
 ## Event
 
-The location tracker detected that the mobile lab arrived in Zhangye. The detailed field note will be updated later.
+On 13 July the lab left the youth of Jiuquan Vocational University for the open Sunan grassland, climbing to the summer pasture at 3,400 m. The wildest Gansu stop: a rainy pasture, and a conversation about return and a twenty-minute life-or-death line. Sunan folds into the Zhangye stop.
 
-## Expedition Log
-
-### World
-
-To be updated
-
-### Fire
-
-To be updated
-
-### Frontier
-
-To be updated
+Yuque journal: [2026.07.13｜Sunan Huangcheng](https://www.yuque.com/mouseart/mcv/faprqvdg3tgfkg8e)

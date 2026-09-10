@@ -125,37 +125,30 @@ export function parseStopBody(markdown, bodyLocale) {
     }
   }
 
-  // ── Telemetry (required) ──
+  // ── Telemetry (optional; /route no longer shows 地形/阶梯/气候) ──
   const tele = byHeading.get(L.telemetry);
-  if (!tele) throw new Error(`missing required section: ${L.telemetry}`);
-  const teleItems = parseBullets(tele.lines);
   const teleMap = {};
-  for (const item of teleItems) {
-    const m = item.match(/^([^:：]+)[:：]\s*(.+)$/);
-    if (!m) throw new Error(`telemetry item not "label: value": ${item}`);
-    const key = m[1].trim();
-    if (key in teleMap) throw new Error(`duplicate telemetry label: ${key}`);
-    teleMap[key] = m[2].trim();
-  }
-  const need = [L.teleTerrain, L.teleStep, L.teleClimate, L.teleChallenge];
-  for (const k of need) {
-    if (!(k in teleMap)) throw new Error(`telemetry missing label "${k}"`);
-  }
-  if (Object.keys(teleMap).length !== 4) {
-    throw new Error(`telemetry must have exactly 4 items, got ${Object.keys(teleMap).length}`);
+  const knownTele = new Set([L.teleTerrain, L.teleStep, L.teleClimate, L.teleChallenge]);
+  if (tele) {
+    for (const item of parseBullets(tele.lines)) {
+      const m = item.match(/^([^:：]+)[:：]\s*(.+)$/);
+      if (!m) continue;
+      const key = m[1].trim();
+      if (!knownTele.has(key)) throw new Error(`telemetry unknown label: ${key}`);
+      if (key in teleMap) throw new Error(`duplicate telemetry label: ${key}`);
+      teleMap[key] = m[2].trim();
+    }
   }
 
-  // ── Activities (required) ──
+  // ── Activities (optional) ──
   const act = byHeading.get(L.activities);
-  if (!act) throw new Error(`missing required section: ${L.activities}`);
-  const relationStats = parseBullets(act.lines);
-  if (relationStats.length === 0) throw new Error(`${L.activities} must have ≥1 item`);
+  const relationStats = act ? parseBullets(act.lines) : [];
 
   const parts = {
-    terrain: teleMap[L.teleTerrain],
-    terrainStep: teleMap[L.teleStep],
-    climate: teleMap[L.teleClimate],
-    challenge: teleMap[L.teleChallenge],
+    terrain: teleMap[L.teleTerrain] ?? '',
+    terrainStep: teleMap[L.teleStep] ?? '',
+    climate: teleMap[L.teleClimate] ?? '',
+    challenge: teleMap[L.teleChallenge] ?? '',
     relationStats,
   };
 

@@ -1,28 +1,7 @@
 # City Name
 
-## Telemetry
-
-- Terrain:
-- Step:
-- Climate:
-- Challenge:
-
-## Activities
-
--
-
 ## Event
 
-Event summary.
+One to three sentences from that city's Yuque journal: what happened here. May be empty.
 
-## Expedition Log
-
-### World
-
-### Fire
-
-### Frontier
-
-## Photos
-
-![caption](/path/to.webp)
+<!-- Optional when there is real content: Activities, Expedition Log, Photos -->

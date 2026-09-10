@@ -9,8 +9,5 @@
 
 ## Activities
 
-- To be updated
-
 ## Event
 
-The mobile lab has arrived in Taiyuan, and the route map now records this city stop. The detailed field note will be updated later.

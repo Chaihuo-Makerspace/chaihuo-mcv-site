@@ -86,6 +86,7 @@ export interface RouteJournal {
   date: string;
   status: string;
   city: string;
+  category?: string;
   href?: string;
   /** 已发布的本地日记才有站内详情页 /journals/[slug] */
   hasPage?: boolean;
@@ -105,7 +106,10 @@ export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<
   const stopIds = new Set(cities.map((c) => c.id));
   const yuquePool = yuqueJournalsData.journals.filter((j) => j.date && stopIds.has(j.city));
   const yuqueKeys = new Set(yuquePool.map((j) => `${j.city}@${j.date}`));
-  // placeholder 没有详情页;语雀已有同城同日正式稿时让位,否则留下做不可点的记录
+  const yuqueByKey = new Map(yuquePool.map((j) => [`${j.city}@${j.date}`, j]));
+  // placeholder 没有详情页;语雀已有同城同日正式稿时让位,否则留下做不可点的记录。
+  // 本地正式稿顶掉语雀卡片时继承它的场景 category —— 同一篇报道,不能因为有
+  // 站内版就从地图的「产业/科普」筛选里消失。
   const local = (await getAllJournals())
     .map((j) => localizeJournal(j, cities, locale))
     .filter((l) => l.status === 'published' || !yuqueKeys.has(`${l.city}@${l.date}`))
@@ -115,6 +119,7 @@ export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<
       date: l.date,
       status: l.status as string,
       city: l.city,
+      category: yuqueByKey.get(`${l.city}@${l.date}`)?.category,
       hasPage: l.status === 'published',
     }));
   const localKeys = new Set(local.map((j) => `${j.city}@${j.date}`));
@@ -127,6 +132,7 @@ export async function getRouteJournals(cities: Stop[], locale: Locale): Promise<
       date: j.date!,
       status: 'published',
       city: j.city,
+      category: j.category,
       href: j.href,
       coverImage: j.coverImage ?? undefined,
     });

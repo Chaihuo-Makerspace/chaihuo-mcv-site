@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, type Page, test } from '@playwright/test';
 import { geoMercator } from 'd3-geo';
 import {
@@ -8,10 +9,21 @@ import {
 } from '../../src/features/route-map/constants';
 import { placeLabels } from '../../src/features/route-map/label-layout';
 import type { Stop as RouteCity } from '../../src/features/route-map/stops-loader';
-import { cityMatchesTheme, countThemes, THEME_ORDER } from '../../src/features/route-map/theme';
+import {
+  attachThemesFromJournals,
+  cityMatchesTheme,
+  countThemes,
+  THEME_ORDER,
+} from '../../src/features/route-map/theme';
 import type { ProjectedCity } from '../../src/features/route-map/types';
 import { gotoRoute, installHarnessGuards } from './helpers';
 import { loadStops } from './lib/load-stops';
+
+// fs read instead of a JSON module import: the spec also runs under native ESM
+// (no bundler), where a bare `import … from '*.json'` needs an import attribute.
+const yuqueJournalsData = JSON.parse(
+  readFileSync(new URL('../../src/data/yuque-journals.json', import.meta.url), 'utf-8'),
+) as { journals: { city: string; date: string | null; category?: string }[] };
 
 const projection = geoMercator()
   .center([105, 36])
@@ -19,6 +31,7 @@ const projection = geoMercator()
   .translate([MAP_WIDTH / 2, MAP_HEIGHT / 2 + MAP_TRANSLATE_Y_OFFSET]);
 
 let routeCities: RouteCity[] = [];
+let themedCities: RouteCity[] = [];
 let sortedCities: RouteCity[] = [];
 let expectedLabelIds: string[] = [];
 
@@ -26,6 +39,12 @@ test.beforeAll(async () => {
   // Mirror the page: route-only stops (e.g. the hidden return waypoint) are not
   // rendered as markers/dots and are excluded from theme counts.
   routeCities = (await loadStops()).filter((c) => !c.routeOnly && !c.id.endsWith('-return'));
+  // Mirror getRouteJournals' yuque pool (dated + matched to a stop). Locally
+  // published journals shadowing a yuque card inherit its category on the page,
+  // so the raw pool already matches what the chips count.
+  const stopIds = new Set(routeCities.map((c) => c.id));
+  const yuquePool = yuqueJournalsData.journals.filter((j) => j.date && stopIds.has(j.city));
+  themedCities = attachThemesFromJournals(routeCities, yuquePool);
   sortedCities = [...routeCities].sort((a, b) => a.order - b.order);
   expectedLabelIds = sortedCities
     .filter((city) => city.visited || city.isOrigin || city.anchor)
@@ -140,47 +159,43 @@ test('label placement is indexed by stable city id', () => {
   expect(placements.has('同名')).toBe(false);
 });
 
-test('route city theme tags are valid: origin bare, themes within THEME_ORDER, each theme used', () => {
-  // Origin (深圳) carries no activity theme.
-  expect(routeCities.find((c) => c.id === 'shenzhen')!.themes).toEqual([]);
-  // Known anchor that must remain stable regardless of route growth.
+test('route city theme tags are derived from journals', () => {
+  expect(themedCities.find((c) => c.id === 'shenzhen')!.themes).toEqual([]);
   expect(
-    routeCities
+    themedCities
       .find((c) => c.id === 'guiyang')!
       .themes.slice()
       .sort(),
-  ).toEqual(['maker', 'science']);
-  // Every city's themes are valid values.
-  for (const c of routeCities) {
+  ).toEqual(['education', 'maker', 'science']);
+  for (const c of themedCities) {
     for (const th of c.themes) {
       expect(THEME_ORDER).toContain(th);
     }
   }
-  // Every theme in the legend is actually used by at least one city.
   for (const th of THEME_ORDER) {
-    expect(routeCities.some((c) => c.themes.includes(th as never))).toBe(true);
+    expect(themedCities.some((c) => c.themes.includes(th))).toBe(true);
   }
 });
 
-test('THEME_ORDER lists the three themes in display order', () => {
-  expect(THEME_ORDER).toEqual(['science', 'maker', 'industry']);
+test('THEME_ORDER lists the four journal 场景 in display order', () => {
+  expect(THEME_ORDER).toEqual(['science', 'industry', 'maker', 'education']);
 });
 
-test('cityMatchesTheme checks membership; guiyang matches science and maker', () => {
-  const guiyang = routeCities.find((c) => c.id === 'guiyang')!;
+test('cityMatchesTheme checks membership; guiyang matches journal scenes', () => {
+  const guiyang = themedCities.find((c) => c.id === 'guiyang')!;
   expect(cityMatchesTheme(guiyang, 'science')).toBe(true);
   expect(cityMatchesTheme(guiyang, 'maker')).toBe(true);
+  expect(cityMatchesTheme(guiyang, 'education')).toBe(true);
   expect(cityMatchesTheme(guiyang, 'industry')).toBe(false);
 });
 
-test('countThemes matches an independent per-theme tally of all cities', () => {
+test('countThemes matches an independent per-theme tally of journal-derived cities', () => {
   const expected = Object.fromEntries(
-    THEME_ORDER.map((th) => [th, routeCities.filter((c) => c.themes.includes(th as never)).length]),
+    THEME_ORDER.map((th) => [th, themedCities.filter((c) => c.themes.includes(th)).length]),
   );
-  expect(countThemes(routeCities)).toEqual(expected);
-  // Sanity: at least the three legend themes are present and positive.
+  expect(countThemes(themedCities)).toEqual(expected);
   for (const th of THEME_ORDER) {
-    expect(countThemes(routeCities)[th]).toBeGreaterThan(0);
+    expect(countThemes(themedCities)[th]).toBeGreaterThan(0);
   }
 });
 
@@ -362,71 +377,97 @@ test('route page falls back gracefully for a stop without expedition data', asyn
 });
 
 // ── Phase 3: Theme filter chips ───────────────────────────────────────────────
-// ThemeFilter is a SINGLE instance in the page header. The map renders twice
-// (desktop grid + mobile drawer); MapLibre markers are HTML <button> elements
-// carrying data-theme-match / data-dimmed when a theme lens is active. The route
-// itself is a GL layer with no DOM, so segment opacity is not asserted.
+// ThemeFilter renders TWICE (mobile in-flow header + desktop floating card, one
+// hidden per breakpoint) — chip locators need :visible. A theme lens re-filters
+// the PHOTO PINS (.mlc-pin, keyed by data-city-id): only matching cities keep a
+// cover on the map. Dot markers never change under a lens. The route itself is
+// a GL layer with no DOM, so segment opacity is not asserted.
+
+/** Sorted city ids of the currently visible photo pins. */
+async function visiblePinCityIds(page: Page): Promise<string[]> {
+  return page.locator('.mlc-pin:visible').evaluateAll((nodes) =>
+    nodes
+      .map((n) => n.getAttribute('data-city-id'))
+      .filter((id): id is string => !!id)
+      .sort(),
+  );
+}
 
 test('route page renders theme chips with counts', async ({ page }) => {
   await gotoRoute(page, { path: '/route', name: 'route-zh', locale: 'zh' });
 
-  await expect(page.locator('[data-theme-filter="true"]')).toHaveCount(1);
-  const counts = countThemes(routeCities);
-  await expect(page.locator('[data-theme-chip="all"]')).toHaveText('全部');
-  await expect(page.locator('[data-theme-chip="science"]')).toContainText('科普');
-  await expect(page.locator('[data-theme-chip="science"]')).toContainText(String(counts.science));
-  await expect(page.locator('[data-theme-chip="maker"]')).toContainText(String(counts.maker));
-  await expect(page.locator('[data-theme-chip="industry"]')).toContainText(String(counts.industry));
+  await expect(page.locator('[data-theme-filter="true"]:visible')).toHaveCount(1);
+  const counts = countThemes(themedCities);
+  await expect(page.locator('[data-theme-chip="all"]:visible')).toHaveText('全部');
+  await expect(page.locator('[data-theme-chip="science"]:visible')).toContainText('科普');
+  await expect(page.locator('[data-theme-chip="science"]:visible')).toContainText(
+    String(counts.science),
+  );
+  await expect(page.locator('[data-theme-chip="industry"]:visible')).toContainText('产业');
+  await expect(page.locator('[data-theme-chip="industry"]:visible')).toContainText(
+    String(counts.industry),
+  );
+  await expect(page.locator('[data-theme-chip="maker"]:visible')).toContainText('创客社区');
+  await expect(page.locator('[data-theme-chip="maker"]:visible')).toContainText(
+    String(counts.maker),
+  );
+  await expect(page.locator('[data-theme-chip="education"]:visible')).toContainText('教育');
+  await expect(page.locator('[data-theme-chip="education"]:visible')).toContainText(
+    String(counts.education),
+  );
 });
 
 test('en route page renders theme chips with English labels', async ({ page }) => {
   await gotoRoute(page, { path: '/en/route', name: 'route-en', locale: 'en' });
 
-  await expect(page.locator('[data-theme-filter="true"]')).toHaveCount(1);
-  const counts = countThemes(routeCities);
-  await expect(page.locator('[data-theme-chip="all"]')).toHaveText('All');
-  await expect(page.locator('[data-theme-chip="science"]')).toContainText('STEM');
-  await expect(page.locator('[data-theme-chip="science"]')).toContainText(String(counts.science));
-  await expect(page.locator('[data-theme-chip="maker"]')).toContainText('Makers');
-  await expect(page.locator('[data-theme-chip="industry"]')).toContainText('Industry');
+  await expect(page.locator('[data-theme-filter="true"]:visible')).toHaveCount(1);
+  const counts = countThemes(themedCities);
+  await expect(page.locator('[data-theme-chip="all"]:visible')).toHaveText('All');
+  await expect(page.locator('[data-theme-chip="science"]:visible')).toContainText('STEM');
+  await expect(page.locator('[data-theme-chip="science"]:visible')).toContainText(
+    String(counts.science),
+  );
+  await expect(page.locator('[data-theme-chip="industry"]:visible')).toContainText('Industry');
+  await expect(page.locator('[data-theme-chip="maker"]:visible')).toContainText('Maker community');
+  await expect(page.locator('[data-theme-chip="education"]:visible')).toContainText('Education');
 });
 
-test('selecting a theme highlights matches and dims the rest; origin stays lit', async ({
-  page,
-}) => {
+test('selecting a theme refreshes the photo pins; dot markers stay unchanged', async ({ page }) => {
   await installHarnessGuards(page);
   await gotoRoute(page, { path: '/route', name: 'route-zh', locale: 'zh' });
   await expect(page.locator(MAPLIBRE_CANVAS).first()).toBeAttached({ timeout: 15_000 });
-  await page.locator('[data-theme-chip="science"]').click();
-  const matched = routeCities.filter((c) => c.themes.includes('science' as never)).length;
-  const dimmed = routeCities.filter(
-    (c) => !c.isOrigin && !c.themes.includes('science' as never),
-  ).length;
-  // Markers exist in both layouts; :visible counts only the displayed map.
+  await expect.poll(() => visiblePinCityIds(page), { timeout: 15_000 }).not.toEqual([]);
+  const markersBefore = await page.locator('[data-route-city="true"]:visible').count();
+
+  // 产业 has few enough cities that the lens is unambiguous.
+  await page.locator('[data-theme-chip="industry"]:visible').click();
+  const matchedIds = new Set(
+    themedCities.filter((c) => c.themes.includes('industry')).map((c) => c.id),
+  );
   await expect
-    .poll(() => page.locator('[data-route-city="true"][data-theme-match="true"]:visible').count())
-    .toBe(matched);
-  await expect
-    .poll(() => page.locator('[data-route-city="true"][data-dimmed="true"]:visible').count())
-    .toBe(dimmed);
-  await expect(
-    page.locator('[data-route-city="true"][data-city-id="shenzhen"][data-dimmed="true"]:visible'),
-  ).toHaveCount(0);
+    .poll(async () => {
+      const ids = await visiblePinCityIds(page);
+      return (
+        ids.length > 0 && ids.length <= matchedIds.size && ids.every((id) => matchedIds.has(id))
+      );
+    })
+    .toBe(true);
+  // The dots never move: same markers, no lens attributes/classes.
+  await expect(page.locator('[data-route-city="true"]:visible')).toHaveCount(markersBefore);
+  await expect(page.locator('.mlc-marker--dimmed, .mlc-marker--match')).toHaveCount(0);
 });
 
-test('clicking the active theme again clears the dim', async ({ page }) => {
+test('clicking the active theme again restores every cover', async ({ page }) => {
   await installHarnessGuards(page);
   await gotoRoute(page, { path: '/route', name: 'route-zh', locale: 'zh' });
   await expect(page.locator(MAPLIBRE_CANVAS).first()).toBeAttached({ timeout: 15_000 });
-  const chip = page.locator('[data-theme-chip="science"]');
+  await expect.poll(() => visiblePinCityIds(page), { timeout: 15_000 }).not.toEqual([]);
+  const pinsBefore = await visiblePinCityIds(page);
+  const chip = page.locator('[data-theme-chip="industry"]:visible');
   await chip.click();
-  await expect
-    .poll(() => page.locator('[data-route-city="true"][data-dimmed="true"]:visible').count())
-    .toBeGreaterThan(0);
+  await expect.poll(() => visiblePinCityIds(page)).not.toEqual(pinsBefore);
   await chip.click();
-  await expect
-    .poll(() => page.locator('[data-route-city="true"][data-dimmed="true"]:visible').count())
-    .toBe(0);
+  await expect.poll(() => visiblePinCityIds(page)).toEqual(pinsBefore);
   await expect(chip).toHaveAttribute('aria-pressed', 'false');
 });
 

@@ -2,29 +2,17 @@
 
 ## Telemetry
 
-- Terrain: To be updated
-- Step: To be updated
-- Climate: To be updated
-- Challenge: To be updated
+- Terrain: West end of the Hexi Corridor, pass-city and oasis fields on the northern slope of the Qilian Mountains
+- Step: Second Terrain Step
+- Climate: Temperate continental arid climate, strong sun
+- Challenge: Deploying field sensors in fierce sunlight
 
 ## Activities
 
-- To be updated
+- Soil-moisture deployment at a thousand-mu chili field
 
 ## Event
 
-The location tracker detected that the mobile lab arrived in Jiayuguan. The detailed field note will be updated later.
+On 11 July, after the Dayu Water Saving meeting and drip-tape shop tour in Jiuquan, the lab drove to a thousand-mu chili field in Jiayuguan. In fierce sun the crew deployed soil-moisture sensors by hand. The peppers looked strong in the distance; up close the sensors were already taking first readings.
 
-## Expedition Log
-
-### World
-
-To be updated
-
-### Fire
-
-To be updated
-
-### Frontier
-
-To be updated
+Yuque journal: [2026.07.11｜Jiuquan · Dayu](https://www.yuque.com/mouseart/mcv/insgsfqll7e5f1vo)

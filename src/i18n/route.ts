@@ -35,10 +35,7 @@ const route: Record<Locale, Record<string, string>> = {
     'route.journals.tapHint': '点击城市查看',
     // Theme filter
     'theme.all': '全部',
-    'theme.science': '科普',
-    'theme.maker': '创客',
-    'theme.industry': '产业',
-    'theme.ariaGroup': '按主题筛选地图',
+    'theme.ariaGroup': '按场景筛选地图',
     'map.recenter': '回到全图',
     'map.legend.visited': '已走过',
     'map.legend.planned': '计划段',
@@ -99,10 +96,7 @@ const route: Record<Locale, Record<string, string>> = {
     'route.journals.tapHint': 'Tap a city to open',
     // Theme filter
     'theme.all': 'All',
-    'theme.science': 'STEM',
-    'theme.maker': 'Makers',
-    'theme.industry': 'Industry',
-    'theme.ariaGroup': 'Filter the map by theme',
+    'theme.ariaGroup': 'Filter the map by scene',
     'map.recenter': 'Reset view',
     'map.legend.visited': 'Driven',
     'map.legend.planned': 'Planned',

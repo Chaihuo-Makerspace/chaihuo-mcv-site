@@ -9,9 +9,11 @@
 
 ## Activities
 
-- Oasis-city exchange
-- Southern Tianshan route observation
+- Visit to Hongrunyuan Water Conservancy Design Institute
+- Oasis resupply before the transfer to Shihezi
 
 ## Event
 
-Korla became a key oasis-city stop along the northern edge of the Tarim Basin.
+On the night of 13 June the lab crossed the Gobi from Ruoqiang on the Wuo Expressway, using Korla as the oasis resupply. On the afternoon of the 18th they reached Hongrunyuan Water Conservancy Design Institute — a last-minute add. They unfolded the lab in the shade, talked with the institute for about an hour, were given a case of drinks, then drove on toward Baiyanggou and Shihezi.
+
+Yuque journal: [2026.06.18｜Kuche Palace - Korla Hongrunyuan - Urumqi Baiyanggou](https://www.yuque.com/mouseart/mcv/fmqt306larzkklxp)

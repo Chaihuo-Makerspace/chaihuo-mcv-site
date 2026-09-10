@@ -1,7 +1,8 @@
 import { z } from 'astro/zod';
+import { SCENES } from '@/lib/scenes.mjs';
 
 const relationType = z.enum(['departure', 'education', 'community', 'industry']);
-const themeType = z.enum(['science', 'maker', 'industry']);
+const themeType = z.enum([SCENES[0], SCENES[1], SCENES[2], SCENES[3]]);
 
 export const stopFrontmatterSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
@@ -21,8 +22,9 @@ export const stopFrontmatterSchema = z.object({
   /** 该站所在路段途经的最高点（如垭口），仅用于统计「最高海拔」 */
   highPoint: z.string().optional(),
 
-  relationType,
-  themes: z.array(themeType),
+  relationType: relationType.optional(),
+  /** Leftover on old stop files; UI derives scenes from journals. */
+  themes: z.array(themeType).optional().default([]),
 
   event: z
     .object({

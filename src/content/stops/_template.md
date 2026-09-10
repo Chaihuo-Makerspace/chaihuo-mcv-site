@@ -7,8 +7,6 @@ label_en: ""
 lng: 0
 lat: 0
 altitude: "0"
-relationType: education
-themes: [science]
 # event:
 #   date: "YYYY.MM.DD"
 #   link: "https://..."
@@ -18,29 +16,8 @@ themes: [science]
 
 # 城市名
 
-## 在地遥测
-
-- 地形:
-- 阶梯:
-- 气候:
-- 极境挑战:
-
-## 在地共创
-
--
-
 ## 现场记
 
-事件简述。
+从该城语雀日记摘 1–3 句：在这里做了什么。空着也可以。
 
-## 远征日志
-
-### 新世界
-
-### 火种
-
-### 越界
-
-## 照片
-
-![描述](/path/to.webp)
+<!-- 可选，有真内容再加：在地共创（真活动，不要「抵达 X」）、远征日志、照片 -->

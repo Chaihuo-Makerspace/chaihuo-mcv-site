@@ -2,29 +2,18 @@
 
 ## Telemetry
 
-- Terrain: To be updated
-- Step: To be updated
-- Climate: To be updated
-- Challenge: To be updated
+- Terrain: Gobi oasis at the west end of the Hexi Corridor, home of Mingsha Mountain and Crescent Spring
+- Step: Second Terrain Step
+- Climate: Temperate continental extremely arid climate
+- Challenge: EV range on the exit from Xinjiang, under Gobi heat
 
 ## Activities
 
-- To be updated
+- First stop after leaving Xinjiang
+- Dunhuang school visit
 
 ## Event
 
-The location tracker detected that the mobile lab arrived in Dunhuang. The detailed field note will be updated later.
+On 7 July the lab left Hami on the Lianhuo Expressway. The dash showed 300-plus km of range; the air-con was on max. The first service areas had no chargers. When remaining range hit 50 km the cabin went quiet. A mains-in kit brought from Shenzhen — almost sent back the day before — carried them through to Dunhuang. The two vans then entered the city for a school visit.
 
-## Expedition Log
-
-### World
-
-To be updated
-
-### Fire
-
-To be updated
-
-### Frontier
-
-To be updated
+Yuque journals: [2026.07.07｜Hami→Dunhuang](https://www.yuque.com/mouseart/mcv/hvo1ivnm31g46u4y), [2026.07.09｜Dunhuang campus](https://www.yuque.com/mouseart/mcv/wv6ptmyym0sp6v8i)

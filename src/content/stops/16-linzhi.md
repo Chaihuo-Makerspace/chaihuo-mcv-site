@@ -11,6 +11,9 @@ altitude: "2990"
 relationType: community
 themes:
   - maker
+event:
+  date: "2026.05.30"
+  link: https://www.yuque.com/mouseart/mcv/oyt44nzimn9w5vxq
 ---
 
 # 林芝
@@ -24,5 +27,11 @@ themes:
 
 ## 在地共创
 
-- 鲁朗林海记录
-- 尼洋河谷在地探索
+- 鲁朗石锅鸡休整
+- 色季拉山垭口转场，尼洋河伴行
+
+## 现场记
+
+5 月 30 日清晨离开波密，沿帕隆藏布河谷赶路。中午赶到鲁朗镇吃石锅鸡——藏语意为「龙王谷」，有「东方瑞士」的美誉。下午 3 点过色季拉山垭口（海拔 4700 米），过林芝市后上雅叶高速，没有在市区停留，沿途尼洋河常伴左右。
+
+语雀日记：[2026.05.30｜波密县 - 鲁朗镇 - 林芝市 - 拉萨市](https://www.yuque.com/mouseart/mcv/oyt44nzimn9w5vxq)

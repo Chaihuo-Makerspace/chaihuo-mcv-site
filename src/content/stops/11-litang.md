@@ -11,6 +11,9 @@ altitude: "3990"
 relationType: community
 themes:
   - science
+event:
+  date: "2026.05.27"
+  link: https://www.yuque.com/mouseart/mcv/wenl1pevm7v1bsrn
 ---
 
 # 理塘
@@ -24,5 +27,11 @@ themes:
 
 ## 在地共创
 
-- 高原途经补给
-- 毛垭草原路况记录
+- 世界高城理塘补电午饭
+- 卡子拉山垭口与无量河湿地途经
+
+## 现场记
+
+5 月 27 日从雅江出发，经天路十八弯、熊宗卡（4280 米）、卡子拉山垭口（4700 多米）下到理塘。中午赶到海拔 4000 多米的理塘县补电吃饭，穿过「世界高城理塘」东大门。整个上午都在高海拔，走回吃饭的地方有些头晕。午饭后出西大门，经无量河湿地前往姊妹湖、巴塘。
+
+语雀日记：[2026.05.27｜雅江 - 理塘 - 姊妹湖 - 巴塘](https://www.yuque.com/mouseart/mcv/wenl1pevm7v1bsrn)

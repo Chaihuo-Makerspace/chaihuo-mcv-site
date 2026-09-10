@@ -9,22 +9,15 @@
 
 ## Activities
 
-- To be updated
-
 ## Event
 
-The mobile lab arrived in Wuzhong and conducted a local visit in Nanchuan Second Village. The route map now records this city stop, with detailed field notes to follow.
+The mobile lab arrived in Wuzhong and conducted a local visit in Nanchuan Second Village.
 
 ## Expedition Log
 
 ### World
 
-To be updated
-
 ### Fire
-
-To be updated
 
 ### Frontier
 
-To be updated

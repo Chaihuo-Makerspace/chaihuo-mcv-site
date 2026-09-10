@@ -2,15 +2,13 @@
 // Flips already-planned route stops (visited: false) to visited: true once a
 // synced Yuque journal confirms the vehicle reached that city. Text edit on
 // frontmatter plus the required body section — journal city ids already match
-// stop ids via inferCityId in scripts/lib/yuque-journal-sync.mjs, so this
-// needs no GPS/tracker credentials, unlike scripts/check-arrival.mjs (which
-// only handles discovering brand-new cities not yet in the stops list).
+// stop ids via inferCityId in scripts/lib/yuque-journal-sync.mjs.
+// Brand-new cities not yet in the stops list are created by
+// scripts/create-stops-from-journals.mjs.
 //
 // It also mirrors the flipped stop's province into PROVINCE_VISITED
 // (src/features/route-map/visited-provinces.ts) so the map's province fill
-// lights up on first entry into a new province — before that fill was only
-// updated by check-arrival.mjs for brand-new cities, so province entries made
-// by journal arrivals (e.g. 内蒙古, 北京) silently never got filled.
+// lights up on first entry into a new province.
 //
 // The validator requires a stop with frontmatter `event` to carry a
 // "## 现场记" body section, so flipping visited without adding one breaks
@@ -99,8 +97,7 @@ function readField(block, field) {
 }
 
 // Append any missing province to PROVINCE_VISITED (the map's visited-province
-// fill). Mirrors check-arrival.mjs's addProvinceIfNeeded; returns the count of
-// provinces actually added.
+// fill). Returns the count of provinces actually added.
 function addProvincesIfNeeded(provinces) {
   const file = join(ROOT, 'src/features/route-map/visited-provinces.ts');
   const text = readFileSync(file, 'utf8');
@@ -111,7 +108,7 @@ function addProvincesIfNeeded(provinces) {
   return missing.length;
 }
 
-function applyArrival(text, dotDate, label) {
+function applyArrival(text, dotDate) {
   const frontmatter = parseFrontmatter(text);
   if (!frontmatter) return null;
 
@@ -127,11 +124,7 @@ function applyArrival(text, dotDate, label) {
 
   const nextText =
     text.slice(0, frontmatter.startIndex) + `---\n${block}\n---` + text.slice(frontmatter.endIndex);
-  return ensureEventSection(
-    nextText,
-    'zh',
-    `基地车已抵达${label}，路线图记录该城市节点。详细现场记录待补充。`,
-  );
+  return ensureEventSection(nextText, 'zh', '');
 }
 
 function main() {
@@ -173,7 +166,7 @@ function main() {
 
     const label = readField(frontmatter.block, 'label') ?? id;
     const dotDate = toDotDate(arrivalDate);
-    const nextText = applyArrival(text, dotDate, label);
+    const nextText = applyArrival(text, dotDate);
     if (!nextText) continue;
 
     writeFileSync(filePath, nextText);
@@ -187,13 +180,8 @@ function main() {
     const enPath = join(stopsDir, enFile);
     if (existsSync(enPath)) {
       // .en.md files carry no frontmatter — only mirror the body section.
-      const labelEn = readField(frontmatter.block, 'label_en') ?? label;
       const enText = readFileSync(enPath, 'utf8');
-      const nextEnText = ensureEventSection(
-        enText,
-        'en',
-        `The mobile lab has arrived in ${labelEn}, and the route map now records this city stop. The detailed field note will be updated later.`,
-      );
+      const nextEnText = ensureEventSection(enText, 'en', '');
       if (nextEnText !== enText) {
         writeFileSync(enPath, nextEnText);
         log(`${id}: mirrored ## Event to ${enFile}`);
