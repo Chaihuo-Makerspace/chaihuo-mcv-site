@@ -214,5 +214,17 @@
     "label": "郑州",
     "label_en": "Zhengzhou",
     "province": "河南省"
+  },
+  "洛阳": {
+    "id": "luoyang",
+    "label": "洛阳",
+    "label_en": "Luoyang",
+    "province": "河南省"
+  },
+  "洛阳市": {
+    "id": "luoyang",
+    "label": "洛阳",
+    "label_en": "Luoyang",
+    "province": "河南省"
   }
 }
