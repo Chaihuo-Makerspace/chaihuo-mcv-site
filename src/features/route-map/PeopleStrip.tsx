@@ -1,3 +1,5 @@
+import type { Locale } from '@/i18n/index';
+
 export interface RoutePerson {
   name: string;
   name_en?: string;
@@ -8,20 +10,26 @@ export interface RoutePerson {
   bio_en?: string;
 }
 
-export default function PeopleStrip({ people }: { people?: RoutePerson[] }) {
+export default function PeopleStrip({
+  people,
+  locale = 'zh',
+}: {
+  people?: RoutePerson[];
+  locale?: Locale;
+}) {
   if (!people || people.length === 0) return null;
 
   return (
     <div data-people-strip="true" className="flex flex-col gap-2.5">
       {people.map((p) => {
-        const name = p.name;
-        const role = p.role;
-        const bio = p.bio;
+        const name = locale === 'en' ? (p.name_en ?? p.name) : p.name;
+        const role = locale === 'en' ? (p.role_en ?? p.role) : p.role;
+        const bio = locale === 'en' ? (p.bio_en ?? p.bio) : p.bio;
         return (
           <div
             key={p.name}
             data-people-card="true"
-            className="flex items-start gap-3 rounded-xl border border-[#e5dfd3]/50 bg-[#f5f2eb]/60 p-2.5"
+            className="flex items-start gap-3 rounded-xl border border-surface-warm-border/50 bg-surface-warm/60 p-2.5"
           >
             {p.image && (
               <img

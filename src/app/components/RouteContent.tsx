@@ -1,5 +1,5 @@
 import { ChevronLeft, MapPin, PanelRightOpen } from 'lucide-react';
-import { motion } from 'motion/react';
+import { MotionConfig, motion, useReducedMotion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   attachThemesFromJournals,
@@ -11,6 +11,7 @@ import {
 import {
   buildCumulativeKm,
   buildTimeline,
+  daysOnRoad,
   expeditionStats,
 } from '@/features/route-map/expedition-timeline';
 import type { MapViewMode } from '@/features/route-map/MapLibreCanvas';
@@ -66,6 +67,14 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   const cumulativeKm = useMemo(() => buildCumulativeKm(sortedCities), [sortedCities]);
   const stats = useMemo(() => expeditionStats(sortedCities, journals), [sortedCities, journals]);
 
+  // 「天在路上」freezes at the build date because /route is prerendered and
+  // stats.days is computed at build time. Recompute it on mount; SSR/first
+  // paint renders the placeholder until the effect fills the real number.
+  const [liveDays, setLiveDays] = useState<number | null>(null);
+  useEffect(() => {
+    setLiveDays(daysOnRoad());
+  }, []);
+
   const lastVisited = useMemo(
     () => [...visibleCities].reverse().find((c) => c.visited) ?? null,
     [visibleCities],
@@ -92,6 +101,8 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
 
   // Mobile Drawer expanded state
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
+  // Spring otherwise; an instant switch when the user prefers reduced motion.
+  const reduceMotion = useReducedMotion();
 
   // The mobile bottom drawer is display:none on desktop (lg:hidden) but was still
   // mounted, doubling the CityPanel render cost during hydration. Mount it only
@@ -105,16 +116,28 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  const handleCitySelect = useCallback((id: string) => {
+  const handleCitySelect = useCallback((id: string, source: 'map' | 'river' = 'map') => {
     setSelectedCityId(id);
     setIsPanelCollapsed(false);
-    // Auto expand drawer on mobile when clicking a city
-    setIsDrawerExpanded(true);
+    // Auto-expand the drawer only for map clicks. Story-river clicks arm the
+    // card instead — snapping the drawer to 75vh would cover the river and
+    // break the two-tap (locate → open) flow.
+    if (source === 'map') setIsDrawerExpanded(true);
   }, []);
   const clearSelection = useCallback(() => {
     setSelectedCityId(null);
     setIsPanelCollapsed(false);
   }, []);
+
+  // Mobile drawer close path: no visible X until now, so give it Esc as well.
+  useEffect(() => {
+    if (!selectedCity || isDesktop) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') clearSelection();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedCity, isDesktop, clearSelection]);
 
   const getT = (key: string, fallback: string) => t[key] ?? fallback;
 
@@ -132,7 +155,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   // hand-maintained copy that can drift out of date.
   const statItems: { value: string; label: string }[] = [
     {
-      value: stats.days ? String(stats.days) : '—',
+      value: stats.days != null && liveDays != null ? String(liveDays) : '—',
       label: getT('route.stats.days', '天在路上'),
     },
     {
@@ -173,7 +196,12 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
             type="button"
             aria-pressed={viewMode === m.id}
             title={m.id === 'vision' ? getT('route.view.visionHint', '') : undefined}
-            onClick={() => setViewMode(m.id)}
+            onClick={() => {
+              setViewMode(m.id);
+              // The theme lens is a track-mode control; leaving it set while
+              // vision is active would silently filter the pins with no UI.
+              if (m.id === 'vision') setActiveTheme(null);
+            }}
             className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-200 cursor-pointer ${
               viewMode === m.id
                 ? 'border-neutral-900 bg-neutral-900 text-white'
@@ -206,251 +234,260 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
   );
 
   return (
-    <div className="relative bg-neutral-50 lg:flex lg:h-screen lg:flex-col lg:overflow-hidden">
-      {/* ── Desktop topbar: page identity + derived numbers in one slim row
+    <MotionConfig reducedMotion="user">
+      <div className="relative bg-neutral-50 lg:flex lg:h-screen lg:flex-col lg:overflow-hidden">
+        {/* ── Desktop topbar: page identity + derived numbers in one slim row
           under the site nav. Replaces the floating 320px left rail, so the map
           spans the full width. Mobile keeps the in-flow header card below. ── */}
-      <header className="hidden lg:flex lg:items-baseline lg:gap-6 lg:px-6 lg:pt-20 lg:pb-2 lg:border-b lg:border-neutral-200 lg:bg-surface-card lg:z-20">
-        <div className="flex min-w-0 items-baseline gap-3">
-          <h1 className="whitespace-nowrap text-lg font-extrabold tracking-tight text-neutral-900">
-            {pageTitle}
-          </h1>
-          <p className="truncate text-xs font-medium text-neutral-500">{pageDesc}</p>
-        </div>
-        <dl className="ml-auto flex flex-none items-baseline gap-6">
-          {statItems.map((s) => (
-            <div key={s.label} className="flex items-baseline gap-1.5">
-              <dd className="text-sm font-extrabold tabular-nums leading-none text-neutral-900">
-                {s.value}
-              </dd>
-              <dt className="text-[10px] leading-tight text-neutral-500">{s.label}</dt>
-            </div>
-          ))}
-        </dl>
-        <a
-          href={backHref}
-          className="inline-flex flex-none items-center gap-1 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-bold text-neutral-600 shadow-sm transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
-        >
-          <ChevronLeft className="h-3.5 w-3.5" />
-          <span>{getT('route.action.backHome', '返回首页')}</span>
-        </a>
-      </header>
-
-      <div className="relative lg:min-h-0 lg:flex-1">
-        {/* ── Mobile in-flow header card (desktop uses the topbar above) ── */}
-        <header className="relative z-20 mx-4 mt-20 mb-2 rounded-2xl border border-neutral-200/70 bg-surface-card/85 p-4 shadow-lg backdrop-blur-md sm:mx-6 lg:hidden">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-extrabold tracking-tight text-neutral-900 md:text-2xl">
-                {pageTitle}
-              </h1>
-              <p className="mt-1 text-xs font-medium leading-relaxed text-neutral-500">
-                {pageDesc}
-              </p>
-            </div>
-            <a
-              href={backHref}
-              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 shadow-sm transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
-              <span>{getT('route.action.backHome', '返回首页')}</span>
-            </a>
+        <header className="hidden lg:flex lg:items-baseline lg:gap-6 lg:px-6 lg:pt-20 lg:pb-2 lg:border-b lg:border-neutral-200 lg:bg-surface-card lg:z-20">
+          <div className="flex min-w-0 items-baseline gap-3">
+            <h1 className="whitespace-nowrap text-lg font-extrabold tracking-tight text-neutral-900">
+              {pageTitle}
+            </h1>
+            <p className="truncate text-xs font-medium text-neutral-500">{pageDesc}</p>
           </div>
-
-          <dl className="mt-3 grid grid-cols-5 gap-2 border-y border-neutral-200 py-2.5">
+          <dl className="ml-auto flex flex-none items-baseline gap-6">
             {statItems.map((s) => (
-              <div key={s.label}>
-                <dd className="text-[15px] font-extrabold tabular-nums leading-none text-neutral-900">
+              <div key={s.label} className="flex items-baseline gap-1.5">
+                <dd className="text-sm font-extrabold tabular-nums leading-none text-neutral-900">
                   {s.value}
                 </dd>
-                <dt className="mt-1 text-[10px] leading-tight text-neutral-500">{s.label}</dt>
+                <dt className="text-[10px] leading-tight text-neutral-500">{s.label}</dt>
               </div>
             ))}
           </dl>
-
-          <div className="mt-3">{viewToggle}</div>
+          <a
+            href={backHref}
+            className="inline-flex flex-none items-center gap-1 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-bold text-neutral-600 shadow-sm transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            <span>{getT('route.action.backHome', '返回首页')}</span>
+          </a>
         </header>
 
-        {/* ── Desktop: view-mode toggle + theme lens as a compact floating chip
+        <div className="relative lg:min-h-0 lg:flex-1">
+          {/* ── Mobile in-flow header card (desktop uses the topbar above) ── */}
+          <header className="relative z-20 mx-4 mt-20 mb-2 rounded-2xl border border-neutral-200/70 bg-surface-card/85 p-4 shadow-lg backdrop-blur-md sm:mx-6 lg:hidden">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h1 className="text-xl font-extrabold tracking-tight text-neutral-900 md:text-2xl">
+                  {pageTitle}
+                </h1>
+                <p className="mt-1 text-xs font-medium leading-relaxed text-neutral-500">
+                  {pageDesc}
+                </p>
+              </div>
+              <a
+                href={backHref}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 shadow-sm transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                <span>{getT('route.action.backHome', '返回首页')}</span>
+              </a>
+            </div>
+
+            <dl className="mt-3 grid grid-cols-5 gap-2 border-y border-neutral-200 py-2.5">
+              {statItems.map((s) => (
+                <div key={s.label}>
+                  <dd className="text-[15px] font-extrabold tabular-nums leading-none text-neutral-900">
+                    {s.value}
+                  </dd>
+                  <dt className="mt-1 text-[10px] leading-tight text-neutral-500">{s.label}</dt>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-3">{viewToggle}</div>
+          </header>
+
+          {/* ── Desktop: view-mode toggle + theme lens as a compact floating chip
             group at the map's top-left (the rail's controls, nothing else). ── */}
-        <div className="hidden lg:absolute lg:left-6 lg:top-4 lg:z-20 lg:block lg:w-[248px] lg:rounded-2xl lg:border lg:border-neutral-200/70 lg:bg-surface-card/85 lg:p-3 lg:shadow-lg lg:backdrop-blur-md">
-          {viewToggle}
+          <div className="hidden lg:absolute lg:left-6 lg:top-4 lg:z-20 lg:block lg:w-[248px] lg:rounded-2xl lg:border lg:border-neutral-200/70 lg:bg-surface-card/85 lg:p-3 lg:shadow-lg lg:backdrop-blur-md">
+            {viewToggle}
+          </div>
+
+          {/* ── Map: mobile = in-flow 45vh below header; desktop = fills the row ── */}
+          <div className="mt-4 h-[45vh] min-h-[300px] w-full lg:absolute lg:inset-0 lg:mt-0 lg:h-auto lg:min-h-0 lg:z-0">
+            <MapLibreCanvas
+              cities={themedCities}
+              selectedKey={selectedCityId}
+              onSelect={handleCitySelect}
+              activeTheme={activeTheme}
+              journals={journals}
+              viewMode={viewMode}
+              fitPadding={fitPadding}
+              t={t}
+            />
+          </div>
+
+          {/* ── Desktop: CityPanel appears on selection and can be dismissed or
+            collapsed to a 48px strip, so the map's east half is not permanently
+            covered. ── */}
+          {selectedCity && !isPanelCollapsed && (
+            <div className="hidden lg:absolute lg:bottom-6 lg:right-6 lg:top-4 lg:z-20 lg:block lg:w-[360px] lg:overflow-y-auto lg:rounded-2xl lg:bg-surface-card lg:shadow-xl">
+              <CityPanel
+                city={selectedCity}
+                cities={visibleCities}
+                totalLegs={visibleCities.length - 1}
+                isLatest={selectedCity.id === lastVisited?.id}
+                t={t}
+                locale={locale}
+                hero={false}
+                onSelectCity={handleCitySelect}
+                onClose={clearSelection}
+                onCollapse={() => setIsPanelCollapsed(true)}
+                journals={journals}
+                timeline={timeline}
+                cumulativeKm={selectedCity ? (cumulativeKm.get(selectedCity.id) ?? null) : null}
+              />
+            </div>
+          )}
+          {selectedCity && isPanelCollapsed && (
+            <div className="hidden lg:absolute lg:bottom-6 lg:right-6 lg:top-4 lg:z-20 lg:flex lg:w-12 lg:flex-col lg:items-center lg:gap-3 lg:rounded-2xl lg:border lg:border-neutral-200/70 lg:bg-surface-card lg:py-3 lg:shadow-xl">
+              <button
+                type="button"
+                onClick={() => setIsPanelCollapsed(false)}
+                aria-label={getT('route.action.expand', '展开面板')}
+                title={getT('route.action.expand', '展开面板')}
+                className="rounded-full p-1 text-neutral-400 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer"
+              >
+                <PanelRightOpen className="h-4 w-4" />
+              </button>
+              <span className="select-none text-xs font-bold tracking-widest text-neutral-700 [writing-mode:vertical-rl]">
+                {selectedCity.label}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* ── Map: mobile = in-flow 45vh below header; desktop = fills the row ── */}
-        <div className="mt-4 h-[45vh] min-h-[300px] w-full lg:absolute lg:inset-0 lg:mt-0 lg:h-auto lg:min-h-0 lg:z-0">
-          <MapLibreCanvas
-            cities={themedCities}
-            selectedKey={selectedCityId}
-            onSelect={handleCitySelect}
-            activeTheme={activeTheme}
+        {/* ── Bottom band: every story in the order — and at the time — it
+          happened. ── */}
+        <div className="relative z-10 mt-4 border-t border-neutral-200 bg-surface-card pt-3 pb-2 lg:mt-0 lg:flex-none">
+          <StoryRiver
             journals={journals}
-            viewMode={viewMode}
-            fitPadding={fitPadding}
+            cities={visibleCities}
+            selectedId={selectedCity?.id ?? null}
+            onSelect={handleCitySelect}
             t={t}
+            locale={locale}
           />
         </div>
 
-        {/* ── Desktop: CityPanel appears on selection and can be dismissed or
-            collapsed to a 48px strip, so the map's east half is not permanently
-            covered. ── */}
-        {selectedCity && !isPanelCollapsed && (
-          <div className="hidden lg:absolute lg:bottom-6 lg:right-6 lg:top-4 lg:z-20 lg:block lg:w-[360px] lg:overflow-y-auto lg:rounded-2xl lg:bg-surface-card lg:shadow-xl">
-            <CityPanel
-              city={selectedCity}
-              cities={visibleCities}
-              totalLegs={visibleCities.length - 1}
-              isLatest={selectedCity.id === lastVisited?.id}
-              t={t}
-              locale={locale}
-              hero={false}
-              onSelectCity={handleCitySelect}
-              onClose={clearSelection}
-              onCollapse={() => setIsPanelCollapsed(true)}
-              journals={journals}
-              timeline={timeline}
-              cumulativeKm={selectedCity ? (cumulativeKm.get(selectedCity.id) ?? null) : null}
-            />
-          </div>
-        )}
-        {selectedCity && isPanelCollapsed && (
-          <div className="hidden lg:absolute lg:bottom-6 lg:right-6 lg:top-4 lg:z-20 lg:flex lg:w-12 lg:flex-col lg:items-center lg:gap-3 lg:rounded-2xl lg:border lg:border-neutral-200/70 lg:bg-surface-card lg:py-3 lg:shadow-xl">
-            <button
-              type="button"
-              onClick={() => setIsPanelCollapsed(false)}
-              aria-label={getT('route.action.expand', '展开面板')}
-              title={getT('route.action.expand', '展开面板')}
-              className="rounded-full p-1 text-neutral-400 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-700 cursor-pointer"
-            >
-              <PanelRightOpen className="h-4 w-4" />
-            </button>
-            <span className="select-none text-xs font-bold tracking-widest text-neutral-700 [writing-mode:vertical-rl]">
-              {selectedCity.label}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* ── Bottom band: every story in the order — and at the time — it
-          happened. ── */}
-      <div className="relative z-10 mt-4 border-t border-neutral-200 bg-surface-card pt-3 pb-2 lg:mt-0 lg:flex-none">
-        <StoryRiver
-          journals={journals}
-          cities={visibleCities}
-          selectedId={selectedCity?.id ?? null}
-          onSelect={handleCitySelect}
-          t={t}
-          locale={locale}
-        />
-      </div>
-
-      {/* ── Mobile: bottom drawer (desktop uses the floating card above) ── */}
-      {selectedCity && !isDesktop && (
-        <motion.div
-          className="fixed inset-x-0 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-3xl border-t border-neutral-300 bg-surface-card/95 shadow-2xl backdrop-blur-md lg:hidden"
-          style={{ height: '75vh' }}
-          variants={drawerVariants}
-          animate={isDrawerExpanded ? 'expanded' : 'peek'}
-          drag="y"
-          dragConstraints={{ top: -500, bottom: 500 }}
-          dragElastic={0.15}
-          onDragEnd={(_, info) => {
-            // Expand if dragged upwards significantly, collapse if dragged down
-            if (info.offset.y < -50) {
-              setIsDrawerExpanded(true);
-            } else if (info.offset.y > 50) {
-              setIsDrawerExpanded(false);
-            }
-          }}
-          transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-        >
-          {/* Drawer Drag Handle bar (120px Peek height including padding) */}
-          {/* biome-ignore lint/a11y/useSemanticElements: 把手内含 h4/图标等块级内容,原生 <button> 不能容纳;role="button" + tabIndex + onKeyDown 是恰当的可访问模式 */}
-          <div
-            role="button"
-            tabIndex={0}
-            aria-expanded={isDrawerExpanded}
-            className="flex w-full flex-shrink-0 cursor-pointer flex-col justify-between border-b border-neutral-300/50 px-6 py-3"
-            onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setIsDrawerExpanded(!isDrawerExpanded);
+        {/* ── Mobile: bottom drawer (desktop uses the floating card above) ── */}
+        {selectedCity && !isDesktop && (
+          <motion.div
+            className="fixed inset-x-0 bottom-0 z-50 flex flex-col overflow-hidden rounded-t-3xl border-t border-neutral-300 bg-surface-card/95 shadow-2xl backdrop-blur-md lg:hidden"
+            style={{ height: '75vh' }}
+            variants={drawerVariants}
+            animate={isDrawerExpanded ? 'expanded' : 'peek'}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.15}
+            onDragEnd={(_, info) => {
+              // Up expands; down from expanded collapses to peek; down past the
+              // threshold from peek closes the drawer entirely — peek must not
+              // be a permanent 120px blocker over the story river.
+              if (info.offset.y < -50) {
+                setIsDrawerExpanded(true);
+              } else if (!isDrawerExpanded && info.offset.y > 120) {
+                clearSelection();
+              } else if (isDrawerExpanded && info.offset.y > 50) {
+                setIsDrawerExpanded(false);
               }
             }}
+            transition={
+              reduceMotion ? { duration: 0 } : { type: 'spring', damping: 25, stiffness: 220 }
+            }
           >
-            {/* Central pill handle */}
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-neutral-300" />
+            {/* Drawer Drag Handle bar (120px Peek height including padding) */}
+            {/* biome-ignore lint/a11y/useSemanticElements: 把手内含 h4/图标等块级内容,原生 <button> 不能容纳;role="button" + tabIndex + onKeyDown 是恰当的可访问模式 */}
+            <div
+              role="button"
+              tabIndex={0}
+              aria-expanded={isDrawerExpanded}
+              className="flex w-full flex-shrink-0 cursor-pointer flex-col justify-between border-b border-neutral-300/50 px-6 py-3"
+              onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsDrawerExpanded(!isDrawerExpanded);
+                }
+              }}
+            >
+              {/* Central pill handle */}
+              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-neutral-300" />
 
-            {/* Peek Content Bar */}
-            <div className="flex h-[60px] w-full items-center justify-between">
-              <div className="text-left">
-                <h4 className="flex items-center gap-1.5 text-xl font-bold text-neutral-900">
-                  <MapPin className="h-4 w-4 text-brand" />
-                  <span>{selectedCity.label}</span>
-                </h4>
-                <p className="mt-0.5 text-xs font-medium tabular-nums text-neutral-500">
-                  {[
-                    timeline.get(selectedCity.id)?.day
-                      ? (t['route.panel.day'] ?? '第 {n} 天').replace(
-                          '{n}',
-                          String(timeline.get(selectedCity.id)?.day),
-                        )
-                      : null,
-                    `${selectedCity.altitude}m`,
-                    selectedCity.visited
-                      ? (t['route.panel.km'] ?? '{n} km').replace(
-                          '{n}',
-                          String(cumulativeKm.get(selectedCity.id) ?? 0),
-                        )
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
-              </div>
+              {/* Peek Content Bar */}
+              <div className="flex h-[60px] w-full items-center justify-between">
+                <div className="text-left">
+                  <h4 className="flex items-center gap-1.5 text-xl font-bold text-neutral-900">
+                    <MapPin className="h-4 w-4 text-brand" />
+                    <span>{selectedCity.label}</span>
+                  </h4>
+                  <p className="mt-0.5 text-xs font-medium tabular-nums text-neutral-500">
+                    {[
+                      timeline.get(selectedCity.id)?.day
+                        ? (t['route.panel.day'] ?? '第 {n} 天').replace(
+                            '{n}',
+                            String(timeline.get(selectedCity.id)?.day),
+                          )
+                        : null,
+                      `${selectedCity.altitude}m`,
+                      selectedCity.visited
+                        ? (t['route.panel.km'] ?? '{n} km').replace(
+                            '{n}',
+                            String(cumulativeKm.get(selectedCity.id) ?? 0),
+                          )
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                </div>
 
-              {/* Status indicator chip */}
-              <div>
-                {selectedCity.isOrigin ? (
-                  <span className="inline-flex rounded border border-neutral-300/50 bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-700">
-                    {getT('route.status.origin', '出发点')}
-                  </span>
-                ) : selectedCity.id === lastVisited?.id ? (
-                  <span className="inline-flex items-center gap-1 rounded bg-brand px-2.5 py-1 text-[10px] font-bold tracking-wider text-brand-foreground">
-                    {getT('route.status.latest', '最新')}
-                  </span>
-                ) : selectedCity.visited ? (
-                  <span className="inline-flex rounded border border-neutral-300/50 bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-700">
-                    {getT('route.status.visited', '已抵达')}
-                  </span>
-                ) : (
-                  <span className="inline-flex rounded border border-neutral-100 bg-neutral-50 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-500">
-                    {getT('route.status.planned', '计划中')}
-                  </span>
-                )}
+                {/* Status indicator chip */}
+                <div>
+                  {selectedCity.isOrigin ? (
+                    <span className="inline-flex rounded border border-neutral-300/50 bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-700">
+                      {getT('route.status.origin', '出发点')}
+                    </span>
+                  ) : selectedCity.id === lastVisited?.id ? (
+                    <span className="inline-flex items-center gap-1 rounded bg-brand px-2.5 py-1 text-[10px] font-bold tracking-wider text-brand-foreground">
+                      {getT('route.status.latest', '最新')}
+                    </span>
+                  ) : selectedCity.visited ? (
+                    <span className="inline-flex rounded border border-neutral-300/50 bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-700">
+                      {getT('route.status.visited', '已抵达')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded border border-neutral-100 bg-neutral-50 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-neutral-500">
+                      {getT('route.status.planned', '计划中')}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Scrollable Expanded Details */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 pb-12">
-            <CityPanel
-              city={selectedCity}
-              cities={visibleCities}
-              totalLegs={visibleCities.length - 1}
-              isLatest={selectedCity.id === lastVisited?.id}
-              t={t}
-              locale={locale}
-              hero={false}
-              onSelectCity={handleCitySelect}
-              journals={journals}
-              timeline={timeline}
-              cumulativeKm={selectedCity ? (cumulativeKm.get(selectedCity.id) ?? null) : null}
-            />
-          </div>
-        </motion.div>
-      )}
-    </div>
+            {/* Scrollable Expanded Details */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 pb-12">
+              <CityPanel
+                city={selectedCity}
+                cities={visibleCities}
+                totalLegs={visibleCities.length - 1}
+                isLatest={selectedCity.id === lastVisited?.id}
+                t={t}
+                locale={locale}
+                hero={false}
+                onSelectCity={handleCitySelect}
+                onClose={clearSelection}
+                journals={journals}
+                timeline={timeline}
+                cumulativeKm={selectedCity ? (cumulativeKm.get(selectedCity.id) ?? null) : null}
+              />
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </MotionConfig>
   );
 }

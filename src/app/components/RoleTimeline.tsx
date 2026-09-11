@@ -175,7 +175,11 @@ export default function RoleTimeline({
     if (todayPct === null || !scrollerRef.current) return;
     const el = scrollerRef.current;
     const target = (el.scrollWidth * todayPct) / 100 - el.clientWidth / 2;
-    el.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+    // Respect prefers-reduced-motion: jump straight to today instead of smooth-scrolling.
+    const reduce =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollTo({ left: Math.max(0, target), behavior: reduce ? 'auto' : 'smooth' });
   }, [todayPct]);
 
   // Group segments by role for lane rendering
@@ -351,7 +355,9 @@ export default function RoleTimeline({
             <span className="uppercase tracking-[0.2em]">
               {formatShortDate(projectStart, locale)} → {formatShortDate(projectEnd, locale)}
             </span>
-            <span className="text-neutral-300">·</span>
+            <span className="text-neutral-300" aria-hidden="true">
+              ·
+            </span>
             <span>{t['timeline.totalDays'].replace('{days}', String(totalDays))}</span>
           </motion.div>
         </motion.div>
@@ -459,7 +465,7 @@ export default function RoleTimeline({
                           }
                           return (
                             <div
-                              key={leg.key}
+                              key={`${leg.key}-${leg.startDate}`}
                               title={leg.fullName}
                               className={`absolute top-0 bottom-0 flex items-center justify-center overflow-hidden rounded-sm ${
                                 isCurrent

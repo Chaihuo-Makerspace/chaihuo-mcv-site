@@ -18,6 +18,7 @@ const ui: Record<Locale, Record<string, string>> = {
     'nav.openMenu': '打开菜单',
     'nav.closeMenu': '关闭菜单',
     'nav.switchLang': '切换语言',
+    'nav.primaryNav': '主导航',
 
     // Footer
     'footer.description':
@@ -30,6 +31,8 @@ const ui: Record<Locale, Record<string, string>> = {
     'footer.addressCD': '成都市青羊区狮马路92号',
     'footer.xiaohongshu': '小红书 @MobileAILab',
     'footer.wechat': '微信公众号',
+    'footer.wechatQrAlt': '微信公众号二维码',
+    'footer.wechatHint': '扫码关注',
     'footer.github': 'GitHub',
     'footer.copyright': '© 2026 柴火创客空间 Chaihuo Maker Space. 保留所有权利.',
     'footer.license': '本项目遵循开源协议 MIT License',
@@ -49,6 +52,7 @@ const ui: Record<Locale, Record<string, string>> = {
     'nav.openMenu': 'Open menu',
     'nav.closeMenu': 'Close menu',
     'nav.switchLang': 'Switch language',
+    'nav.primaryNav': 'Primary navigation',
 
     'footer.description':
       'Chaihuo MCV is an open-source innovation project bridging digital and physical worlds, bringing the humanistic power of technology to those who need it most.',
@@ -60,6 +64,8 @@ const ui: Record<Locale, Record<string, string>> = {
     'footer.addressCD': '92 Shima Road, Qingyang, Chengdu',
     'footer.xiaohongshu': 'Xiaohongshu @MobileAILab',
     'footer.wechat': 'WeChat',
+    'footer.wechatQrAlt': 'WeChat official account QR code',
+    'footer.wechatHint': 'Scan to follow',
     'footer.github': 'GitHub',
     'footer.copyright': '© 2026 Chaihuo Maker Space. All rights reserved.',
     'footer.license': 'This project is licensed under the MIT License',

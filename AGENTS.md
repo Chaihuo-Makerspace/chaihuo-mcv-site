@@ -99,7 +99,7 @@ See `docs/ai-iteration.md` for the recommended AI change loop.
 - Design tokens as CSS custom properties in `theme.css` (`:root` light, `.dark` dark mode)
 - `@theme inline { ... }` maps CSS vars to Tailwind tokens (`--color-*`, `--radius-*`)
 - Animation: `tw-animate-css` (CSS) + `motion` (Framer Motion JS)
-- **Color system**: Brand `brand` (#f3d230) as a small-area accent only (deep variant `brand-dark` for emphasis text/completed route), surfaces `surface`/`surface-card`/`surface-dark`, full neutral ramp `neutral-950`~`neutral-50` (all defined in `theme.css`; undefined shades silently do nothing)
+- **Color system**: Brand `brand` (#f3d230) as a small-area accent only (deep variant `brand-dark` for emphasis text/completed route), surfaces `surface`/`surface-card`/`surface-dark`/`surface-warm` (+`surface-warm-border`, 暖纸底人物/照片条), full neutral ramp `neutral-950`~`neutral-50` (all defined in `theme.css`; undefined shades silently do nothing)
 - **Use `text-brand`, `bg-surface`, `text-neutral-700` etc. — avoid hardcoded hex or Tailwind gray-xxx**
 
 ## Design System

@@ -31,6 +31,7 @@ history.
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-09-11 | main | 全站交互/无障碍修复批:prerender 页面(/ /route 及英文版)的「已出发 N 天」「N 天在路上」改为挂载后计算(原构建期冻结导致每日水合不匹配 #418 + 数字跳变);修掉 theme.css 里写错选择器的 reduced-motion 规则(脉冲动画现在真的会对 reduced-motion 用户关闭);移动端 /route 地图开 cooperativeGestures 解除滚动陷阱;点故事流卡片不再自动展开抽屉,抽屉新增 X/Esc/下滑关闭;导航激活态改 brand-dark(黄字白底对比度不足)、隐藏时加 inert、抽屉焦点管理;hero 与 /live 轮播补暂停手段与焦点样式;筛选 chips 统一 aria-pressed 语义;/journals yuque 模式不再静默应用无 UI 的 URL 参数,空态可加「清除筛选」;英文首页补齐共建伙伴条与 jsonLd(中英对等);阅读进度条改 scaleX;各 island 根部包 MotionConfig reducedMotion="user"。 |
 | 2026-09-10 | main | Added Luoyang as the latest visited stop (arrival 2026-09-10) after Zhengzhou, so homepage 「位于」 and the map yellow dot move on from Zhengzhou. |
 | 2026-09-10 | main | /route 场景筛选修复并改为封面刷新:theme lens 此前从未生效(marker 查询错用 `city.label` 作 key,且地图拿到的是未挂日记场景的原始 stops),点 chip 只有路线变淡。现在地图读取挂了 `category` 的 stops,选中场景时只刷新照片钉——匹配城市的封面冒出、其余撤下,图钉/标签/路线零变化;本地正式稿顶掉语雀卡片时继承其 category(柳州回到产业)。 |
 | 2026-09-10 | main | One 场景 schema (`src/lib/scenes.mjs`) shared by journal cards and the route map; stop Markdown `themes` are no longer the source. |

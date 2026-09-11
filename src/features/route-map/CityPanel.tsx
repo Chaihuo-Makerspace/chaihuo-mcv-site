@@ -136,7 +136,7 @@ export default function CityPanel({
               type="button"
               disabled={!prev}
               onClick={() => prev && onSelectCity?.(prev.id)}
-              className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-0 transition-colors duration-200 cursor-pointer"
+              className="inline-flex min-h-[32px] min-w-[32px] items-center justify-center gap-0.5 rounded-full px-1.5 py-0.5 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-30 transition-colors duration-200 cursor-pointer"
             >
               <ChevronLeft className="h-3 w-3" />
               <span className="max-w-[7em] truncate">{prev?.label}</span>
@@ -152,7 +152,7 @@ export default function CityPanel({
                 type="button"
                 onClick={() => next && onSelectCity?.(next.id)}
                 disabled={!next}
-                className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-0 transition-colors duration-200 cursor-pointer"
+                className="inline-flex min-h-[32px] min-w-[32px] items-center justify-center gap-0.5 rounded-full px-1.5 py-0.5 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-30 transition-colors duration-200 cursor-pointer"
               >
                 <span className="max-w-[7em] truncate">{next?.label}</span>
                 <ChevronRight className="h-3 w-3" />
@@ -217,7 +217,7 @@ export default function CityPanel({
                   <LeadTag
                     href={leadHref}
                     {...(lead.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                    className="group block overflow-hidden rounded-xl border border-neutral-200 hover:border-neutral-400 transition-colors duration-200"
+                    className={`group block overflow-hidden rounded-xl border border-neutral-200 transition-colors duration-200${leadHref ? ' hover:border-neutral-400' : ''}`}
                   >
                     {lead.coverImage && (
                       <img
@@ -264,7 +264,7 @@ export default function CityPanel({
                           <RowTag
                             href={href}
                             {...(j.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                            className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-neutral-100 transition-colors duration-200"
+                            className={`group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors duration-200${href ? ' hover:bg-neutral-100' : ''}`}
                           >
                             {j.coverImage && (
                               <img
@@ -354,7 +354,7 @@ export default function CityPanel({
                   {locale === 'zh' ? '新文明 · 遇见的人' : 'NEW CIVILIZATIONS'}
                 </h5>
               </div>
-              <PeopleStrip people={city.people} />
+              <PeopleStrip people={city.people} locale={locale} />
             </div>
           )}
 
@@ -367,7 +367,7 @@ export default function CityPanel({
                   {locale === 'zh' ? '剧照' : 'FROM THE FIELD'}
                 </h5>
               </div>
-              <PhotoStrip photos={city.photos} />
+              <PhotoStrip photos={city.photos} locale={locale} />
             </div>
           )}
         </div>

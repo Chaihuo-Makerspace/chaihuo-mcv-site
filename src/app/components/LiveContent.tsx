@@ -53,6 +53,7 @@ export default function LiveContent({
 }: LiveContentProps) {
   const [meta, setMeta] = useState<LiveMeta | null>(initialMeta);
   const [now, setNow] = useState(() => Date.now());
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +65,7 @@ export default function LiveContent({
         const data: { meta?: LiveMeta | null } = await response.json();
         if (!cancelled && data.meta?.capturedAt && data.meta.capturedAt !== meta?.capturedAt) {
           setMeta(data.meta);
+          setImgError(false);
         }
       } catch {
         // 网络抖动，下一轮再试
@@ -90,6 +92,7 @@ export default function LiveContent({
           {/* 状态行：静态圆点（全页循环动画额度让给轮播），mono 呼应 OSD 时间戳 */}
           <div
             className="flex items-center gap-2 font-mono text-xs text-surface-dark-foreground"
+            role="status"
             suppressHydrationWarning
           >
             <span
@@ -101,13 +104,14 @@ export default function LiveContent({
           </div>
 
           <div className="mt-3 overflow-hidden rounded-lg">
-            {meta ? (
+            {meta && !imgError ? (
               <div className="relative">
                 <img
                   src={`/live/latest.jpg?t=${encodeURIComponent(meta.capturedAt)}`}
                   width={meta.width}
                   height={meta.height}
                   alt={t['image.alt']}
+                  onError={() => setImgError(true)}
                   className={`block aspect-video w-full object-cover transition-opacity ${
                     isOnline ? '' : 'opacity-60'
                   }`}

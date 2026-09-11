@@ -32,8 +32,12 @@ const localized = localizeJournal(entry, cities, locale);
 ---
 
 <BaseLayout title={localized.title} description={localized.excerpt}>
-  <!-- Scroll Progress Indicator -->
-  <div id="reading-progress" class="fixed top-0 left-0 w-0 h-[3px] bg-brand z-50 transition-all duration-75"></div>
+  <!-- Scroll Progress Indicator（transform 驱动,滚动路径不触发布局） -->
+  <div
+    id="reading-progress"
+    class="fixed top-0 left-0 w-full h-[3px] bg-brand z-50 origin-left"
+    style="transform: scaleX(0)"
+  ></div>
 
   <script>
     const updateProgress = () => {
@@ -41,11 +45,14 @@ const localized = localizeJournal(entry, cities, locale);
       if (!progress) return;
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-      progress.style.width = `${pct}%`;
+      const pct = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+      progress.style.transform = `scaleX(${pct})`;
     };
 
     const setupListeners = () => {
+      // 先摘后挂,astro:page-load 多次触发时不累积监听器
+      window.removeEventListener('scroll', updateProgress);
+      window.removeEventListener('resize', updateProgress);
       window.addEventListener('scroll', updateProgress, { passive: true });
       window.addEventListener('resize', updateProgress, { passive: true });
       updateProgress();

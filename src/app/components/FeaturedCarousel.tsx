@@ -35,18 +35,22 @@ function formatFileDate(base: string, locale: Locale): string {
 
 export default function FeaturedCarousel({ locale = 'zh', t, entries }: FeaturedCarouselProps) {
   const [index, setIndex] = useState(0);
-  const count = entries.length;
+  const [paused, setPaused] = useState(false);
+  const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
+  // 已删除/404 的 featured 图直接剔除,不留破图
+  const items = entries.filter((e) => !failed.has(e.file));
+  const count = items.length;
 
   // 全页唯一循环动画额度给了轮播自动播放；prefers-reduced-motion 时只手动切换
   // biome-ignore lint/correctness/useExhaustiveDependencies: index 入依赖是有意的——手动切换后重新开始计 5 秒
   useEffect(() => {
-    if (count <= 1) return;
+    if (count <= 1 || paused) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % count);
     }, AUTOPLAY_MS);
     return () => clearInterval(timer);
-  }, [count, index]);
+  }, [count, index, paused]);
 
   // 无已入选图时整个区块不渲染（占位内容不外露；页面 frontmatter 也会判空跳过）
   if (count === 0) return null;
@@ -55,21 +59,37 @@ export default function FeaturedCarousel({ locale = 'zh', t, entries }: Featured
     setIndex((prev) => (prev + delta + count) % count);
   };
 
-  const current = entries[index % count];
+  const markFailed = (file: string) => {
+    setFailed((prev) => {
+      if (prev.has(file)) return prev;
+      const next = new Set(prev);
+      next.add(file);
+      return next;
+    });
+  };
+
+  const current = items[index % count];
   const currentDate = formatFileDate(current.file, locale);
 
   return (
-    <section className="bg-surface">
+    // biome-ignore lint/a11y/noStaticElementInteractions: 轮播悬停/聚焦暂停(WCAG 2.2.2),挂在容器上覆盖全部控件与图片
+    <section
+      className="bg-surface"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
       <div className="page-rail pb-16">
         <h2>{t['featured.title']}</h2>
         <p className="mt-2 max-w-2xl text-neutral-500">{t['featured.subtitle']}</p>
 
         <div className="mt-6 overflow-hidden rounded-lg border border-neutral-300 bg-surface-card shadow-sm">
           <div
-            className="flex transition-transform duration-500 ease-out"
+            className="flex transition-transform duration-500 ease-out motion-reduce:transition-none"
             style={{ transform: `translateX(-${(index % count) * 100}%)` }}
           >
-            {entries.map((entry) => {
+            {items.map((entry) => {
               const date = formatFileDate(entry.file, locale);
               return (
                 <img
@@ -77,6 +97,7 @@ export default function FeaturedCarousel({ locale = 'zh', t, entries }: Featured
                   src={`/live/featured/${entry.file}.webp`}
                   alt={fill(t['featured.imageAlt'], { date })}
                   loading="lazy"
+                  onError={() => markFailed(entry.file)}
                   className="aspect-video w-full shrink-0 object-cover"
                 />
               );
@@ -97,9 +118,7 @@ export default function FeaturedCarousel({ locale = 'zh', t, entries }: Featured
               </button>
             )}
 
-            <span className="font-mono text-sm text-neutral-500" aria-live="polite">
-              {currentDate}
-            </span>
+            <span className="font-mono text-sm text-neutral-500">{currentDate}</span>
 
             {count > 1 && (
               <>
@@ -123,23 +142,23 @@ export default function FeaturedCarousel({ locale = 'zh', t, entries }: Featured
           </div>
 
           {count > 1 && (
+            // biome-ignore lint/a11y/useSemanticElements: APG group 模式;fieldset/legend 有默认样式且命名支持不一致
             <div
-              role="tablist"
+              role="group"
               aria-label={t['featured.title']}
               className="mt-3 flex min-w-0 items-stretch gap-px"
             >
-              {entries.map((entry, i) => {
+              {items.map((entry, i) => {
                 const date = formatFileDate(entry.file, locale);
                 const active = i === index % count;
                 return (
                   <button
                     key={entry.file}
                     type="button"
-                    role="tab"
-                    aria-selected={active}
+                    aria-current={active || undefined}
                     aria-label={fill(t['featured.goto'] ?? t['featured.imageAlt'], { date })}
                     onClick={() => setIndex(i)}
-                    className="group flex h-6 min-w-0 flex-1 cursor-pointer items-center"
+                    className="group flex h-8 min-w-0 flex-1 cursor-pointer items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark"
                   >
                     <span
                       className={`block h-1 w-full rounded-full transition-colors duration-200 ${

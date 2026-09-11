@@ -42,6 +42,7 @@ const route: Record<Locale, Record<string, string>> = {
     'map.legend.horseYear': '2026 · 马年愿景线',
     'map.legend.current': '当前位置',
     'map.legend.routeGhost': '真实路线',
+    'route.map.error': '地图加载失败，请刷新重试。',
     // View modes — 一次只讲一件事
     'route.view.track': '足迹',
     'route.view.visionHint': '2026 全年路程走成一匹马',
@@ -103,6 +104,7 @@ const route: Record<Locale, Record<string, string>> = {
     'map.legend.horseYear': '2026 · Year of the Horse vision line',
     'map.legend.current': 'Current position',
     'map.legend.routeGhost': 'Actual route',
+    'route.map.error': 'Failed to load the map. Please refresh and try again.',
     'route.view.track': 'Track',
     'route.view.visionHint': "2026's route drawn as a horse",
     'route.view.vision': 'Horse vision',

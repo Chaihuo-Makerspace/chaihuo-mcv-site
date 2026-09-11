@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { MotionConfig, motion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactSlick from 'react-slick';
 
@@ -8,7 +8,7 @@ const Slider = (
 ) as typeof ReactSlick;
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import expeditionConfig from '@/data/expedition-config.json';
 import { daysOnRoad } from '@/features/route-map/expedition-timeline';
 import { MAP_BG } from '@/features/route-map/map-style';
@@ -145,7 +145,12 @@ export default function HomeContent({
   );
   const cityTotal = officialCities.length;
   const roadKm = expeditionConfig.actualRoadKm;
-  const departureDays = daysOnRoad();
+  // 「已出发 N 天」依赖当天日期。首页是 prerender 的,构建期算好的数字会冻进 HTML,
+  // 客户端水合再算一次就会对不上(React #418)。挂载后再算,SSR 与首渲染同为 null。
+  const [departureDays, setDepartureDays] = useState<number | null>(null);
+  useEffect(() => {
+    setDepartureDays(daysOnRoad());
+  }, []);
   const kmLabel = roadKm.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN');
 
   // 媒体报道信息流：featured 置顶，其余按日期倒序；水平滑动卡片流
@@ -172,7 +177,10 @@ export default function HomeContent({
     const el = pressTrackRef.current;
     if (!el) return;
     const card = el.querySelector<HTMLElement>('[data-press-card]');
-    const step = card ? card.offsetWidth + 16 : 300;
+    // 步长 = 卡片宽 + 网格列间距(gap-x-5,运行时读取 computed gap 避免样式漂移累积误差)
+    const grid = el.firstElementChild as HTMLElement | null;
+    const gap = grid ? parseFloat(getComputedStyle(grid).columnGap) || 0 : 0;
+    const step = card ? card.offsetWidth + gap : 300;
     el.scrollBy({ left: dir * step, behavior: 'smooth' });
   };
 
@@ -196,7 +204,7 @@ export default function HomeContent({
     <button
       type="button"
       onClick={onClick}
-      className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/60 text-white border border-white/20 hover:border-white/50 transition-all duration-200 cursor-pointer"
+      className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/60 focus-visible:bg-black/60 text-white border border-white/20 hover:border-white/50 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
       aria-label={t['carousel.prevAria'] ?? (locale === 'en' ? 'Previous slide' : '上一张')}
     >
       <ChevronLeft size={20} />
@@ -207,12 +215,24 @@ export default function HomeContent({
     <button
       type="button"
       onClick={onClick}
-      className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/60 text-white border border-white/20 hover:border-white/50 transition-all duration-200 cursor-pointer"
+      className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/60 focus-visible:bg-black/60 text-white border border-white/20 hover:border-white/50 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
       aria-label={t['carousel.nextAria'] ?? (locale === 'en' ? 'Next slide' : '下一张')}
     >
       <ChevronRight size={20} />
     </button>
   );
+
+  // 自动轮播的显式暂停/播放手段(WCAG 2.2.2):经 ref 调 react-slick 的 slickPause/slickPlay。
+  // reduced-motion 用户 autoplay 本身关闭,不渲染该按钮。
+  const sliderRef = useRef<InstanceType<typeof Slider> | null>(null);
+  const [heroPaused, setHeroPaused] = useState(false);
+  const toggleHeroAutoplay = () => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+    if (heroPaused) slider.slickPlay();
+    else slider.slickPause();
+    setHeroPaused(!heroPaused);
+  };
 
   const sliderSettings = {
     dots: false,
@@ -225,550 +245,582 @@ export default function HomeContent({
     fade: true,
     arrows: true,
     pauseOnHover: true,
+    pauseOnFocus: true,
     prevArrow: <SliderPrevArrow />,
     nextArrow: <SliderNextArrow />,
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Banner */}
-      <section className="relative h-screen min-h-[600px] bg-black text-white">
-        <Slider {...sliderSettings} className="h-full">
-          {heroImages.map((image, index) => {
-            // 桌面/移动两套背景按断点互斥显示;display:none 的背景图浏览器不下载,
-            // 所以不会双拉。非首张推迟到挂载后再给 URL(见 deferRest)。
-            const withBg = (url: string) =>
-              index === 0 || !deferRest ? { backgroundImage: `url(${url})` } : undefined;
-            return (
-              <div key={image.image} className="h-screen min-h-[600px] relative">
-                <div
-                  className="h-screen min-h-[600px] bg-cover bg-center hidden md:block"
-                  style={withBg(image.image)}
-                  role="img"
-                  aria-label={image.alt ?? t['hero.title']}
-                >
-                  <div className="absolute inset-0 bg-black/40" />
+    // reducedMotion="user":prefers-reduced-motion 用户跳过 transform/layout 动画
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen">
+        {/* Hero Banner */}
+        <section className="relative h-screen min-h-[600px] bg-black text-white">
+          <Slider ref={sliderRef} {...sliderSettings} className="h-full">
+            {heroImages.map((image, index) => {
+              // 桌面/移动两套背景按断点互斥显示;display:none 的背景图浏览器不下载,
+              // 所以不会双拉。非首张推迟到挂载后再给 URL(见 deferRest)。
+              const withBg = (url: string) =>
+                index === 0 || !deferRest ? { backgroundImage: `url(${url})` } : undefined;
+              return (
+                <div key={image.image} className="h-screen min-h-[600px] relative">
+                  <div
+                    className="h-screen min-h-[600px] bg-cover bg-center hidden md:block"
+                    style={withBg(image.image)}
+                    role="img"
+                    aria-label={image.alt ?? t['hero.title']}
+                  >
+                    <div className="absolute inset-0 bg-black/40" />
+                  </div>
+                  <div
+                    className="h-screen min-h-[600px] bg-cover bg-center md:hidden"
+                    style={withBg(image.imageMobile ?? image.image)}
+                    role="img"
+                    aria-label={image.alt ?? t['hero.title']}
+                  >
+                    <div className="absolute inset-0 bg-black/40" />
+                  </div>
                 </div>
-                <div
-                  className="h-screen min-h-[600px] bg-cover bg-center md:hidden"
-                  style={withBg(image.imageMobile ?? image.image)}
-                  role="img"
-                  aria-label={image.alt ?? t['hero.title']}
-                >
-                  <div className="absolute inset-0 bg-black/40" />
-                </div>
-              </div>
-            );
-          })}
-        </Slider>
+              );
+            })}
+          </Slider>
 
-        {/* Hero 内容 */}
-        <div className="absolute inset-0 flex flex-col justify-center pointer-events-none">
-          <div className="page-rail">
-            <motion.div
-              className="max-w-2xl pointer-events-auto"
-              variants={stagger(0.2)}
-              initial="hidden"
-              animate="visible"
+          {/* 轮播 播放/暂停按钮(WCAG 2.2.2);样式与两侧箭头一致,半透明黑底 */}
+          {!prefersReducedMotion && (
+            <button
+              type="button"
+              onClick={toggleHeroAutoplay}
+              aria-label={heroPaused ? t['hero.play'] : t['hero.pause']}
+              aria-pressed={heroPaused}
+              className="absolute bottom-8 right-4 md:right-8 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/60 focus-visible:bg-black/60 text-white border border-white/20 hover:border-white/50 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
-              <motion.h1
-                className="font-display text-5xl md:text-7xl lg:text-8xl mb-4 leading-tight"
-                variants={fadeLeft}
-                transition={springTransition}
-              >
-                <span className="block text-white font-bold">{t['hero.title']}</span>
-                <span className="block text-brand font-bold text-4xl md:text-6xl mt-2">
-                  {t['hero.slogan']}
-                </span>
-              </motion.h1>
-              <motion.p
-                className="text-base md:text-lg text-neutral-300 mb-6 leading-relaxed max-w-lg"
-                variants={fadeLeft}
-                transition={springTransition}
-              >
-                {t['hero.subtitle']}
-              </motion.p>
-              <motion.p
-                className="text-base md:text-lg text-neutral-300 mb-10 max-w-lg leading-relaxed"
-                variants={fadeLeft}
-                transition={springTransition}
-              >
-                {t['hero.body']}
-              </motion.p>
+              {heroPaused ? <Play size={18} /> : <Pause size={18} />}
+            </button>
+          )}
+
+          {/* Hero 内容 */}
+          <div className="absolute inset-0 flex flex-col justify-center pointer-events-none">
+            <div className="page-rail">
               <motion.div
-                variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}
-                transition={{ y: springTransition, opacity: { duration: 0.12, ease: 'easeOut' } }}
-                className="flex flex-wrap gap-4"
+                className="max-w-2xl pointer-events-auto"
+                variants={stagger(0.2)}
+                initial="hidden"
+                animate="visible"
               >
-                {/* 了解我们 (About Us) */}
-                <motion.a
-                  href={localePath('/about', locale)}
-                  className="pointer-events-auto border border-white/20 bg-surface-card/5 backdrop-blur-sm text-white px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer group"
-                  whileHover={{
-                    y: -4,
-                    scale: 1.02,
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    borderColor: 'rgba(255, 255, 255, 0.4)',
-                    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-                >
-                  <span>{t['hero.aboutAction']}</span>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
-                </motion.a>
-
-                {/* 加入行动 (Join Action) */}
-                <motion.a
-                  href={localePath('/guide', locale)}
-                  className="pointer-events-auto border border-brand/35 bg-brand/10 backdrop-blur-md text-brand px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer font-semibold group shadow-md"
-                  whileHover={{
-                    y: -4,
-                    scale: 1.02,
-                    backgroundColor: 'rgba(243, 210, 48, 0.2)',
-                    borderColor: 'rgba(243, 210, 48, 0.55)',
-                    boxShadow: '0 15px 35px rgba(243, 210, 48, 0.25)',
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-                >
-                  <span>{t['hero.joinAction']}</span>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
-                </motion.a>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* 滚动提示 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/60">
-          <ChevronDown className="w-5 h-5" />
-        </div>
-      </section>
-
-      {/* 实时任务状态条 — hero 图片之后,独立一条,居中 */}
-      <div className="bg-neutral-900 text-white">
-        <div className="page-rail py-3.5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
-          <span className="text-white/70">
-            {(t['status.days'] ?? '已出发 {days} 天').replace('{days}', String(departureDays))}
-          </span>
-          <span className="text-white/25">·</span>
-          <span className="flex items-center gap-2 font-semibold text-white">
-            <span className="w-2 h-2 rounded-full bg-brand" />
-            {(t['status.current'] ?? '位于 {city}').replace('{city}', lastVisited?.label ?? '')}
-          </span>
-          <span className="text-white/25">·</span>
-          <span className="text-white/70">
-            {(t['status.cities'] ?? '已抵达 {count} 城').replace('{count}', String(visitedCount))}
-          </span>
-        </div>
-      </div>
-
-      <section className="bg-neutral-50 text-black py-16 md:py-20">
-        <div className="page-rail">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
-            {/* 左侧栏: 路线叙事 + 当前站点事实卡 (Col-span 5) */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
-              variants={stagger(0.12)}
-              className="lg:col-span-5 flex flex-col justify-between gap-6"
-            >
-              <div>
-                <motion.h2
-                  variants={fadeUp}
+                <motion.h1
+                  className="font-display text-5xl md:text-7xl lg:text-8xl mb-4 leading-tight"
+                  variants={fadeLeft}
                   transition={springTransition}
-                  className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-neutral-900 tracking-tight"
                 >
-                  {t['route.title1']}
-                  <span className="text-brand-dark block mt-1">{t['route.title2']}</span>
-                </motion.h2>
+                  <span className="block text-white font-bold">{t['hero.title']}</span>
+                  <span className="block text-brand font-bold text-4xl md:text-6xl mt-2">
+                    {t['hero.slogan']}
+                  </span>
+                </motion.h1>
                 <motion.p
-                  variants={fadeUp}
+                  className="text-base md:text-lg text-neutral-300 mb-6 leading-relaxed max-w-lg"
+                  variants={fadeLeft}
                   transition={springTransition}
-                  className="text-neutral-500 leading-relaxed text-sm md:text-base mt-4"
                 >
-                  {t['route.body']}
+                  {t['hero.subtitle']}
                 </motion.p>
-              </div>
-
-              {/* 行程信息流:日志式天数 + 一条从起点到当前站的微缩路线轨(进度即叙事),
-                  数据少的站点不再有"空盒子";有测控数据的站点在轨下继续展开 */}
-              {lastVisited && (
-                <motion.div
-                  variants={fadeUp}
+                <motion.p
+                  className="text-base md:text-lg text-neutral-300 mb-10 max-w-lg leading-relaxed"
+                  variants={fadeLeft}
                   transition={springTransition}
-                  className="border-t border-neutral-200 pt-5"
                 >
-                  <p className="flex items-baseline gap-x-2 flex-wrap">
-                    <span className="text-3xl font-extrabold tabular-nums tracking-tight text-neutral-900">
-                      {departureDays}
-                    </span>
-                    <span className="text-sm font-bold tabular-nums text-neutral-400">
-                      {(t['telemetry.daysTotal'] ?? '/ {total} 天').replace(
-                        '{total}',
-                        String(TOTAL_ROUTE_DAYS),
-                      )}
-                    </span>
-                    <span className="text-xs tabular-nums text-neutral-500">
-                      {'· '}
-                      {(t['telemetry.cities'] ?? '{count} 城').replace(
-                        '{count}',
-                        String(visitedCount),
-                      )}
-                      {' · '}
-                      {(t['telemetry.km'] ?? '{km} 公里').replace('{km}', kmLabel)}
-                    </span>
-                  </p>
-                  <div className="mt-4">
-                    <div className="relative h-0.5 rounded-full bg-neutral-200">
-                      <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-brand"
-                        style={{
-                          width: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
-                        }}
-                      />
-                      <span
-                        className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-brand/30"
-                        style={{
-                          left: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="mt-2 flex items-baseline justify-between gap-3 text-xs">
-                      <span className="text-neutral-500">
-                        {sortedCities.find((c) => c.isOrigin)?.label ?? sortedCities[0]?.label}
-                      </span>
-                      <span className="font-bold text-neutral-900">{lastVisited.label}</span>
-                    </div>
-                  </div>
-                  {lastVisited.event?.summary && (
-                    <p className="mt-4 text-sm leading-relaxed text-neutral-700 line-clamp-2">
-                      {lastVisited.event.summary}
-                    </p>
-                  )}
+                  {t['hero.body']}
+                </motion.p>
+                <motion.div
+                  variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}
+                  transition={{ y: springTransition, opacity: { duration: 0.12, ease: 'easeOut' } }}
+                  className="flex flex-wrap gap-4"
+                >
+                  {/* 了解我们 (About Us) */}
+                  <motion.a
+                    href={localePath('/about', locale)}
+                    className="pointer-events-auto border border-white/20 bg-surface-card/5 backdrop-blur-sm text-white px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                    whileHover={{
+                      y: -4,
+                      scale: 1.02,
+                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                      borderColor: 'rgba(255, 255, 255, 0.4)',
+                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                  >
+                    <span>{t['hero.aboutAction']}</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
+                  </motion.a>
+
+                  {/* 加入行动 (Join Action) */}
+                  <motion.a
+                    href={localePath('/guide', locale)}
+                    className="pointer-events-auto border border-brand/35 bg-brand/10 backdrop-blur-md text-brand px-8 py-4 rounded-full flex items-center gap-2 cursor-pointer font-semibold group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                    whileHover={{
+                      y: -4,
+                      scale: 1.02,
+                      backgroundColor: 'rgba(243, 210, 48, 0.2)',
+                      borderColor: 'rgba(243, 210, 48, 0.55)',
+                      boxShadow: '0 15px 35px rgba(243, 210, 48, 0.25)',
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                  >
+                    <span>{t['hero.joinAction']}</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
+                  </motion.a>
                 </motion.div>
-              )}
-
-              {/* 路线查看 CTA 按钮 */}
-              <motion.div variants={fadeUp} className="pt-2">
-                <motion.a
-                  href={localePath('/route', locale)}
-                  className="inline-flex items-center gap-2 bg-neutral-900 hover:bg-brand text-white hover:text-brand-foreground px-6 py-3.5 rounded-xl transition-[background-color,color,box-shadow] duration-300 cursor-pointer text-sm font-bold shadow-lg hover:shadow-brand/20 group w-full justify-center lg:w-auto"
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span>{t['routePreview.cta']}</span>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-                </motion.a>
-              </motion.div>
-            </motion.div>
-
-            {/* 右侧栏: 测控地图玻璃卡框 (Col-span 7) */}
-            <div className="lg:col-span-7 flex flex-col justify-center">
-              <motion.div
-                className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-neutral-300/40"
-                style={{ aspectRatio: '4/3', backgroundColor: MAP_BG }}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.1 }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <div className="absolute inset-0">
-                  <RoutePreview cities={cities} ariaLabel={t['routePreview.aria']} />
-                </div>
-
-                {/* 地图图例标注 */}
-                <div className="absolute bottom-4 right-4 flex items-center gap-2">
-                  <div className="bg-surface-card/80 backdrop-blur-md px-3.5 py-2.5 rounded-xl text-xs text-neutral-700 flex items-center gap-3.5 shadow-md border border-white/60">
-                    <span className="flex items-center gap-1.5 font-medium select-none">
-                      <span className="w-2.5 h-2.5 rounded-full bg-brand" />
-                      {t['map.visited'] ?? '已到达'}
-                    </span>
-                    <span className="flex items-center gap-1.5 font-medium select-none">
-                      <span className="w-2.5 h-2.5 rounded-full bg-surface-card border border-neutral-500" />
-                      {t['map.planned'] ?? '计划中'}
-                    </span>
-                  </div>
-                </div>
               </motion.div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* 路上的故事：飞书 Base 同步的 B 站/抖音视频（地图之下、共建伙伴之上） */}
-      {videos.length > 0 && <LiveVideos locale={locale} t={t} videos={videos} />}
-
-      {/* 共建伙伴条（4a：信任背书，与媒体报道同区不分线；主办/联合发起一行，合作支持一行） */}
-      {partners.length > 0 && (
-        <section data-partners-bar className="py-14 md:py-16 bg-neutral-50">
-          <div className="page-rail">
-            <motion.p
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
-              transition={springTransition}
-              className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-8 text-center"
-            >
-              {t['partners.label']}
-            </motion.p>
-            {/* 第一行：主办 + 联合发起 */}
-            {(() => {
-              const lead = partners.filter((p) => p.tier === 'host' || p.tier === 'co-organizer');
-              return (
-                <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 mb-6">
-                  {lead.map((partner, i) => (
-                    <motion.a
-                      key={partner.id}
-                      href={partner.link || '#'}
-                      target={partner.link ? '_blank' : undefined}
-                      rel={partner.link ? 'noopener noreferrer' : undefined}
-                      aria-label={partner.name}
-                      variants={fadeUp}
-                      initial="hidden"
-                      whileInView="visible"
-                      viewport={defaultViewport}
-                      transition={{ ...springTransition, delay: i * 0.05 }}
-                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-[filter,opacity] duration-200"
-                    >
-                      {partner.logo ? (
-                        <img
-                          src={partner.logo}
-                          alt={partner.name}
-                          loading="lazy"
-                          className="h-8 md:h-10 w-auto max-w-[120px] object-contain"
-                        />
-                      ) : (
-                        <span className="text-sm md:text-base font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">
-                          {partner.name}
-                        </span>
-                      )}
-                    </motion.a>
-                  ))}
-                </div>
-              );
-            })()}
-            {/* 第二行：合作支持 */}
-            {(() => {
-              const rest = partners.filter((p) => p.tier === 'partner');
-              if (rest.length === 0) return null;
-              return (
-                <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
-                  {rest.map((partner, i) => (
-                    <motion.a
-                      key={partner.id}
-                      href={partner.link || '#'}
-                      target={partner.link ? '_blank' : undefined}
-                      rel={partner.link ? 'noopener noreferrer' : undefined}
-                      aria-label={partner.name}
-                      variants={fadeUp}
-                      initial="hidden"
-                      whileInView="visible"
-                      viewport={defaultViewport}
-                      transition={{ ...springTransition, delay: i * 0.05 }}
-                      className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-[filter,opacity] duration-200"
-                    >
-                      {partner.logo ? (
-                        <img
-                          src={partner.logo}
-                          alt={partner.name}
-                          loading="lazy"
-                          className="h-8 md:h-10 w-auto max-w-[120px] object-contain"
-                        />
-                      ) : (
-                        <span className="text-sm md:text-base font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">
-                          {partner.name}
-                        </span>
-                      )}
-                    </motion.a>
-                  ))}
-                </div>
-              );
-            })()}
+          {/* 滚动提示 */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/60">
+            <ChevronDown className="w-5 h-5" />
           </div>
         </section>
-      )}
 
-      {/* 媒体报道：固定 3 行窗口 + 原生横向滚动（滚轮/shift+双指/触屏横滑原生生效；14 条全保留，精选置前高亮） */}
-      {pressCards.length > 0 && (
-        <section className="pt-16 md:pt-20 pb-[30px] md:pb-[30px] bg-neutral-50 overflow-hidden">
+        {/* 实时任务状态条 — hero 图片之后,独立一条,居中 */}
+        <div className="bg-neutral-900 text-white">
+          <div className="page-rail py-3.5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
+            {/* 天数挂载后才计算,SSR 为 null;为 null 时整段连同后面的分隔符一起不渲染 */}
+            {departureDays !== null && (
+              <>
+                <span className="text-white/70">
+                  {(t['status.days'] ?? '已出发 {days} 天').replace(
+                    '{days}',
+                    String(departureDays),
+                  )}
+                </span>
+                <span className="text-white/25" aria-hidden="true">
+                  ·
+                </span>
+              </>
+            )}
+            <span className="flex items-center gap-2 font-semibold text-white">
+              <span className="w-2 h-2 rounded-full bg-brand" />
+              {(t['status.current'] ?? '位于 {city}').replace('{city}', lastVisited?.label ?? '')}
+            </span>
+            <span className="text-white/25" aria-hidden="true">
+              ·
+            </span>
+            <span className="text-white/70">
+              {(t['status.cities'] ?? '已抵达 {count} 城').replace('{count}', String(visitedCount))}
+            </span>
+          </div>
+        </div>
+
+        <section className="bg-neutral-50 text-black py-16 md:py-20">
           <div className="page-rail">
-            <div className="relative mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
+              {/* 左侧栏: 路线叙事 + 当前站点事实卡 (Col-span 5) */}
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={defaultViewport}
+                variants={stagger(0.12)}
+                className="lg:col-span-5 flex flex-col justify-between gap-6"
+              >
+                <div>
+                  <motion.h2
+                    variants={fadeUp}
+                    transition={springTransition}
+                    className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-neutral-900 tracking-tight"
+                  >
+                    {t['route.title1']}
+                    <span className="text-brand-dark block mt-1">{t['route.title2']}</span>
+                  </motion.h2>
+                  <motion.p
+                    variants={fadeUp}
+                    transition={springTransition}
+                    className="text-neutral-500 leading-relaxed text-sm md:text-base mt-4"
+                  >
+                    {t['route.body']}
+                  </motion.p>
+                </div>
+
+                {/* 行程信息流:日志式天数 + 一条从起点到当前站的微缩路线轨(进度即叙事),
+                  数据少的站点不再有"空盒子";有测控数据的站点在轨下继续展开 */}
+                {lastVisited && (
+                  <motion.div
+                    variants={fadeUp}
+                    transition={springTransition}
+                    className="border-t border-neutral-200 pt-5"
+                  >
+                    <p className="flex items-baseline gap-x-2 flex-wrap">
+                      {/* null 时渲染 en-dash 占位;min-w + tabular-nums 固定宽度,挂载后不顶开布局 */}
+                      <span className="inline-block min-w-[2ch] text-3xl font-extrabold tabular-nums tracking-tight text-neutral-900">
+                        {departureDays ?? '–'}
+                      </span>
+                      <span className="text-sm font-bold tabular-nums text-neutral-400">
+                        {(t['telemetry.daysTotal'] ?? '/ {total} 天').replace(
+                          '{total}',
+                          String(TOTAL_ROUTE_DAYS),
+                        )}
+                      </span>
+                      <span className="text-xs tabular-nums text-neutral-500">
+                        {'· '}
+                        {(t['telemetry.cities'] ?? '{count} 城').replace(
+                          '{count}',
+                          String(visitedCount),
+                        )}
+                        {' · '}
+                        {(t['telemetry.km'] ?? '{km} 公里').replace('{km}', kmLabel)}
+                      </span>
+                    </p>
+                    <div className="mt-4">
+                      <div className="relative h-0.5 rounded-full bg-neutral-200">
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full bg-brand"
+                          style={{
+                            width: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
+                          }}
+                        />
+                        <span
+                          className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-brand/30"
+                          style={{
+                            left: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="mt-2 flex items-baseline justify-between gap-3 text-xs">
+                        <span className="text-neutral-500">
+                          {sortedCities.find((c) => c.isOrigin)?.label ?? sortedCities[0]?.label}
+                        </span>
+                        <span className="font-bold text-neutral-900">{lastVisited.label}</span>
+                      </div>
+                    </div>
+                    {lastVisited.event?.summary && (
+                      <p className="mt-4 text-sm leading-relaxed text-neutral-700 line-clamp-2">
+                        {lastVisited.event.summary}
+                      </p>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* 路线查看 CTA 按钮 */}
+                <motion.div variants={fadeUp} className="pt-2">
+                  <motion.a
+                    href={localePath('/route', locale)}
+                    className="inline-flex items-center gap-2 bg-neutral-900 hover:bg-brand text-white hover:text-brand-foreground px-6 py-3.5 rounded-xl transition-[background-color,color,box-shadow] duration-300 cursor-pointer text-sm font-bold shadow-lg hover:shadow-brand/20 group w-full justify-center lg:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span>{t['routePreview.cta']}</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  </motion.a>
+                </motion.div>
+              </motion.div>
+
+              {/* 右侧栏: 测控地图玻璃卡框 (Col-span 7) */}
+              <div className="lg:col-span-7 flex flex-col justify-center">
+                <motion.div
+                  className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-neutral-300/40"
+                  style={{ aspectRatio: '4/3', backgroundColor: MAP_BG }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <div className="absolute inset-0">
+                    <RoutePreview cities={cities} ariaLabel={t['routePreview.aria']} />
+                  </div>
+
+                  {/* 地图图例标注 */}
+                  <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                    <div className="bg-surface-card/80 backdrop-blur-md px-3.5 py-2.5 rounded-xl text-xs text-neutral-700 flex items-center gap-3.5 shadow-md border border-white/60">
+                      <span className="flex items-center gap-1.5 font-medium select-none">
+                        <span className="w-2.5 h-2.5 rounded-full bg-brand" />
+                        {t['map.visited'] ?? '已到达'}
+                      </span>
+                      <span className="flex items-center gap-1.5 font-medium select-none">
+                        <span className="w-2.5 h-2.5 rounded-full bg-surface-card border border-neutral-500" />
+                        {t['map.planned'] ?? '计划中'}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 路上的故事：飞书 Base 同步的 B 站/抖音视频（地图之下、共建伙伴之上） */}
+        {videos.length > 0 && <LiveVideos locale={locale} t={t} videos={videos} />}
+
+        {/* 共建伙伴条（4a：信任背书，与媒体报道同区不分线；主办/联合发起一行，合作支持一行） */}
+        {partners.length > 0 && (
+          <section data-partners-bar className="py-14 md:py-16 bg-neutral-50">
+            <div className="page-rail">
               <motion.p
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
                 viewport={defaultViewport}
                 transition={springTransition}
-                className="text-xs uppercase tracking-[0.2em] text-neutral-500 text-center"
+                className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-8 text-center"
               >
-                {t['press.label']}
+                {t['partners.label']}
               </motion.p>
-              <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-2 md:flex">
-                <button
-                  type="button"
-                  onClick={() => pressScrollBy(-1)}
-                  aria-label={t['carousel.prevAria']}
-                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 bg-surface-card text-neutral-700 shadow-sm transition-colors duration-200 hover:border-brand hover:text-brand"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => pressScrollBy(1)}
-                  aria-label={t['carousel.nextAria']}
-                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 bg-surface-card text-neutral-700 shadow-sm transition-colors duration-200 hover:border-brand hover:text-brand"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
-
-            <div className="relative">
-              {/* 横向滚动轨道：固定 3 行网格（按行填充，精选左右并排置前），超出横向原生滚动 */}
-              <div
-                ref={pressTrackRef}
-                data-press-track
-                className="overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2 rounded-xl [scrollbar-width:thin] [scrollbar-color:theme(colors.neutral.300)_transparent]"
-              >
-                <div className="grid grid-flow-row grid-cols-[repeat(6,15rem)] gap-x-5 gap-y-4 w-max pr-2">
-                  {pressCards.map((item, i) => {
-                    const featured = item.tier === 'featured';
-                    return (
+              {/* 第一行：主办 + 联合发起 */}
+              {(() => {
+                const lead = partners.filter((p) => p.tier === 'host' || p.tier === 'co-organizer');
+                return (
+                  <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 mb-6">
+                    {lead.map((partner, i) => (
                       <motion.a
-                        key={item.sourceUrl}
-                        data-press-card
-                        href={item.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        key={partner.id}
+                        href={partner.link || '#'}
+                        target={partner.link ? '_blank' : undefined}
+                        rel={partner.link ? 'noopener noreferrer' : undefined}
+                        aria-label={partner.name}
                         variants={fadeUp}
                         initial="hidden"
                         whileInView="visible"
                         viewport={defaultViewport}
-                        transition={{ ...springTransition, delay: (i % 6) * 0.04 }}
-                        className={`group block rounded-2xl border transition-[border-color,box-shadow] duration-300 hover:shadow-md cursor-pointer ${
-                          featured
-                            ? 'border-brand/30 bg-brand-light/60 p-5 hover:border-brand/60'
-                            : 'border-neutral-300 bg-surface-card/70 p-4 hover:border-brand/40'
-                        }`}
+                        transition={{ ...springTransition, delay: i * 0.05 }}
+                        className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 focus-visible:grayscale-0 focus-visible:opacity-100 focus-visible:outline-none transition-[filter,opacity] duration-200"
                       >
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex mb-2.5 text-neutral-600 bg-neutral-100 border border-neutral-200">
-                          {pressCategoryLabel(item.category)}
-                          {featured ? ` · ${locale === 'en' ? 'Featured' : '精选'}` : ''}
-                        </span>
-                        <span
-                          className={`block font-semibold text-neutral-900 group-hover:text-brand transition-colors duration-200 leading-snug line-clamp-3 ${
-                            featured ? 'text-[15px]' : 'text-sm'
+                        {partner.logo ? (
+                          <img
+                            src={partner.logo}
+                            alt={partner.name}
+                            loading="lazy"
+                            className="h-8 md:h-10 w-auto max-w-[120px] object-contain"
+                          />
+                        ) : (
+                          <span className="text-sm md:text-base font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">
+                            {partner.name}
+                          </span>
+                        )}
+                      </motion.a>
+                    ))}
+                  </div>
+                );
+              })()}
+              {/* 第二行：合作支持 */}
+              {(() => {
+                const rest = partners.filter((p) => p.tier === 'partner');
+                if (rest.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
+                    {rest.map((partner, i) => (
+                      <motion.a
+                        key={partner.id}
+                        href={partner.link || '#'}
+                        target={partner.link ? '_blank' : undefined}
+                        rel={partner.link ? 'noopener noreferrer' : undefined}
+                        aria-label={partner.name}
+                        variants={fadeUp}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={defaultViewport}
+                        transition={{ ...springTransition, delay: i * 0.05 }}
+                        className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 focus-visible:grayscale-0 focus-visible:opacity-100 focus-visible:outline-none transition-[filter,opacity] duration-200"
+                      >
+                        {partner.logo ? (
+                          <img
+                            src={partner.logo}
+                            alt={partner.name}
+                            loading="lazy"
+                            className="h-8 md:h-10 w-auto max-w-[120px] object-contain"
+                          />
+                        ) : (
+                          <span className="text-sm md:text-base font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">
+                            {partner.name}
+                          </span>
+                        )}
+                      </motion.a>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </section>
+        )}
+
+        {/* 媒体报道：固定 3 行窗口 + 原生横向滚动（滚轮/shift+双指/触屏横滑原生生效；14 条全保留，精选置前高亮） */}
+        {pressCards.length > 0 && (
+          <section className="pt-16 md:pt-20 pb-[30px] md:pb-[30px] bg-neutral-50 overflow-hidden">
+            <div className="page-rail">
+              <div className="relative mb-8">
+                <motion.p
+                  variants={fadeUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={defaultViewport}
+                  transition={springTransition}
+                  className="text-xs uppercase tracking-[0.2em] text-neutral-500 text-center"
+                >
+                  {t['press.label']}
+                </motion.p>
+                <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-2 md:flex">
+                  <button
+                    type="button"
+                    onClick={() => pressScrollBy(-1)}
+                    aria-label={t['carousel.prevAria']}
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 bg-surface-card text-neutral-700 shadow-sm transition-colors duration-200 hover:border-brand hover:text-brand focus-visible:border-brand focus-visible:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => pressScrollBy(1)}
+                    aria-label={t['carousel.nextAria']}
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 bg-surface-card text-neutral-700 shadow-sm transition-colors duration-200 hover:border-brand hover:text-brand focus-visible:border-brand focus-visible:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative">
+                {/* 横向滚动轨道：固定 3 行网格（按行填充，精选左右并排置前），超出横向原生滚动 */}
+                <div
+                  ref={pressTrackRef}
+                  data-press-track
+                  className="overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2 rounded-xl [scrollbar-width:thin] [scrollbar-color:theme(colors.neutral.300)_transparent]"
+                >
+                  <div className="grid grid-flow-row grid-cols-[repeat(6,15rem)] gap-x-5 gap-y-4 w-max pr-2">
+                    {pressCards.map((item, i) => {
+                      const featured = item.tier === 'featured';
+                      return (
+                        <motion.a
+                          key={item.sourceUrl}
+                          data-press-card
+                          href={item.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          variants={fadeUp}
+                          initial="hidden"
+                          whileInView="visible"
+                          viewport={defaultViewport}
+                          transition={{ ...springTransition, delay: (i % 6) * 0.04 }}
+                          className={`group block rounded-2xl border transition-[border-color,box-shadow] duration-300 hover:shadow-md focus-visible:shadow-md focus-visible:outline-none cursor-pointer ${
+                            featured
+                              ? 'border-brand/30 bg-brand-light/60 p-5 hover:border-brand/60 focus-visible:border-brand/60'
+                              : 'border-neutral-300 bg-surface-card/70 p-4 hover:border-brand/40 focus-visible:border-brand/40'
                           }`}
                         >
-                          {item.title}
-                        </span>
-                        <span className="block mt-2 text-xs text-neutral-500">
-                          {item.source}
-                          {item.date ? ` · ${item.date}` : ''}
-                        </span>
-                      </motion.a>
-                    );
-                  })}
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex mb-2.5 text-neutral-600 bg-neutral-100 border border-neutral-200">
+                            {pressCategoryLabel(item.category)}
+                            {featured ? ` · ${locale === 'en' ? 'Featured' : '精选'}` : ''}
+                          </span>
+                          <span
+                            className={`block font-semibold text-neutral-900 group-hover:text-brand transition-colors duration-200 leading-snug line-clamp-3 ${
+                              featured ? 'text-[15px]' : 'text-sm'
+                            }`}
+                          >
+                            {item.title}
+                          </span>
+                          <span className="block mt-2 text-xs text-neutral-500">
+                            {item.source}
+                            {item.date ? ` · ${item.date}` : ''}
+                          </span>
+                        </motion.a>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
+          </section>
+        )}
+
+        {/* 在路上的人 - 角色接力时间轴 */}
+        <RoleTimeline
+          roles={timeline.roles}
+          segments={timeline.segments}
+          monthMarkers={timeline.monthMarkers}
+          legs={timeline.legs}
+          projectStart={timeline.projectStart}
+          projectEnd={timeline.projectEnd}
+          locale={locale}
+          t={t}
+        />
+
+        {/* 基地车概况 - 流动的基础设施 */}
+        <section className="py-20 bg-surface-card">
+          <div className="page-rail">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-black">
+              {t['lab.title']}
+            </h2>
+            <p className="text-center text-neutral-500 mb-16 max-w-2xl mx-auto">
+              {t['lab.subtitle']}
+            </p>
+
+            <motion.div
+              className="grid md:grid-cols-3 gap-8"
+              variants={stagger(0.15)}
+              initial="hidden"
+              whileInView="visible"
+              viewport={defaultViewport}
+            >
+              {labCards.map(([title, desc, image]) => (
+                <motion.div
+                  key={title}
+                  className="bg-surface-card rounded-lg overflow-hidden shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-200"
+                  variants={fadeUp}
+                  whileHover={{ y: -4 }}
+                  transition={springTransition}
+                >
+                  <div
+                    className="h-64 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${image})` }}
+                  />
+                  <div className="p-6">
+                    <h3 className="text-xl md:text-2xl font-semibold mb-3 text-black">
+                      {t[title]}
+                    </h3>
+                    <p className="text-neutral-500 mb-4">{t[desc]}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </section>
-      )}
 
-      {/* 在路上的人 - 角色接力时间轴 */}
-      <RoleTimeline
-        roles={timeline.roles}
-        segments={timeline.segments}
-        monthMarkers={timeline.monthMarkers}
-        legs={timeline.legs}
-        projectStart={timeline.projectStart}
-        projectEnd={timeline.projectEnd}
-        locale={locale}
-        t={t}
-      />
-
-      {/* 基地车概况 - 流动的基础设施 */}
-      <section className="py-20 bg-surface-card">
-        <div className="page-rail">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-black">
-            {t['lab.title']}
-          </h2>
-          <p className="text-center text-neutral-500 mb-16 max-w-2xl mx-auto">
-            {t['lab.subtitle']}
-          </p>
-
+        {/* 旅途日记 CTA */}
+        <section className="py-16 border-t border-neutral-300">
           <motion.div
-            className="grid md:grid-cols-3 gap-8"
-            variants={stagger(0.15)}
+            className="page-rail flex flex-col md:flex-row md:items-center md:justify-between gap-6"
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
+            variants={stagger(0.15)}
           >
-            {labCards.map(([title, desc, image]) => (
-              <motion.div
-                key={title}
-                className="bg-surface-card rounded-lg overflow-hidden shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-200"
-                variants={fadeUp}
-                whileHover={{ y: -4 }}
-                transition={springTransition}
+            <motion.div variants={fadeUp}>
+              <p className="text-xs uppercase tracking-[0.15em] text-neutral-500 mb-2">
+                {t['cta.label']}
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-2">
+                {t['cta.title']}
+              </h2>
+              <p className="text-neutral-500 text-sm max-w-lg">{t['cta.body']}</p>
+            </motion.div>
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
+              <motion.a
+                href={localePath('/journals', locale)}
+                className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-sm hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                {...buttonPress}
               >
-                <div
-                  className="h-64 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${image})` }}
-                />
-                <div className="p-6">
-                  <h3 className="text-xl md:text-2xl font-semibold mb-3 text-black">{t[title]}</h3>
-                  <p className="text-neutral-500 mb-4">{t[desc]}</p>
-                </div>
-              </motion.div>
-            ))}
+                {t['cta.explore']}
+                <ChevronDown className="w-4 h-4 -rotate-90" />
+              </motion.a>
+              <motion.a
+                href={localePath('/guide', locale)}
+                className="inline-flex items-center gap-2 border border-neutral-300 text-neutral-700 px-6 py-3 rounded-sm hover:border-brand hover:text-brand transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                {...buttonPress}
+              >
+                {t['cta.join']}
+                <ChevronDown className="w-4 h-4 -rotate-90" />
+              </motion.a>
+            </motion.div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* 旅途日记 CTA */}
-      <section className="py-16 border-t border-neutral-300">
-        <motion.div
-          className="page-rail flex flex-col md:flex-row md:items-center md:justify-between gap-6"
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
-          variants={stagger(0.15)}
-        >
-          <motion.div variants={fadeUp}>
-            <p className="text-xs uppercase tracking-[0.15em] text-neutral-500 mb-2">
-              {t['cta.label']}
-            </p>
-            <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-2">
-              {t['cta.title']}
-            </h2>
-            <p className="text-neutral-500 text-sm max-w-lg">{t['cta.body']}</p>
-          </motion.div>
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
-            <motion.a
-              href={localePath('/journals', locale)}
-              className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-sm hover:bg-brand hover:text-brand-foreground transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap"
-              {...buttonPress}
-            >
-              {t['cta.explore']}
-              <ChevronDown className="w-4 h-4 -rotate-90" />
-            </motion.a>
-            <motion.a
-              href={localePath('/guide', locale)}
-              className="inline-flex items-center gap-2 border border-neutral-300 text-neutral-700 px-6 py-3 rounded-sm hover:border-brand hover:text-brand transition-colors duration-200 cursor-pointer text-sm font-medium whitespace-nowrap"
-              {...buttonPress}
-            >
-              {t['cta.join']}
-              <ChevronDown className="w-4 h-4 -rotate-90" />
-            </motion.a>
-          </motion.div>
-        </motion.div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </MotionConfig>
   );
 }

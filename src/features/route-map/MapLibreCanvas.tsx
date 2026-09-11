@@ -30,7 +30,7 @@ export interface MapPinSource {
 interface MapLibreCanvasProps {
   cities: RouteCity[];
   selectedKey: string | null;
-  onSelect: (key: string) => void;
+  onSelect: (key: string, source?: 'map' | 'river') => void;
   t: Record<string, string>;
   activeTheme?: ThemeType | null;
   /** Journals, used for photo pins and for sizing the stop dots. */
@@ -104,6 +104,9 @@ export default function MapLibreCanvas({
   const pinElsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
   const leaderSvgRef = useRef<SVGSVGElement | null>(null);
   const [ready, setReady] = useState(false);
+  // Map init failed (no WebGL, chunk error) — swap the loading placeholder for
+  // an alert instead of leaving a silent, aria-hidden spinner up forever.
+  const [mapError, setMapError] = useState(false);
   // Theme lens only re-filters the photo pins: matching cities' covers surface,
   // the rest are withheld. Dots/labels/route stay put — the cover appearing IS
   // the signal; dimming fifty dots would just be visual noise.
@@ -291,6 +294,7 @@ export default function MapLibreCanvas({
     if (!containerRef.current) return;
     let cancelled = false;
     setReady(false);
+    setMapError(false);
     // biome-ignore lint/suspicious/noExplicitAny: maplibre map instance
     let map: any;
     // biome-ignore lint/suspicious/noExplicitAny: marker instances for cleanup
@@ -302,35 +306,48 @@ export default function MapLibreCanvas({
     let resizeObserver: ResizeObserver | null = null;
 
     (async () => {
-      const maplibregl = (await maplibrePromise).default;
-      if (cancelled || !containerRef.current) return;
-      const style = buildMapStyle(buildRouteSource(cities).data, horseRouteGeoJson());
-      map = new maplibregl.Map({
-        container: containerRef.current,
-        style,
-        bounds: CHINA_BOUNDS,
-        fitBoundsOptions: { padding: activePadding() },
-        maxBounds: INTERACTION_BOUNDS,
-        minZoom: MIN_ZOOM,
-        maxZoom: MAX_ZOOM,
-        attributionControl: false,
-        scrollZoom: true,
-        dragPan: true,
-        doubleClickZoom: true,
-        touchZoomRotate: true,
-        keyboard: true,
-        cooperativeGestures: false,
-        dragRotate: false,
-        pitchWithRotate: false,
-        touchPitch: false,
-      });
-      mapRef.current = map;
-      map.scrollZoom.enable();
-      map.dragPan.enable();
-      map.doubleClickZoom.enable();
-      map.touchZoomRotate.enable();
-      map.touchZoomRotate.disableRotation();
-      map.getCanvas().style.touchAction = 'none';
+      // Touch devices keep one-finger drag for page scroll; the map takes
+      // over only with a second finger (MapLibre's own hint overlay). Desktop
+      // keeps direct wheel/drag gestures.
+      const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      // biome-ignore lint/suspicious/noExplicitAny: maplibre module resolved at runtime via dynamic import
+      let maplibregl: any;
+      try {
+        maplibregl = (await maplibrePromise).default;
+        if (cancelled || !containerRef.current) return;
+        const style = buildMapStyle(buildRouteSource(cities).data, horseRouteGeoJson());
+        map = new maplibregl.Map({
+          container: containerRef.current,
+          style,
+          bounds: CHINA_BOUNDS,
+          fitBoundsOptions: { padding: activePadding() },
+          maxBounds: INTERACTION_BOUNDS,
+          minZoom: MIN_ZOOM,
+          maxZoom: MAX_ZOOM,
+          attributionControl: false,
+          scrollZoom: true,
+          dragPan: true,
+          doubleClickZoom: true,
+          touchZoomRotate: true,
+          keyboard: true,
+          cooperativeGestures: isCoarsePointer,
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
+        });
+        mapRef.current = map;
+        map.scrollZoom.enable();
+        map.dragPan.enable();
+        map.doubleClickZoom.enable();
+        map.touchZoomRotate.enable();
+        map.touchZoomRotate.disableRotation();
+        // touchAction 'none' would let every one-finger drag inside the map
+        // box eat the page scroll — only safe where the map owns gestures.
+        if (!isCoarsePointer) map.getCanvas().style.touchAction = 'none';
+      } catch {
+        if (!cancelled) setMapError(true);
+        return;
+      }
       // 控件放右下:左上会被吸顶 header 遮住,左下是图例。
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
       // 缩放之后回到全图 — 没有它,读者只能自己试着缩回去。
@@ -378,6 +395,7 @@ export default function MapLibreCanvas({
           el.dataset.cityId = city.id;
           el.dataset.cityLabel = city.label;
           el.setAttribute('aria-label', city.label);
+          el.setAttribute('aria-pressed', 'false');
           const dot = document.createElement('span');
           dot.className = 'mlc-dot';
           const label = document.createElement('span');
@@ -387,7 +405,7 @@ export default function MapLibreCanvas({
           el.appendChild(label);
           el.addEventListener('click', (e) => {
             e.stopPropagation();
-            onSelectRef.current(city.id);
+            onSelectRef.current(city.id, 'map');
           });
           new maplibregl.Marker({ element: el, anchor: 'center' })
             .setLngLat([city.lng, city.lat])
@@ -408,6 +426,7 @@ export default function MapLibreCanvas({
               'aria-label',
               `${city.label} · ${pin.n} ${t['route.journals.title'] ?? '关联日记'}`,
             );
+            pinEl.setAttribute('aria-pressed', 'false');
             const body = document.createElement('span');
             body.className = 'mlc-pin-body';
             const cover = document.createElement('span');
@@ -433,7 +452,7 @@ export default function MapLibreCanvas({
             pinEl.appendChild(body);
             pinEl.addEventListener('click', (e) => {
               e.stopPropagation();
-              onSelectRef.current(city.id);
+              onSelectRef.current(city.id, 'map');
             });
             new maplibregl.Marker({ element: pinEl, anchor: 'center' })
               .setLngLat([city.lng, city.lat])
@@ -517,11 +536,15 @@ export default function MapLibreCanvas({
   useEffect(() => {
     if (!ready) return;
     for (const [id, el] of markerElsRef.current) {
-      el.classList.toggle('mlc-marker--selected', id === selectedKey);
+      const on = id === selectedKey;
+      el.classList.toggle('mlc-marker--selected', on);
+      el.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
     const city = selectedKey ? cities.find((c) => c.id === selectedKey) : null;
     for (const [id, el] of pinElsRef.current) {
-      el.classList.toggle('mlc-pin--selected', !!city && id === city.id);
+      const on = !!city && id === city.id;
+      el.classList.toggle('mlc-pin--selected', on);
+      el.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
     if (city && mapRef.current) {
       const reduce =
@@ -574,13 +597,22 @@ export default function MapLibreCanvas({
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden border border-neutral-300/40">
-      <div
-        aria-hidden="true"
-        style={{ backgroundColor: MAP_BG }}
-        className="absolute inset-0 flex items-center justify-center text-neutral-500 text-sm pointer-events-none"
-      >
-        {t['route.map.loading'] ?? '地图加载中…'}
-      </div>
+      {mapError ? (
+        <div
+          role="alert"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-surface-card px-6 text-center text-sm text-neutral-700"
+        >
+          {t['route.map.error'] ?? '地图加载失败，请刷新重试'}
+        </div>
+      ) : (
+        <div
+          role="status"
+          style={{ backgroundColor: MAP_BG }}
+          className="absolute inset-0 flex items-center justify-center text-neutral-500 text-sm pointer-events-none"
+        >
+          {t['route.map.loading'] ?? '地图加载中…'}
+        </div>
+      )}
       {/* relative + h-full, NOT absolute inset-0: MapLibre adds .maplibregl-map which
           forces position:relative, collapsing an absolute-inset-0 box to height 0. */}
       <div ref={containerRef} data-maplibre-canvas="true" className="relative w-full h-full">

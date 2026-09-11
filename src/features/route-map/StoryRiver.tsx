@@ -22,7 +22,7 @@ interface Props {
   cities: RouteCity[];
   selectedId: string | null;
   /** Locate a stop (by id) — the first click on a dimmed card. */
-  onSelect: (id: string) => void;
+  onSelect: (id: string, source?: 'map' | 'river') => void;
   t: Record<string, string>;
   locale: Locale;
 }
@@ -110,7 +110,10 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
           {`${ordered.length} ${t['route.stats.journals'] ?? '篇日记'}`}
         </span>
       </div>
-      <div ref={stripRef} className="overflow-x-auto px-4 pb-2 no-scrollbar">
+      <div
+        ref={stripRef}
+        className="overflow-x-auto px-4 pb-2 no-scrollbar [mask-image:linear-gradient(to_right,transparent,black_48px)]"
+      >
         <div className="relative h-[132px]" style={{ width: layout.trackWidth }}>
           {layout.dated.map((d, i) => {
             const j = d.j;
@@ -119,19 +122,19 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
             const cityLabel = labelById.get(j.city) ?? j.city;
             const href =
               j.href ?? (j.hasPage ? localePath(`/journals/${j.slug}`, locale) : undefined);
+            const CardTag = (href ? 'a' : 'button') as 'a';
             return (
-              <a
+              <CardTag
                 key={`${j.city}-${j.slug}`}
-                href={href}
+                {...(href ? { href } : { type: 'button' as const })}
                 {...(armed && j.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 data-story-city={j.city}
-                aria-current={armed ? 'true' : undefined}
                 title={`${cityLabel} · ${armed && href ? (t['route.river.open'] ?? '打开日记') : (t['route.river.locate'] ?? '定位到该城')}`}
                 onClick={(e) => {
                   if (armed) return;
                   e.preventDefault();
                   setArmedSlug(j.slug);
-                  if (!lit) onSelect(j.city);
+                  if (!lit) onSelect(j.city, 'river');
                 }}
                 className={`group absolute top-4 w-[104px] bg-surface-card cursor-pointer transition-opacity duration-300 ${
                   lit ? '' : 'opacity-40 hover:opacity-100'
@@ -170,7 +173,7 @@ export default function StoryRiver({ journals, cities, selectedId, onSelect, t, 
                 <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-neutral-700 group-hover:text-neutral-900">
                   {j.title}
                 </p>
-              </a>
+              </CardTag>
             );
           })}
         </div>

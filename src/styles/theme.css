@@ -55,6 +55,8 @@
   --surface-card: #ffffff;               /* 卡片/弹窗 */
   --surface-dark: var(--neutral-950);    /* 深色区块 #1a1a1a */
   --surface-dark-foreground: #ffffff;    /* 深色区块上的文字 */
+  --surface-warm: #f5f2eb;               /* 暖纸底 — 人物/照片条底色 */
+  --surface-warm-border: #e5dfd3;        /* 暖纸底描边 */
 
   --chart-1: var(--brand);
   --chart-2: var(--brand-dark);
@@ -128,6 +130,8 @@
   --color-surface-card: var(--surface-card);
   --color-surface-dark: var(--surface-dark);
   --color-surface-dark-foreground: var(--surface-dark-foreground);
+  --color-surface-warm: var(--surface-warm);
+  --color-surface-warm-border: var(--surface-warm-border);
 
   /* ─── Neutrals ─── */
   --color-neutral-950: var(--neutral-950);
@@ -287,6 +291,17 @@
   to { transform: translateY(0); }
 }
 
+/* Reduced-motion: no smooth scrolling, no view-transition animation. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 /* ─── Utility: hide scrollbar but keep scrollability (cross-browser) ─── */
 /* Used by the route-map ThemeFilter chip row and the existing visited-city
    chip row in RouteContent on narrow viewports. */
@@ -301,7 +316,20 @@
 [data-maplibre-canvas="true"],
 [data-maplibre-canvas="true"] .maplibregl-canvas {
   cursor: grab;
-  touch-action: none;
+}
+/* 触屏(coarse)配合 cooperativeGestures:单指竖向滚页面,双指操作地图;
+   桌面/精确指针保持独占手势。 */
+@media (pointer: fine) {
+  [data-maplibre-canvas="true"],
+  [data-maplibre-canvas="true"] .maplibregl-canvas {
+    touch-action: none;
+  }
+}
+@media (pointer: coarse) {
+  [data-maplibre-canvas="true"],
+  [data-maplibre-canvas="true"] .maplibregl-canvas {
+    touch-action: pan-y;
+  }
 }
 
 [data-maplibre-canvas="true"]:active,
@@ -389,12 +417,19 @@
   box-shadow: 0 0 0 2.5px #ffffff, 0 1px 3px rgba(0, 0, 0, 0.22);
 }
 /* Clear hover feedback — perceivable click target. */
-.mlc-marker:hover .mlc-dot {
+.mlc-marker:hover .mlc-dot,
+.mlc-marker:focus-visible .mlc-dot {
   transform: scale(1.45);
   box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px rgba(243, 210, 48, 0.45), 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-.mlc-marker:hover .mlc-label {
+.mlc-marker:hover .mlc-label,
+.mlc-marker:focus-visible .mlc-label {
   color: var(--brand-dark);
+}
+.mlc-marker:focus-visible,
+.mlc-pin:focus-visible {
+  outline: 2px solid var(--brand-dark);
+  outline-offset: 2px;
 }
 /* Selected: most prominent — large ring + scale. */
 .mlc-marker--selected .mlc-dot {
@@ -580,7 +615,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mlc-marker--latest::after {
+  /* 动画实际挂在 .mlc-dot 的伪元素上(见 :562),之前误写成 marker 自身。 */
+  .mlc-marker--latest .mlc-dot::after {
     animation: none;
     opacity: 0;
   }

@@ -1,6 +1,6 @@
 import { Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import logoHorizontalImport from '@/assets/logo-horizontal.png';
 import type { Locale } from '@/i18n/index';
 import { getAlternateUrl, localePath } from '@/i18n/index';
@@ -33,6 +33,8 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   // Sync state if props change initially or during normal rendering
   useEffect(() => {
@@ -131,35 +133,82 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
     return () => window.removeEventListener('keydown', onKey);
   }, [closeMenu]);
 
+  // Close the drawer when the viewport grows to desktop (otherwise it lingers).
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = () => {
+      if (mq.matches) setMenuOpen(false);
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // Drawer focus management: move focus in on open, trap Tab inside, and
+  // return focus to the burger on close.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const drawer = drawerRef.current;
+    drawer?.querySelector<HTMLElement>('button, a[href]')?.focus();
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !drawer) return;
+      const focusables = Array.from(
+        drawer.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onTab);
+    return () => document.removeEventListener('keydown', onTab);
+  }, [menuOpen]);
+
+  const wasMenuOpen = useRef(false);
+  useEffect(() => {
+    if (wasMenuOpen.current && !menuOpen) burgerRef.current?.focus();
+    wasMenuOpen.current = menuOpen;
+  }, [menuOpen]);
+
   // Dark text mode: scrolled on home, or any non-home page
   const isLight = !isHome || scrolled;
 
   // Match active link — strip /en prefix for comparison
   const normalizedPath = currentPathname.replace(/^\/en/, '') || '/';
 
+  const isActiveMatch = (matchPath: string) =>
+    normalizedPath === matchPath || (matchPath !== '/' && normalizedPath.startsWith(matchPath));
+
   const linkClass = (matchPath: string, mobile = false) => {
-    const isActive =
-      normalizedPath === matchPath || (matchPath !== '/' && normalizedPath.startsWith(matchPath));
+    const isActive = isActiveMatch(matchPath);
     if (mobile) {
       return `block py-3 px-4 text-lg transition-colors duration-200 ${
         isActive
-          ? 'text-brand border-l-2 border-brand font-medium'
+          ? 'text-brand-dark border-l-2 border-brand font-medium'
           : 'text-neutral-700 hover:text-neutral-900'
       }`;
     }
     if (isLight) {
       return `relative transition-colors duration-200 ${
-        isActive ? 'text-brand font-medium' : 'text-neutral-500 hover:text-neutral-900'
+        isActive ? 'text-brand-dark font-medium' : 'text-neutral-500 hover:text-neutral-900'
       }`;
     }
+    // Dark hero: brand-dark 在深色图上不可读,激活态保持亮黄。
     return `relative transition-colors duration-200 ${
-      isActive ? 'text-brand' : 'text-white/80 hover:text-white'
+      isActive ? 'text-brand font-medium' : 'text-white/80 hover:text-white'
     }`;
   };
 
   return (
     <>
       <nav
+        aria-label={dict['nav.primaryNav'] ?? '导航'}
+        inert={!visible}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isLight
             ? 'bg-white/95 backdrop-blur-md border-b border-neutral-300/50 shadow-sm'
@@ -178,7 +227,12 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8 text-sm">
             {NAV_LINKS.map((link) => (
-              <a key={link.to} href={link.to} className={linkClass(link.match)}>
+              <a
+                key={link.to}
+                href={link.to}
+                className={linkClass(link.match)}
+                aria-current={isActiveMatch(link.match) ? 'page' : undefined}
+              >
                 {link.label}
               </a>
             ))}
@@ -193,7 +247,7 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
               }`}
               title={dict['nav.switchLang']}
             >
-              <Globe className="w-4 h-4" />
+              <Globe className="w-4 h-4" aria-hidden="true" />
               <span className="text-xs font-medium">{currentLocale === 'zh' ? 'EN' : '中文'}</span>
             </a>
           </div>
@@ -201,9 +255,12 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
           {/* Mobile hamburger */}
           <button
             type="button"
-            className="md:hidden relative w-8 h-8 flex items-center justify-center cursor-pointer"
+            ref={burgerRef}
+            className="md:hidden relative w-11 h-11 -mr-2 flex items-center justify-center cursor-pointer"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? dict['nav.closeMenu'] : dict['nav.openMenu']}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
           >
             <span
               className={`absolute h-0.5 w-5 rounded transition-all duration-300 ${isLight ? 'bg-neutral-900' : 'bg-white'} ${menuOpen ? 'rotate-45' : '-translate-y-1.5'}`}
@@ -223,7 +280,7 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
         {menuOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-[60] bg-black/50"
+              className="fixed inset-0 z-[60] bg-black/50 md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -231,7 +288,12 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
               onClick={closeMenu}
             />
             <motion.div
-              className="fixed top-0 right-0 bottom-0 z-[70] w-72 bg-white shadow-2xl flex flex-col"
+              id="mobile-menu"
+              ref={drawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label={dict['nav.primaryNav'] ?? '导航'}
+              className="fixed top-0 right-0 bottom-0 z-[70] w-72 bg-white shadow-2xl flex flex-col md:hidden"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -241,7 +303,7 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
                 <button
                   type="button"
                   onClick={closeMenu}
-                  className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+                  className="w-11 h-11 -m-1.5 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
                   aria-label={dict['nav.closeMenu']}
                 >
                   <svg
@@ -258,7 +320,7 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
                   </svg>
                 </button>
               </div>
-              <nav className="flex-1 px-4 py-4">
+              <nav className="flex-1 px-4 py-4" aria-label={dict['nav.primaryNav'] ?? '导航'}>
                 {NAV_LINKS.map((link, i) => (
                   <motion.div
                     key={link.to}
@@ -266,7 +328,12 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, type: 'spring', damping: 25, stiffness: 200 }}
                   >
-                    <a href={link.to} className={linkClass(link.match, true)} onClick={closeMenu}>
+                    <a
+                      href={link.to}
+                      className={linkClass(link.match, true)}
+                      onClick={closeMenu}
+                      aria-current={isActiveMatch(link.match) ? 'page' : undefined}
+                    >
                       {link.label}
                     </a>
                   </motion.div>
@@ -289,7 +356,7 @@ export default function Navigation({ pathname, locale = 'zh' }: NavigationProps)
                     className="flex items-center gap-2 py-3 px-4 text-neutral-500 hover:text-neutral-900 transition-colors duration-200"
                     onClick={closeMenu}
                   >
-                    <Globe className="w-4 h-4" />
+                    <Globe className="w-4 h-4" aria-hidden="true" />
                     <span>{currentLocale === 'zh' ? 'English' : '中文'}</span>
                   </a>
                 </motion.div>

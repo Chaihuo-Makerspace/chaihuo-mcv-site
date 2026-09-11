@@ -90,22 +90,52 @@ const d = ui[locale];
           <div class="relative group" id="wechat-social">
             <button
               class="text-sm text-neutral-500 hover:text-neutral-900 transition-colors duration-200 cursor-pointer text-left group-[.open]:text-neutral-900"
-              onclick="this.closest('#wechat-social').classList.toggle('open')"
+              aria-expanded="false"
+              aria-controls="wechat-qr-pop"
+              data-wechat-toggle
             >
               {d['footer.wechat']}
             </button>
-            <div class="absolute bottom-full left-0 mb-2 p-3 bg-white border border-neutral-200 rounded-xl shadow-xl z-50 w-36
+            <div
+              id="wechat-qr-pop"
+              class="absolute bottom-full left-0 mb-2 p-3 bg-white border border-neutral-200 rounded-xl shadow-xl z-50 w-36
                         opacity-0 invisible pointer-events-none transition-all duration-200
                         group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto
-                        group-[.open]:opacity-100 group-[.open]:visible group-[.open]:pointer-events-auto">
+                        group-[.open]:opacity-100 group-[.open]:visible group-[.open]:pointer-events-auto"
+            >
               <img
                 src={wechatQrSrc}
-                alt="微信公众号二维码"
+                alt={d['footer.wechatQrAlt']}
                 class="w-28 h-28 mx-auto block"
               />
-              <p class="text-xs text-center text-neutral-500 mt-1">扫码关注</p>
+              <p class="text-xs text-center text-neutral-500 mt-1">{d['footer.wechatHint']}</p>
             </div>
           </div>
+          <script>
+            // 微信二维码弹层:事件委托,View Transitions 换页后依然生效(模块脚本只执行一次)
+            if (!(window as any).__wechatPopBound) {
+              (window as any).__wechatPopBound = true;
+              const setOpen = (btn: Element, open: boolean) => {
+                const wrap = btn.closest('#wechat-social');
+                wrap?.classList.toggle('open', open);
+                btn.setAttribute('aria-expanded', String(open));
+              };
+              document.addEventListener('click', (e) => {
+                const toggle = (e.target as Element).closest?.('[data-wechat-toggle]');
+                if (toggle) {
+                  setOpen(toggle, !toggle.closest('#wechat-social')?.classList.contains('open'));
+                  return;
+                }
+                document.querySelectorAll('[data-wechat-toggle]').forEach((btn) => {
+                  if (!btn.closest('#wechat-social')?.contains(e.target as Node)) setOpen(btn, false);
+                });
+              });
+              document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                document.querySelectorAll('[data-wechat-toggle]').forEach((btn) => setOpen(btn, false));
+              });
+            }
+          </script>
           <a
             href="https://github.com/chaihuo-makerspace/"
             target="_blank"

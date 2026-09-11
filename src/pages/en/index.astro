@@ -7,7 +7,9 @@ import { PROJECT_END, PROJECT_START } from '@/config/project';
 import boardingsData from '@/data/boardings.json';
 import heroesData from '@/data/heroes.json';
 import videosData from '@/data/live-videos.json';
+import partnersData from '@/data/partners.json';
 import pressData from '@/data/press.json';
+import projectIntroData from '@/data/project-intro.json';
 import teamData from '@/data/team.json';
 import { buildRouteLegs } from '@/features/route-map/route-legs';
 import { loadLocalizedStops } from '@/features/route-map/stops-loader';
@@ -32,6 +34,33 @@ const press = pressData.map((p) => ({
 }));
 
 const cities = await loadLocalizedStops(locale);
+
+// 首页共建伙伴条（与 zh 首页同一数据源，英文读 description_en）
+const partnerLogoFiles = import.meta.glob('@/assets/partners/*.{png,svg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+const logoByFileName = new Map(
+  Object.entries(partnerLogoFiles).map(([key, url]) => [key.split('/').pop(), url]),
+);
+const PARTNER_LOGO_MAP: Record<string, string> = {
+  chaihuo: logoByFileName.get('chaihuo-logo.png') ?? '',
+  seeed: logoByFileName.get('seeed-logo.png') ?? '',
+  nvidia: logoByFileName.get('nvidia-logo.png') ?? '',
+  'maker-media': logoByFileName.get('maker-media.svg') ?? '',
+  fablab: logoByFileName.get('fablab.svg') ?? '',
+  makera: logoByFileName.get('makera.png') ?? '',
+  'shenzhen-stm': logoByFileName.get('szstm-logo.png') ?? '',
+};
+const partners = partnersData.map((p) => ({
+  id: p.id,
+  name: p.name,
+  description: locale === 'en' ? p.description_en : p.description,
+  tier: p.tier ?? 'partner',
+  link: p.link ?? '',
+  logo: PARTNER_LOGO_MAP[p.id] ?? '',
+}));
 
 // Videos rail synced from the Feishu Base (scripts/sync-live-videos.mjs)
 const videos = videosData.videos.map((video) =>
@@ -135,14 +164,26 @@ const timeline = {
   projectStart: PROJECT_START,
   projectEnd: PROJECT_END,
 };
+
+// 首页 Project 结构化数据（GEO）：与 zh 首页一致
+const projectIntro = projectIntroData[locale];
+const projectJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Project',
+  name: locale === 'zh' ? '柴火AI基地车' : 'Chaihuo AI Base Vehicle',
+  alternateName: locale === 'zh' ? 'Chaihuo AI Base Vehicle' : '柴火AI基地车',
+  description: projectIntro.intro,
+  url: 'https://mcv.chaihuo.org/',
+  founder: { '@id': 'https://www.chaihuo.org' },
+};
 ---
 
-<BaseLayout title={t['title']} description={t['description']}>
+<BaseLayout title={t['title']} description={t['description']} jsonLd={[projectJsonLd]}>
   {/* 首屏 LCP:只预加载第一张轮播图,按视口宽度各取桌面/移动派生 */}
   <link slot="head" rel="preload" as="image" href={firstHero.image} media="(min-width: 768px)" />
   <link slot="head" rel="preload" as="image" href={firstHero.imageMobile} media="(max-width: 767.98px)" />
   {/* Bilibili modal player: pre-warm the connection */}
   <link slot="head" rel="preconnect" href="https://player.bilibili.com" crossorigin />
   <link slot="head" rel="dns-prefetch" href="https://player.bilibili.com" />
-  <HomeContent client:load cities={islandCities} heroImages={heroImages} timeline={timeline} press={press} videos={videos} locale={locale} t={t} />
+  <HomeContent client:load cities={islandCities} heroImages={heroImages} timeline={timeline} press={press} partners={partners} videos={videos} locale={locale} t={t} />
 </BaseLayout>
