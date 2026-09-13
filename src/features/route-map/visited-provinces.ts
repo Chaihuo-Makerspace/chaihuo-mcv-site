@@ -19,4 +19,5 @@ export const PROVINCE_VISITED = [
   '天津市',
   '山东省',
   '河南省',
+  '安徽省',
 ];

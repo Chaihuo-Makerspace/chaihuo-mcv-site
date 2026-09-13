@@ -226,5 +226,17 @@
     "label": "洛阳",
     "label_en": "Luoyang",
     "province": "河南省"
+  },
+  "合肥": {
+    "id": "hefei",
+    "label": "合肥",
+    "label_en": "Hefei",
+    "province": "安徽省"
+  },
+  "合肥市": {
+    "id": "hefei",
+    "label": "合肥",
+    "label_en": "Hefei",
+    "province": "安徽省"
   }
 }
