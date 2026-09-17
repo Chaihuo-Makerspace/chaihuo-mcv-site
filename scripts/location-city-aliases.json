@@ -238,5 +238,17 @@
     "label": "合肥",
     "label_en": "Hefei",
     "province": "安徽省"
+  },
+  "杭州": {
+    "id": "hangzhou",
+    "label": "杭州",
+    "label_en": "Hangzhou",
+    "province": "浙江省"
+  },
+  "杭州市": {
+    "id": "hangzhou",
+    "label": "杭州",
+    "label_en": "Hangzhou",
+    "province": "浙江省"
   }
 }
