@@ -27,11 +27,13 @@ history.
 - Route map now extends from Weihai to Lankao (arrived 2026-09-05, currently there) with Kaifeng as the next planned stop (2026-09-06); Henan added to visited provinces and `PROVINCE_SHORT` (豫/HA).
 - Route map now extends from Zhengzhou to Luoyang (arrived 2026-09-10, currently there); Zhengzhou remains the previous same-day stop.
 - Route map now extends from Luoyang to Hefei (arrived 2026-09-12, currently there); Anhui added to visited provinces and `PROVINCE_SHORT` (皖/AH).
+- Route map now extends from Hefei to Hangzhou (arrived 2026-09-17, currently there); Zhejiang added to visited provinces and `PROVINCE_SHORT` (浙/ZJ).
 
 ## Changelog
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-09-17 | main | Added Hangzhou as the latest visited stop (arrival 2026-09-17) after Hefei, so homepage 「位于」 and the map yellow dot move on from Hefei. |
 | 2026-09-12 | main | Added Hefei as the latest visited stop (arrival 2026-09-12) after Luoyang, so homepage 「位于」 and the map yellow dot move on from Luoyang. |
 | 2026-09-11 | main | 全站交互/无障碍修复批:prerender 页面(/ /route 及英文版)的「已出发 N 天」「N 天在路上」改为挂载后计算(原构建期冻结导致每日水合不匹配 #418 + 数字跳变);修掉 theme.css 里写错选择器的 reduced-motion 规则(脉冲动画现在真的会对 reduced-motion 用户关闭);移动端 /route 地图开 cooperativeGestures 解除滚动陷阱;点故事流卡片不再自动展开抽屉,抽屉新增 X/Esc/下滑关闭;导航激活态改 brand-dark(黄字白底对比度不足)、隐藏时加 inert、抽屉焦点管理;hero 与 /live 轮播补暂停手段与焦点样式;筛选 chips 统一 aria-pressed 语义;/journals yuque 模式不再静默应用无 UI 的 URL 参数,空态可加「清除筛选」;英文首页补齐共建伙伴条与 jsonLd(中英对等);阅读进度条改 scaleX;各 island 根部包 MotionConfig reducedMotion="user"。 |
 | 2026-09-10 | main | Added Luoyang as the latest visited stop (arrival 2026-09-10) after Zhengzhou, so homepage 「位于」 and the map yellow dot move on from Zhengzhou. |

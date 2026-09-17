@@ -33,6 +33,7 @@ const PROVINCE_SHORT: Record<string, { zh: string; en: string; enFull: string }>
   山东省: { zh: '鲁', en: 'SD', enFull: 'Shandong' },
   河南省: { zh: '豫', en: 'HA', enFull: 'Henan' },
   安徽省: { zh: '皖', en: 'AH', enFull: 'Anhui' },
+  浙江省: { zh: '浙', en: 'ZJ', enFull: 'Zhejiang' },
 };
 
 // Event dates come in loose formats: "2026.04.22", "2026.04.24 / 04.25", "2026.05.05–07".
