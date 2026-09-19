@@ -527,9 +527,29 @@ export default function RoleTimeline({
                                   ? (Math.max(0, 100 - endPct) / widthPct) * 100
                                   : 0;
 
+                              // 悬停浮层：上车/下车的地点与时间此前从未渲染（handoffName / endLocation 传了但没用）
+                              const hasHandoff = Boolean(seg.handoffName);
+                              const endPart = isOngoing
+                                ? locale === 'en'
+                                  ? 'still aboard'
+                                  : '至今在车'
+                                : `${seg.endLocation ?? ''} ${formatShortDate(seg.endDate as string, locale)}${
+                                    hasHandoff
+                                      ? locale === 'en'
+                                        ? ` (handed over to ${seg.handoffName})`
+                                        : ` · 交接给 ${seg.handoffName}`
+                                      : locale === 'en'
+                                        ? ' (term ended)'
+                                        : ' · 任期结束'
+                                  }`;
+                              const segmentTitle = `${seg.name} · ${seg.role}${locale === 'en' ? ': ' : '：'}${
+                                seg.startLocation
+                              } ${formatShortDate(seg.startDate, locale)} → ${endPart}`;
+
                               return (
                                 <div
                                   key={seg.id}
+                                  title={segmentTitle}
                                   className="absolute top-1/2 -translate-y-1/2 h-7 group"
                                   style={{
                                     left: `${startPct}%`,
@@ -544,6 +564,11 @@ export default function RoleTimeline({
                                         : 'bg-neutral-300'
                                     }`}
                                   />
+
+                                  {/* Terminus dot — 有下车日期且无接任者：任期到此为止，不是交接 */}
+                                  {!isOngoing && !hasHandoff && (
+                                    <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-neutral-400 ring-2 ring-white z-20" />
+                                  )}
 
                                   {/* Future fade for ongoing segments — extends past today */}
                                   {isOngoing && todayPct !== null && (
@@ -621,7 +646,7 @@ export default function RoleTimeline({
             >
               {t['timeline.currentlyAboard']}
             </motion.h3>
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            <div className="flex flex-wrap justify-center gap-6 md:gap-8">
               {activeGroups.map(({ role, members }) => {
                 const isSharedRole = members.length > 1;
                 const memberNames = members.map((m) => m.name).join(' & ');
@@ -638,7 +663,7 @@ export default function RoleTimeline({
                     key={role}
                     variants={fadeUp}
                     transition={springTransition}
-                    className="group"
+                    className="group w-full sm:w-[calc(50%-0.75rem)] md:w-[calc(25%-1.5rem)]"
                   >
                     <div
                       className={`h-32 flex items-center justify-center mb-4 ${
