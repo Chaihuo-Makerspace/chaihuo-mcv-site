@@ -565,11 +565,6 @@ export default function RoleTimeline({
                                     }`}
                                   />
 
-                                  {/* Terminus dot — 有下车日期且无接任者：任期到此为止，不是交接 */}
-                                  {!isOngoing && !hasHandoff && (
-                                    <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-neutral-400 ring-2 ring-white z-20" />
-                                  )}
-
                                   {/* Future fade for ongoing segments — extends past today */}
                                   {isOngoing && todayPct !== null && (
                                     <div
