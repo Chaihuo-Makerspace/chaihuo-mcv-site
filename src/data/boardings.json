@@ -296,7 +296,11 @@
       "location": "呼和浩特",
       "location_en": "Hohhot"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-08-07",
+      "location": "北京",
+      "location_en": "Beijing"
+    }
   },
   {
     "id": "b20",
