@@ -76,6 +76,12 @@ const MIN_GAP_PCT = 4;
 /** Minimum width for a dated leg so the province label + borders stay readable */
 const MIN_LEG_PCT = 2.5;
 
+/** 省带条本身的高度（px）与标签每行的高度（px） */
+const LEG_BAND_BAR_H = 24;
+const LEG_LABEL_ROW_H = 14;
+/** 标签最多上移几行（0 = 条内那行） */
+const LEG_LABEL_MAX_ROWS = 3;
+
 interface LegSpan {
   startPct: number;
   endPct: number;
@@ -83,37 +89,36 @@ interface LegSpan {
 
 /**
  * Short legs (a 1–3 day province crossing) collapse to a few px on the 200-day
- * axis, crushing labels and borders. Give every dated leg a minimum width and
- * let longer legs pay for it proportionally. The region's total span and its
- * right edge (today / last stop) stay put, so the month scale, today line and
- * lanes below are unaffected.
+ * axis, crushing labels and borders. So widen the short ones — but around their
+ * own real centre, not by pushing everything to the right: the old
+ * cascade-and-redistribute version gave every leg a minimum width and took the
+ * width back from the long legs proportionally, which accumulated into a
+ * 2–3 week early shift mid-route (哈密 ended up drawn under 甘/宁, 西安 under
+ * 京, 哈尔滨 under 吉). Widening around the centre keeps every leg within half
+ * a minimum width (≈2 days) of its true dates, and the long legs stay exact.
  */
-function warpLegSpans(rawSpans: LegSpan[]): LegSpan[] {
+function expandShortLegSpans(rawSpans: LegSpan[], minPct: number): LegSpan[] {
   if (rawSpans.length === 0) return rawSpans;
-  const regionStart = rawSpans[0].startPct;
-  const regionEnd = rawSpans[rawSpans.length - 1].endPct;
-  const total = regionEnd - regionStart;
-  const min = Math.min(MIN_LEG_PCT, total / rawSpans.length);
-  const widths = rawSpans.map((s) => Math.max(0, s.endPct - s.startPct));
+  const min = Math.min(minPct, 100 / rawSpans.length);
 
-  const deficit = widths.reduce((sum, w) => sum + Math.max(0, min - w), 0);
-  const excess = widths.reduce((sum, w) => sum + Math.max(0, w - min), 0);
-  if (deficit > 0 && excess > 0) {
-    const take = Math.min(deficit, excess);
-    for (let i = 0; i < widths.length; i++) {
-      if (widths[i] > min) widths[i] -= take * ((widths[i] - min) / excess);
-    }
-    for (let i = 0; i < widths.length; i++) {
-      if (widths[i] < min) widths[i] = min;
-    }
-  }
+  return rawSpans.map((span, i) => {
+    const width = span.endPct - span.startPct;
+    if (width >= min) return span;
 
-  let cursor = regionStart;
-  return widths.map((w, i) => {
-    const startPct = cursor;
-    cursor += w;
-    // Pin the right edge exactly so the planned legs anchor keeps aligning
-    return { startPct, endPct: i === widths.length - 1 ? regionEnd : cursor };
+    const center = (span.startPct + span.endPct) / 2;
+    let startPct = Math.max(0, center - min / 2);
+    let endPct = Math.min(100, center + min / 2);
+    if (endPct - startPct < min) {
+      // 顶到边界了，往另一侧补
+      if (startPct <= 0) endPct = Math.min(100, min);
+      else startPct = Math.max(0, endPct - min);
+    }
+    // 最后一段的右边缘必须留在今天（今日竖线落在它的右端）
+    if (i === rawSpans.length - 1) {
+      endPct = span.endPct;
+      startPct = Math.max(0, endPct - min);
+    }
+    return { startPct, endPct };
   });
 }
 
@@ -243,6 +248,21 @@ export default function RoleTimeline({
     el.scrollTo({ left: Math.max(0, target), behavior: reduce ? 'auto' : 'smooth' });
   }, [todayPct]);
 
+  // 时间轴刻度区的像素宽度：省带标签要不要上移，取决于「这一段放不放得下这个名字」，
+  // 这需要把 % 换算成 px，所以量一下（SSR 时为 0，先按条内渲染）。
+  const axisRef = useRef<HTMLDivElement>(null);
+  const [axisWidthPx, setAxisWidthPx] = useState(0);
+  useEffect(() => {
+    const el = axisRef.current;
+    if (!el) return;
+    const measure = () => setAxisWidthPx(Math.max(0, el.clientWidth - 16)); // 容器带 pl-4
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Group segments by role for lane rendering
   const segmentsByRole = useMemo(() => {
     const map = new Map<string, Segment[]>();
@@ -308,30 +328,64 @@ export default function RoleTimeline({
     return -1;
   }, [legs]);
 
-  // Dated legs: raw time-true spans (last visited leg extends to today), then
-  // min-width redistribution so short province crossings stay readable. Planned
-  // legs are excluded — they fan out evenly right of today at render time.
+  // Dated legs drawn at true dates (short ones widened around their own centre so
+  // labels/borders stay visible — see expandShortLegSpans), planned legs included
+  // so the band and the 「已排定」 people below line up.
   const legSpans = useMemo(() => {
+    const lastIdx = legs.length - 1;
     const raw: LegSpan[] = legs.map((leg, i) => {
       const startPct = Math.max(0, pctOf(leg.startDate, projectStart, totalDays));
       const legEndPct = pctOf(leg.endDate, projectStart, totalDays);
-      const endPct = Math.min(
-        100,
-        Math.max(
-          startPct + 0.5,
-          i === lastVisitedIdx && todayPct !== null ? Math.max(legEndPct, todayPct) : legEndPct,
-        ),
-      );
-      return { startPct, endPct };
+      let endPct = legEndPct;
+      // 已走的最后一段拉到今天；已排定的最后一段拉到时间轴末端（项目结束）。
+      // 中间那些已排定的段直接按自己的日期画 —— 和下面「已排定」的人对齐。
+      if (i === lastVisitedIdx && todayPct !== null) endPct = Math.max(legEndPct, todayPct);
+      if (i === lastIdx && leg.planned) endPct = 100;
+      return { startPct, endPct: Math.min(100, Math.max(startPct + 0.5, endPct)) };
     });
-    const firstPlanned = legs.findIndex((leg) => leg.planned);
-    const datedCount = firstPlanned === -1 ? legs.length : firstPlanned;
     const spans = new Map<number, LegSpan>();
-    warpLegSpans(raw.slice(0, datedCount)).forEach((span, i) => {
+    expandShortLegSpans(raw, MIN_LEG_PCT).forEach((span, i) => {
       spans.set(i, span);
     });
     return spans;
   }, [legs, projectStart, totalDays, lastVisitedIdx, todayPct]);
+
+  // 省带标签落位：row 0 画在条内（原来的样子）；这一段放不下这个名字（窄省只有几像素宽，
+  // 或与邻居挨得比字还紧）就上移一行，用 1px 引线连回自己那一段。真实日期比例下
+  // 「蒙/吉/黑/吉/辽」这种连续短省必然要错位，否则名字会互相压住。
+  const legLabels = useMemo(() => {
+    const map = new Map<number, { row: number; leftPct: number; centerPct: number }>();
+    const rowEnds: number[] = [];
+    const pxToPct = (px: number) => (axisWidthPx > 0 ? (px / axisWidthPx) * 100 : 0);
+
+    legs.forEach((leg, i) => {
+      const span = legSpans.get(i);
+      if (!span) return;
+      const ascii = /^[\x20-\x7f]+$/.test(leg.label);
+      const labelPct = pxToPct(leg.label.length * (ascii ? 7 : 11) + 4);
+      const centerPct = (span.startPct + span.endPct) / 2;
+      const widthPct = span.endPct - span.startPct;
+      const leftPct = Math.max(0, Math.min(100 - labelPct, centerPct - labelPct / 2));
+
+      let row = -1;
+      for (let r = 0; r < LEG_LABEL_MAX_ROWS; r++) {
+        const fitsInBar = r !== 0 || widthPct >= labelPct + 0.2;
+        if (fitsInBar && (rowEnds[r] ?? Number.NEGATIVE_INFINITY) <= leftPct) {
+          row = r;
+          break;
+        }
+      }
+      // 行都用满了（极少见）就叠在最后一行
+      if (row === -1) row = Math.min(rowEnds.length, LEG_LABEL_MAX_ROWS - 1);
+      rowEnds[row] = Math.max(rowEnds[row] ?? Number.NEGATIVE_INFINITY, leftPct + labelPct);
+      map.set(i, { row, leftPct, centerPct });
+    });
+
+    // row 0（条内）不额外占高，其余每行 +LEG_LABEL_ROW_H
+    return { map, extraRows: Math.max(0, rowEnds.length - 1) };
+  }, [legs, legSpans, axisWidthPx]);
+
+  const legBandHeightPx = LEG_BAND_BAR_H + legLabels.extraRows * LEG_LABEL_ROW_H;
 
   // The leg the journey is currently in — its column carries down through the lanes
   const currentLegIdx = useMemo(() => {
@@ -355,31 +409,7 @@ export default function RoleTimeline({
     };
   }, [todayPct, currentLegIdx, legSpans]);
 
-  // Planned legs start where the today pointer stands (SSR: end of the last visited leg).
-  const plannedAnchorPct = useMemo(() => {
-    if (todayPct !== null) return todayPct;
-    if (lastVisitedIdx >= 0) {
-      return Math.min(
-        100,
-        Math.max(0, pctOf(legs[lastVisitedIdx].endDate, projectStart, totalDays)),
-      );
-    }
-    return 0;
-  }, [todayPct, lastVisitedIdx, legs, projectStart, totalDays]);
-
-  // Planned legs are near-term (weeks, not months) — they share the rest of the
-  // current month instead of stretching across the whole remaining timeline.
-  // Minimum span keeps the short labels readable when today is near month end.
-  const plannedEndPct = useMemo(() => {
-    const d = new Date(`${todayIso}T00:00:00Z`);
-    const nextMonth = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
-      .toISOString()
-      .slice(0, 10);
-    const monthEndPct = Math.min(100, pctOf(nextMonth, projectStart, totalDays));
-    return Math.min(100, Math.max(monthEndPct, plannedAnchorPct + 12));
-  }, [todayIso, projectStart, totalDays, plannedAnchorPct]);
-
-  const plannedCount = useMemo(() => legs.filter((leg) => leg.planned).length, [legs]);
+  // Planned legs are drawn at their own dates now, so they need no separate anchor.
 
   return (
     <section className="relative bg-gradient-to-b from-neutral-50 via-white to-white pt-16 md:pt-24 pb-24 md:pb-36 border-t border-neutral-100/50">
@@ -444,7 +474,7 @@ export default function RoleTimeline({
             <div className="w-24 md:w-28 shrink-0 border-r border-neutral-200">
               {/* Spacers mirroring the month scale + legs band heights */}
               <div className="h-7 mb-3 border-b border-neutral-200" />
-              <div className="h-6 mb-3" />
+              <div className="mb-3" style={{ height: legBandHeightPx }} />
               {roles.map((role) => (
                 <div
                   key={role.key}
@@ -468,7 +498,7 @@ export default function RoleTimeline({
               className="flex-1 min-w-0 overflow-x-auto md:overflow-visible pb-2"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              <div className="relative min-w-[720px] md:min-w-0 pl-4">
+              <div className="relative min-w-[720px] md:min-w-0 pl-4" ref={axisRef}>
                 {/* Month scale */}
                 <div className="relative h-7 mb-3 border-b border-neutral-200">
                   {monthMarkers.map((m) => (
@@ -512,31 +542,57 @@ export default function RoleTimeline({
                   )}
 
                   {legs.length > 0 && (
-                    <div className="relative h-6 mb-3">
-                      {(() => {
-                        let plannedSeen = 0;
-                        return legs.map((leg, i) => {
+                    <div className="relative mb-3" style={{ height: legBandHeightPx }}>
+                      {/* 标签层：条内放不下的窄省上移一行，1px 引线指回自己那一段 */}
+                      {legs.map((leg, i) => {
+                        const placement = legLabels.map.get(i);
+                        if (!placement || placement.row === 0) return null;
+                        const isCurrent = i === currentLegIdx;
+                        return (
+                          <div
+                            key={`label-${leg.key}-${leg.startDate}`}
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${placement.leftPct}%`,
+                              top: (legLabels.extraRows - placement.row) * LEG_LABEL_ROW_H,
+                            }}
+                          >
+                            <span
+                              className={`text-[10px] leading-none whitespace-nowrap ${
+                                isCurrent
+                                  ? 'font-semibold text-neutral-800'
+                                  : leg.planned
+                                    ? 'font-medium text-neutral-400'
+                                    : 'font-medium text-neutral-500'
+                              }`}
+                            >
+                              {leg.label}
+                            </span>
+                            <span
+                              className="absolute left-1/2 top-full w-px bg-neutral-200"
+                              style={{ height: placement.row * LEG_LABEL_ROW_H }}
+                            />
+                          </div>
+                        );
+                      })}
+
+                      {/* 省带条：真实日期比例（窄段以真实中心为准对称撑开） */}
+                      <div
+                        className="absolute inset-x-0 bottom-0"
+                        style={{ height: LEG_BAND_BAR_H }}
+                      >
+                        {legs.map((leg, i) => {
                           const isCurrent = i === currentLegIdx;
-                          let startPct: number;
-                          let endPct: number;
-                          if (leg.planned) {
-                            // Planned legs have no real dates — fan them out evenly
-                            // across the rest of the current month, right of today.
-                            const plannedIdx = plannedSeen++;
-                            const span = Math.max(0, plannedEndPct - plannedAnchorPct);
-                            startPct = plannedAnchorPct + (span * plannedIdx) / plannedCount;
-                            endPct = plannedAnchorPct + (span * (plannedIdx + 1)) / plannedCount;
-                          } else {
-                            // Min-width redistributed span (see warpLegSpans)
-                            const span = legSpans.get(i);
-                            startPct = span?.startPct ?? 0;
-                            endPct = span?.endPct ?? startPct + 0.5;
-                          }
+                          const placement = legLabels.map.get(i);
+                          // 真实日期比例（含已排定的段；窄段已对称撑开，见 expandShortLegSpans）
+                          const span = legSpans.get(i);
+                          const startPct = span?.startPct ?? 0;
+                          const endPct = span?.endPct ?? startPct + 0.5;
                           return (
                             <div
                               key={`${leg.key}-${leg.startDate}`}
                               title={leg.fullName}
-                              className={`absolute top-0 bottom-0 flex items-center justify-center overflow-hidden rounded-sm ${
+                              className={`absolute inset-y-0 flex items-center justify-center overflow-hidden rounded-sm ${
                                 isCurrent
                                   ? 'bg-brand/25'
                                   : leg.planned
@@ -548,21 +604,23 @@ export default function RoleTimeline({
                                 width: `calc(${endPct - startPct}% - 2px)`,
                               }}
                             >
-                              <span
-                                className={`text-[10px] whitespace-nowrap ${
-                                  isCurrent
-                                    ? 'font-semibold text-neutral-800'
-                                    : leg.planned
-                                      ? 'font-medium text-neutral-400'
-                                      : 'font-medium text-neutral-500'
-                                }`}
-                              >
-                                {leg.label}
-                              </span>
+                              {placement?.row === 0 && (
+                                <span
+                                  className={`text-[10px] whitespace-nowrap ${
+                                    isCurrent
+                                      ? 'font-semibold text-neutral-800'
+                                      : leg.planned
+                                        ? 'font-medium text-neutral-400'
+                                        : 'font-medium text-neutral-500'
+                                  }`}
+                                >
+                                  {leg.label}
+                                </span>
+                              )}
                             </div>
                           );
-                        });
-                      })()}
+                        })}
+                      </div>
                     </div>
                   )}
 
