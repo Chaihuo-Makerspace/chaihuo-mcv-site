@@ -247,5 +247,25 @@
     "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
     "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
     "image": "/people/ge-zihan.webp"
+  },
+  {
+    "id": "hu-hui-zhong",
+    "name": "胡慧忠",
+    "name_en": "Hu Huizhong",
+    "role": "技术担当",
+    "role_en": "Tech Lead",
+    "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+    "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation.",
+    "image": "/people/hu-hui-zhong.webp"
+  },
+  {
+    "id": "guan-nai-ying",
+    "name": "关乃莹",
+    "name_en": "Guan Naiying",
+    "role": "领队",
+    "role_en": "Team Lead",
+    "bio": "负责基地车整体资源协调、行程统筹与团队支持。",
+    "bio_en": "Responsible for the MCV's overall resource coordination, journey planning, and team support.",
+    "image": "/people/guan-nai-ying.webp"
   }
 ]
