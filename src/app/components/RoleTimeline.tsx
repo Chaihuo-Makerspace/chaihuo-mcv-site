@@ -117,24 +117,82 @@ function warpLegSpans(rawSpans: LegSpan[]): LegSpan[] {
   });
 }
 
-/** Nudge close segment starts within a lane so avatars never collide — stays single-line */
-function computeVisualStarts(
+/** 单人车道高度（px）——保持原有观感 */
+const LANE_SINGLE_ROW_H = 80;
+/** 「一起在车」的人上下错开时的行距（px） */
+const CLUSTER_STEP = 34;
+/** 错开时的头像直径（px）；单独在车仍是 32 */
+const CLUSTER_AVATAR = 24;
+/** 起动日相差不超过这么多天、且任期重叠 → 视为「一起在车」，上下错开而不是左右排开 */
+const CLUSTER_DAYS = 10;
+
+interface LaneLayout {
+  /** 段 id → 相对车道中线的竖直偏移（px） */
+  offsetOf: Map<string, number>;
+  /** 段 id → 所在批次的人数（1 = 单独在车） */
+  clusterSizeOf: Map<string, number>;
+  /** 段 id → 横向视觉起点（%）；同批人对齐到同一个 x */
+  visualStarts: Map<string, number>;
+  /** 车道高度（px）：单人 80，一批人上下错开时按批大小略微撑开 */
+  laneHeight: number;
+}
+
+/**
+ * 同一角色同期多人此前被 4% 的防重叠间距一格一格往右推，头像+名字串成一条斜线。
+ * 现在：一起上车的一批人（李世雯/潘石/葛子涵 同为 9-16 杭州上车）共用同一个 x，
+ * 横条仍画在同一条线上，只在竖直方向上下错开；车道只按批大小略微撑开
+ * （3 人 = 100px，不是三倍高度）。
+ */
+function computeLaneLayout(
   segments: Segment[],
   projectStart: string,
   totalDays: number,
-): Map<string, number> {
+): LaneLayout {
   const sorted = [...segments].sort((a, b) => a.startDate.localeCompare(b.startDate));
-  const visualMap = new Map<string, number>();
-  let lastOccupied = -Infinity;
+  const clusters: Segment[][] = [];
+  let clusterStart = '';
+  let clusterEnd = '';
 
   for (const seg of sorted) {
-    const actualStart = pctOf(seg.startDate, projectStart, totalDays);
+    const end = seg.endDate ?? '9999-12-31';
+    const joinsCurrent =
+      clusters.length > 0 &&
+      seg.startDate < clusterEnd &&
+      daysBetween(clusterStart, seg.startDate) <= CLUSTER_DAYS;
+    if (!joinsCurrent) {
+      clusters.push([seg]);
+      clusterStart = seg.startDate;
+      clusterEnd = end;
+      continue;
+    }
+    clusters[clusters.length - 1].push(seg);
+    if (end > clusterEnd) clusterEnd = end;
+  }
+
+  const offsetOf = new Map<string, number>();
+  const clusterSizeOf = new Map<string, number>();
+  const visualStarts = new Map<string, number>();
+  let laneHeight = LANE_SINGLE_ROW_H;
+  let lastOccupied = -Infinity;
+
+  for (const cluster of clusters) {
+    const size = cluster.length;
+    for (let i = 0; i < size; i++) {
+      offsetOf.set(cluster[i].id, (i - (size - 1) / 2) * CLUSTER_STEP);
+      clusterSizeOf.set(cluster[i].id, size);
+    }
+    if (size > 1) {
+      laneHeight = Math.max(laneHeight, (size - 1) * CLUSTER_STEP + CLUSTER_AVATAR + 8);
+    }
+
+    // 同批人对齐到同一个起点（不再左右错开）；不同批之间沿用 4% 防重叠间距
+    const actualStart = pctOf(cluster[0].startDate, projectStart, totalDays);
     const visualStart = Math.max(actualStart, lastOccupied);
-    visualMap.set(seg.id, visualStart);
+    for (const seg of cluster) visualStarts.set(seg.id, visualStart);
     lastOccupied = visualStart + MIN_GAP_PCT;
   }
 
-  return visualMap;
+  return { offsetOf, clusterSizeOf, visualStarts, laneHeight };
 }
 
 export default function RoleTimeline({
@@ -169,6 +227,9 @@ export default function RoleTimeline({
     setTodayIso(todayStr);
   }, [projectStart, totalDays]);
 
+  // 客户端拿到今天之前（SSR / 首帧）沿用「无下车日 = 在车」的旧判定，避免闪烁。
+  const hasToday = todayPct !== null;
+
   // Mobile horizontal scroll: auto-scroll to today on mount
   const scrollerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -193,11 +254,11 @@ export default function RoleTimeline({
     return map;
   }, [roles, segments]);
 
-  // Per-role visual start positions to prevent avatar/label overlap (single-line nudge)
-  const visualStartsByRole = useMemo(() => {
-    const result = new Map<string, Map<string, number>>();
+  // 车道布局：一起上车的一批人共用一条线、只在竖直方向错开（见 computeLaneLayout）
+  const laneLayout = useMemo(() => {
+    const result = new Map<string, LaneLayout>();
     for (const [role, segs] of segmentsByRole) {
-      result.set(role, computeVisualStarts(segs, projectStart, totalDays));
+      result.set(role, computeLaneLayout(segs, projectStart, totalDays));
     }
     return result;
   }, [segmentsByRole, projectStart, totalDays]);
@@ -387,7 +448,8 @@ export default function RoleTimeline({
               {roles.map((role) => (
                 <div
                   key={role.key}
-                  className="h-20 flex flex-col items-end justify-center pr-3 md:pr-4 border-b border-neutral-100 last:border-b-0"
+                  className="flex flex-col items-end justify-center pr-3 md:pr-4 border-b border-neutral-100 last:border-b-0"
+                  style={{ height: laneLayout.get(role.key)?.laneHeight ?? LANE_SINGLE_ROW_H }}
                 >
                   <span className="text-[13px] font-semibold text-neutral-800 whitespace-nowrap">
                     {role.label}
@@ -508,15 +570,22 @@ export default function RoleTimeline({
                   <div className="relative">
                     {roles.map((role) => {
                       const laneSegments = segmentsByRole.get(role.key) ?? [];
-                      const visualStarts = visualStartsByRole.get(role.key);
+                      const layout = laneLayout.get(role.key);
+                      const laneHeight = layout?.laneHeight ?? LANE_SINGLE_ROW_H;
+                      const railTop = laneHeight / 2;
+                      const visualStarts = layout?.visualStarts;
 
                       return (
                         <div
                           key={role.key}
-                          className="relative h-20 flex items-center border-b border-neutral-100 last:border-b-0"
+                          className="relative border-b border-neutral-100 last:border-b-0"
+                          style={{ height: laneHeight }}
                         >
-                          {/* Full-span rail — anchors segments so lanes with late starts don't float */}
-                          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-neutral-100" />
+                          {/* 一条基线：一起上车的人共用这条线，只在竖直方向上下错开 */}
+                          <div
+                            className="absolute inset-x-0 -translate-y-1/2 h-1.5 rounded-full bg-neutral-100"
+                            style={{ top: railTop }}
+                          />
 
                           {/* Segments */}
                           <div className="relative w-full h-full">
@@ -528,15 +597,37 @@ export default function RoleTimeline({
                                 : (todayPct ?? startPct + 0.5);
                               const endPct = Math.max(endPctRaw, startPct + 0.5);
                               const widthPct = endPct - startPct;
-                              const isOngoing = !seg.endDate;
+
+                              // 任期三态：今天落在段内 = 在车（黄bar，今天之后渐隐）；段已走完 = 卸任（灰）；
+                              // 段还没开始 = 已排定（淡黄）。旧写法只看 endDate === null，于是给在车成员
+                              // 排定未来下车日后（黄夏 10-08、叶雨/关乃莹 10-31），他会当场被画成已卸任。
+                              const isPastTerm = hasToday
+                                ? seg.endDate !== null && seg.endDate <= todayIso
+                                : seg.endDate !== null;
+                              const isFutureTerm = hasToday && seg.startDate > todayIso;
+                              const isCurrentTerm = !isPastTerm && !isFutureTerm;
+                              // 一起上车的一批人：共用同一个 x，只在竖直方向上下错开
+                              const avatarOffset = layout?.offsetOf.get(seg.id) ?? 0;
+                              const inCluster = (layout?.clusterSizeOf.get(seg.id) ?? 1) > 1;
+                              const solidEndPct =
+                                isCurrentTerm && todayPct !== null
+                                  ? Math.min(endPct, todayPct)
+                                  : endPct;
+                              const solidWidthPct =
+                                widthPct > 0 ? ((solidEndPct - startPct) / widthPct) * 100 : 100;
+                              // 已排定的未来任期：今天之后的部分渐隐（未定结束日的渐隐延伸到轴末端）
+                              const termFadeWidthPct =
+                                isCurrentTerm && widthPct > 0
+                                  ? (Math.max(0, endPct - solidEndPct) / widthPct) * 100
+                                  : 0;
                               const futureFadeWidthPct =
-                                isOngoing && todayPct !== null && widthPct > 0
+                                isCurrentTerm && !seg.endDate && todayPct !== null && widthPct > 0
                                   ? (Math.max(0, 100 - endPct) / widthPct) * 100
                                   : 0;
 
                               // 悬停浮层：上车/下车的地点与时间此前从未渲染（handoffName / endLocation 传了但没用）
                               const hasHandoff = Boolean(seg.handoffName);
-                              const endPart = isOngoing
+                              const endPart = !seg.endDate
                                 ? locale === 'en'
                                   ? 'still aboard'
                                   : '至今在车'
@@ -551,67 +642,107 @@ export default function RoleTimeline({
                                   }`;
                               const segmentTitle = `${seg.name} · ${seg.role}${locale === 'en' ? ': ' : '：'}${
                                 seg.startLocation
-                              } ${formatShortDate(seg.startDate, locale)} → ${endPart}`;
+                              } ${formatShortDate(seg.startDate, locale)} → ${endPart}${
+                                isFutureTerm
+                                  ? locale === 'en'
+                                    ? ' (scheduled, not aboard yet)'
+                                    : '（已排定，尚未上车）'
+                                  : ''
+                              }`;
 
                               return (
                                 <div
                                   key={seg.id}
                                   title={segmentTitle}
-                                  className="absolute top-1/2 -translate-y-1/2 h-7 group"
+                                  className="absolute -translate-y-1/2 h-7 group"
                                   style={{
                                     left: `${startPct}%`,
                                     width: `${widthPct}%`,
+                                    top: railTop,
                                   }}
                                 >
-                                  {/* Bar */}
-                                  <div
-                                    className={`absolute inset-y-2 left-0 right-0 rounded-full ${
-                                      isOngoing
-                                        ? 'bg-gradient-to-r from-brand to-brand/70'
-                                        : 'bg-neutral-300'
-                                    }`}
-                                  />
-
-                                  {/* Future fade for ongoing segments — extends past today */}
-                                  {isOngoing && todayPct !== null && (
+                                  {/* Bar — 已排定的未来任期：淡黄底，表示还没上车 */}
+                                  {isFutureTerm ? (
+                                    <div className="absolute inset-y-2 left-0 right-0 rounded-full bg-brand/15" />
+                                  ) : (
                                     <div
-                                      className="absolute inset-y-2 left-full rounded-r-full"
-                                      style={{
-                                        width: `${futureFadeWidthPct}%`,
-                                        background:
-                                          'linear-gradient(to right, rgb(243 210 48 / 0.5), rgb(243 210 48 / 0))',
-                                      }}
+                                      className={`absolute inset-y-2 left-0 rounded-full ${
+                                        isPastTerm
+                                          ? 'bg-neutral-300'
+                                          : 'bg-gradient-to-r from-brand to-brand/70'
+                                      }`}
+                                      style={{ width: isPastTerm ? '100%' : `${solidWidthPct}%` }}
                                     />
                                   )}
 
-                                  {/* Avatar at segment start */}
-                                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full overflow-hidden ring-2 ring-white bg-neutral-100 z-10">
-                                    <img
-                                      src={seg.avatarThumb}
-                                      alt={seg.name}
-                                      width={32}
-                                      height={32}
-                                      className="w-full h-full object-cover"
-                                      style={
-                                        seg.crewId === 'ye-kaiwei'
-                                          ? {
-                                              transform: 'translateX(25%) scale(1.45)',
-                                              transformOrigin: '26% 35%',
-                                            }
-                                          : undefined
-                                      }
-                                    />
-                                  </div>
+                                  {/* 今天之后的已排定任期：渐隐；未定结束日的渐隐延伸到轴末端 */}
+                                  {isCurrentTerm && todayPct !== null && (
+                                    <>
+                                      {termFadeWidthPct > 0 && (
+                                        <div
+                                          className="absolute inset-y-2 right-0 rounded-r-full"
+                                          style={{
+                                            left: `${solidWidthPct}%`,
+                                            background:
+                                              'linear-gradient(to right, rgb(243 210 48 / 0.5), rgb(243 210 48 / 0))',
+                                          }}
+                                        />
+                                      )}
+                                      {futureFadeWidthPct > 0 && (
+                                        <div
+                                          className="absolute inset-y-2 left-full rounded-r-full"
+                                          style={{
+                                            width: `${futureFadeWidthPct}%`,
+                                            background:
+                                              'linear-gradient(to right, rgb(243 210 48 / 0.5), rgb(243 210 48 / 0))',
+                                          }}
+                                        />
+                                      )}
+                                    </>
+                                  )}
 
-                                  {/* Name label — muted for alumni segments */}
+                                  {/* Avatar + 名字：同一批一起上车的人上下错开；横条仍在同一条线上 */}
                                   <div
-                                    className={`absolute top-full left-0 mt-1 text-[11px] whitespace-nowrap pl-1 ${
-                                      isOngoing
-                                        ? 'font-medium text-neutral-700'
-                                        : 'text-neutral-400'
-                                    }`}
+                                    className="absolute left-0"
+                                    style={{ top: `calc(50% + ${avatarOffset}px)` }}
                                   >
-                                    {seg.name}
+                                    <div
+                                      className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 rounded-full overflow-hidden ring-2 ring-white bg-neutral-100 ${
+                                        inCluster ? 'w-6 h-6' : 'w-8 h-8'
+                                      }`}
+                                    >
+                                      <img
+                                        src={seg.avatarThumb}
+                                        alt={seg.name}
+                                        width={inCluster ? CLUSTER_AVATAR : 32}
+                                        height={inCluster ? CLUSTER_AVATAR : 32}
+                                        className="w-full h-full object-cover"
+                                        style={
+                                          seg.crewId === 'ye-kaiwei'
+                                            ? {
+                                                transform: 'translateX(25%) scale(1.45)',
+                                                transformOrigin: '26% 35%',
+                                              }
+                                            : undefined
+                                        }
+                                      />
+                                    </div>
+
+                                    {/* Name label — muted for alumni segments */}
+                                    <div
+                                      className={`absolute whitespace-nowrap pl-1 ${
+                                        inCluster ? '-translate-y-1/2 text-[10px]' : 'text-[11px]'
+                                      } ${
+                                        isCurrentTerm
+                                          ? 'font-medium text-neutral-700'
+                                          : 'text-neutral-400'
+                                      }`}
+                                      style={
+                                        inCluster ? { left: 14, top: 0 } : { left: 0, top: 18 }
+                                      }
+                                    >
+                                      {seg.name}
+                                    </div>
                                   </div>
                                 </div>
                               );
