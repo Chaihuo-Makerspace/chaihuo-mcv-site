@@ -377,5 +377,16 @@
       "location_en": "Hangzhou"
     },
     "disembarkedAt": null
+  },
+  {
+    "id": "b26",
+    "crewId": "ge-zihan",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-09-16",
+      "location": "杭州",
+      "location_en": "Hangzhou"
+    },
+    "disembarkedAt": null
   }
 ]
