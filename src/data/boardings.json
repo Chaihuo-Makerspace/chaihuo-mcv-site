@@ -338,7 +338,12 @@
       "location": "哈尔滨",
       "location_en": "Harbin"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai",
+      "handoffTo": "ye-yu"
+    }
   },
   {
     "id": "b23",
@@ -388,5 +393,51 @@
       "location_en": "Hangzhou"
     },
     "disembarkedAt": null
+  },
+  {
+    "id": "b27",
+    "crewId": "hu-hui-zhong",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai"
+    },
+    "disembarkedAt": {
+      "date": "2026-10-31",
+      "location": "广东",
+      "location_en": "Guangdong"
+    }
+  },
+  {
+    "id": "b28",
+    "crewId": "ye-yu",
+    "role": "领队",
+    "boardedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai"
+    },
+    "disembarkedAt": {
+      "date": "2026-10-16",
+      "location": "无锡",
+      "location_en": "Wuxi",
+      "handoffTo": "guan-nai-ying"
+    }
+  },
+  {
+    "id": "b29",
+    "crewId": "guan-nai-ying",
+    "role": "领队",
+    "boardedAt": {
+      "date": "2026-10-15",
+      "location": "无锡",
+      "location_en": "Wuxi"
+    },
+    "disembarkedAt": {
+      "date": "2026-10-31",
+      "location": "广东",
+      "location_en": "Guangdong"
+    }
   }
 ]

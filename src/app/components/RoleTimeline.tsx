@@ -209,18 +209,25 @@ export default function RoleTimeline({
     return map;
   }, [roles]);
 
-  // Active members (currently aboard), ordered by role then boarding date
+  // Active members (currently aboard), ordered by role then boarding date.
+  // A segment counts as aboard only when today falls inside it: a member with a scheduled future
+  // disembarkAt is still aboard today, and one scheduled to board later is not aboard yet.
+  // Before hydration (todayPct === null) keep the endDate-only rule so SSR output stays stable.
   const activeSegments = useMemo(() => {
     const roleIndex = new Map(roles.map((r, i) => [r.key, i] as const));
     return segments
-      .filter((s) => s.endDate === null)
+      .filter((s) =>
+        todayPct === null
+          ? s.endDate === null
+          : s.startDate <= todayIso && (s.endDate === null || s.endDate > todayIso),
+      )
       .sort((a, b) => {
         const ai = roleIndex.get(a.role) ?? 99;
         const bi = roleIndex.get(b.role) ?? 99;
         if (ai !== bi) return ai - bi;
         return a.startDate.localeCompare(b.startDate);
       });
-  }, [segments, roles]);
+  }, [segments, roles, todayPct, todayIso]);
 
   // Active members grouped by role for the "currently aboard" cards
   const activeGroups = useMemo(() => {
