@@ -52,7 +52,7 @@ pnpm build
 | `/deconstruct` | `/en/deconstruct` | 解构基地车 | 改装手记、装备清单 |
 | `/guide` | `/en/guide` | 上车指南 | 参与指南、FAQ、团队介绍 |
 | `/about` | `/en/about` | 关于柴火 | 柴火历程时间轴（GSAP 滚动驱动） |
-| `/live` | `/en/live` | 实时视角 | 车载摄像头抓拍（游离页：不进导航、noindex，仅直接链接访问） |
+| `/live` | `/en/live` | 实时视角 | 车载摄像头抓拍与「一路上」精选轮播（公开、在导航中、可索引） |
 
 ## Architecture
 
@@ -61,9 +61,9 @@ Astro 页面 + React Islands 模式：每个 `.astro` 页面在 frontmatter 中�
 ```
 src/
 ├── pages/           # Astro 路由（zh 默认 + en/ 镜像）
-├── app/components/  # React Islands + shadcn/ui
-├── features/        # 复杂功能模块（路线地图等）
-├── content/         # Markdown 集合（改装手记、旅途日记）
+├── app/components/  # React Islands + shadcn/ui（局部规则见目录 AGENTS.md）
+├── features/        # 复杂功能模块（路线地图等；局部规则见目录 AGENTS.md）
+├── content/         # Markdown 集合（站点、人物、手记、旅途日记）
 ├── data/            # JSON 结构化数据（装备、团队、FAQ 等）
 ├── i18n/            # 翻译字典（按页面拆分）
 ├── assets/          # 图片
@@ -72,8 +72,8 @@ src/
 
 ## Content
 
-- **Markdown 集合**（Astro Content Collections）：`src/content/notes/`（改装手记）、`src/content/journals/`（旅途日记）
-- **JSON 数据**：`src/data/` 下的装备、团队、FAQ、合作伙伴、Heroes、登车记录、路线城市等
+- **Markdown 集合**（Astro Content Collections）：`src/content/stops/`（路线站点）、`src/content/people/met/`（遇见的人）、`src/content/notes/`（改装手记）、`src/content/journals/`（手写旅途日记）
+- **JSON 数据**：`src/data/` 下的装备、团队、FAQ、合作伙伴、Heroes、登车记录等；其中 `live-videos.json` 与 `yuque-journals.json` 是外部同步生成物
 - JSON 中使用 `_en` 后缀字段实现双语（如 `title` / `title_en`）
 
 `scripts/validate-site.mjs` 会额外检查跨文件引用，包括城市 ID、人员 ID、装备 ID、公开图片路径、i18n 字典键一致性和英文页面镜像。
@@ -82,12 +82,13 @@ src/
 
 ## 日常内容更新（AI Skills)
 
-仓库在 `.agents/skills/`（本地目录，不入库）维护了两个项目级 skill，覆盖最高频的两类例行更新。让 AI agent 按对应 skill 的步骤清单执行，可以避免漏掉跨文件同步点：
+仓库在 `.agents/skills/`（本地目录，不入库）维护项目级 skills。让 AI agent 按对应步骤清单执行，可以避免漏掉跨文件同步点：
 
-- **车到新城市 / 进入新省** → `update-route-stop`：新增或更新 `src/content/stops/` 站点、翻转 `visited`、省份填色、首页时间轴的省际路段带（`route-legs.ts` 的 `PROVINCE_SHORT`)、"N 省 N 城"文案、语雀日记词表等 10 项同步清单；也说明了 /route 三视图（地图照片钉 / 时间-海拔脊 / 故事流）各自吃哪些字段——尤其 `event.date` 现在决定站点在时间轴上的位置。新站点和到达以语雀日记为准。
+- **车到新城市 / 进入新省** → `update-route-stop`：新增或更新 `src/content/stops/` 站点、翻转 `visited`、省份填色、首页时间轴的省际路段带（`route-legs.ts` 的 `PROVINCE_SHORT`)、"N 省 N 城"文案、语雀日记词表等同步清单；也说明了 /route 三视图（地图照片钉 / 时间-海拔脊 / 故事流）各自读取哪些字段。`event.date` 决定站点在时间轴上的位置；新增到达以用户或维护者确认的官方行程为准，不从日记标题推断。
 - **加成员 / 换头像 / 交接换班** → `update-team-member`:`team.json`（档案）→ `boardings.json`（登车与交接）→ `public/people/`（头像）的数据流，以及角色标签、`role_en` 一致性的注意事项。
+- **新增媒体报道 / 调整精选** → `add-press-entry`：维护 `press.json` 的中英文信息、来源、日期与 featured 状态。
 
-两类更新都以 `pnpm check` 收尾验证；渲染行为有变化再跑 `pnpm harness`。
+这些更新都以 `pnpm check` 收尾验证；渲染行为有变化再跑 `pnpm harness`。
 
 ## License
 
