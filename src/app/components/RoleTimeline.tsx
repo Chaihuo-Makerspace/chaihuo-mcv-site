@@ -70,14 +70,11 @@ function formatShortDate(iso: string, locale: 'zh' | 'en'): string {
   return `${d.getUTCMonth() + 1}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
 
-/** Minimum width for a dated leg so the province label + borders stay readable */
-const MIN_LEG_PCT = 2.5;
+/** 段的最小宽度（%）：只保证 0–1 天的短段在条上还有可见的分隔，不再为容纳标签服务 */
+const MIN_LEG_PCT = 1;
 
-/** 省带条本身的高度（px）与标签每行的高度（px） */
+/** 省带条本身的高度（px） */
 const LEG_BAND_BAR_H = 24;
-const LEG_LABEL_ROW_H = 14;
-/** 标签最多上移几行（0 = 条内那行） */
-const LEG_LABEL_MAX_ROWS = 3;
 
 interface LegSpan {
   startPct: number;
@@ -86,21 +83,23 @@ interface LegSpan {
 
 /**
  * Short legs (a 1–3 day province crossing) collapse to a few px on the 200-day
- * axis, crushing labels and borders. So widen the short ones — but around their
- * own real centre, not by pushing everything to the right: the old
- * cascade-and-redistribute version gave every leg a minimum width and took the
- * width back from the long legs proportionally, which accumulated into a
- * 2–3 week early shift mid-route (哈密 ended up drawn under 甘/宁, 西安 under
- * 京, 哈尔滨 under 吉). Widening around the centre keeps every leg within half
- * a minimum width (≈2 days) of its true dates, and the long legs stay exact.
+ * axis, and their borders would vanish between neighbours. So widen the short
+ * ones — but around their own real centre, not by pushing everything to the
+ * right: the old cascade-and-redistribute version gave every leg a minimum
+ * width and took the width back from the long legs proportionally, which
+ * accumulated into a 2–3 week early shift mid-route (哈密 ended up drawn under
+ * 甘/宁, 西安 under 京, 哈尔滨 under 吉). Widening around the centre keeps
+ * every leg within half a minimum width (≈half a day) of its true dates, and
+ * the long legs stay exact. Labels are laid out separately (see legLabels) and
+ * no longer depend on segment width.
  */
 function expandShortLegSpans(rawSpans: LegSpan[], minPct: number): LegSpan[] {
   if (rawSpans.length === 0) return rawSpans;
   const min = Math.min(minPct, 100 / rawSpans.length);
 
-  return rawSpans.map((span, i) => {
+  const spans = rawSpans.map((span, i) => {
     const width = span.endPct - span.startPct;
-    if (width >= min) return span;
+    if (width >= min) return { ...span };
 
     const center = (span.startPct + span.endPct) / 2;
     let startPct = Math.max(0, center - min / 2);
@@ -117,6 +116,20 @@ function expandShortLegSpans(rawSpans: LegSpan[], minPct: number): LegSpan[] {
     }
     return { startPct, endPct };
   });
+
+  // 对称撑开的相邻短段会互相覆盖（8 月连续 1–3 天的省份），后渲染的段会盖住
+  // 前一段的分隔边界。重叠区一人一半：边界取重叠区中点，两段都仍在真实日期
+  // ±半个最小宽度（≈半天）以内。
+  for (let i = 1; i < spans.length; i++) {
+    const prev = spans[i - 1];
+    const cur = spans[i];
+    if (prev.endPct <= cur.startPct) continue;
+    const boundary = Math.min((prev.endPct + cur.startPct) / 2, cur.endPct - 0.3);
+    if (boundary <= prev.startPct) continue;
+    prev.endPct = boundary;
+    cur.startPct = boundary;
+  }
+  return spans;
 }
 
 /** 单人车道高度（px）——保持原有观感 */
@@ -336,42 +349,34 @@ export default function RoleTimeline({
     return spans;
   }, [legs, projectStart, totalDays, lastVisitedIdx, todayPct]);
 
-  // 省带标签落位：row 0 画在条内（原来的样子）；这一段放不下这个名字（窄省只有几像素宽，
-  // 或与邻居挨得比字还紧）就上移一行，用 1px 引线连回自己那一段。真实日期比例下
-  // 「蒙/吉/黑/吉/辽」这种连续短省必然要错位，否则名字会互相压住。
+  // 省带标签落位：所有省名都在条内同一行，不上移。条是相连的一整条，所以标签不被
+  // 自己的段裁剪——窄段的标签横向滑到邻居段的空白处（8 月「蒙/京/黑/吉/辽」连续
+  // 1–3 天的短省按真实日期比例挤在 ~100px 里，向左右的晋/津宽段借位排开）。
+  // 每个标签尽量对准自己段的中心，防碰撞只往右推。
   const legLabels = useMemo(() => {
-    const map = new Map<number, { row: number; leftPct: number; centerPct: number }>();
-    const rowEnds: number[] = [];
+    const map = new Map<number, { leftPct: number; centerPct: number }>();
     const pxToPct = (px: number) => (axisWidthPx > 0 ? (px / axisWidthPx) * 100 : 0);
+    const gapPct = pxToPct(3);
+    let prevRight = Number.NEGATIVE_INFINITY; // 上一个标签占到的右缘
 
     legs.forEach((leg, i) => {
       const span = legSpans.get(i);
       if (!span) return;
       const ascii = /^[\x20-\x7f]+$/.test(leg.label);
-      const labelPct = pxToPct(leg.label.length * (ascii ? 7 : 11) + 4);
+      const textPct = pxToPct(leg.label.length * (ascii ? 8 : 12) + 4);
       const centerPct = (span.startPct + span.endPct) / 2;
-      const widthPct = span.endPct - span.startPct;
-      const leftPct = Math.max(0, Math.min(100 - labelPct, centerPct - labelPct / 2));
-
-      let row = -1;
-      for (let r = 0; r < LEG_LABEL_MAX_ROWS; r++) {
-        const fitsInBar = r !== 0 || widthPct >= labelPct + 0.2;
-        if (fitsInBar && (rowEnds[r] ?? Number.NEGATIVE_INFINITY) <= leftPct) {
-          row = r;
-          break;
-        }
-      }
-      // 行都用满了（极少见）就叠在最后一行
-      if (row === -1) row = Math.min(rowEnds.length, LEG_LABEL_MAX_ROWS - 1);
-      rowEnds[row] = Math.max(rowEnds[row] ?? Number.NEGATIVE_INFINITY, leftPct + labelPct);
-      map.set(i, { row, leftPct, centerPct });
+      const leftPct = Math.min(
+        Math.max(centerPct - textPct / 2, prevRight + gapPct, 0),
+        100 - textPct,
+      );
+      prevRight = Math.max(prevRight, leftPct + textPct);
+      map.set(i, { leftPct, centerPct });
     });
 
-    // row 0（条内）不额外占高，其余每行 +LEG_LABEL_ROW_H
-    return { map, extraRows: Math.max(0, rowEnds.length - 1) };
+    return { map };
   }, [legs, legSpans, axisWidthPx]);
 
-  const legBandHeightPx = LEG_BAND_BAR_H + legLabels.extraRows * LEG_LABEL_ROW_H;
+  const legBandHeightPx = LEG_BAND_BAR_H;
 
   // The leg the journey is currently in — its column carries down through the lanes
   const currentLegIdx = useMemo(() => {
@@ -529,47 +534,13 @@ export default function RoleTimeline({
 
                   {legs.length > 0 && (
                     <div className="relative mb-3" style={{ height: legBandHeightPx }}>
-                      {/* 标签层：条内放不下的窄省上移一行，1px 引线指回自己那一段 */}
-                      {legs.map((leg, i) => {
-                        const placement = legLabels.map.get(i);
-                        if (!placement || placement.row === 0) return null;
-                        const isCurrent = i === currentLegIdx;
-                        return (
-                          <div
-                            key={`label-${leg.key}-${leg.startDate}`}
-                            className="absolute pointer-events-none"
-                            style={{
-                              left: `${placement.leftPct}%`,
-                              top: (legLabels.extraRows - placement.row) * LEG_LABEL_ROW_H,
-                            }}
-                          >
-                            <span
-                              className={`text-[10px] leading-none whitespace-nowrap ${
-                                isCurrent
-                                  ? 'font-semibold text-neutral-800'
-                                  : leg.planned
-                                    ? 'font-medium text-neutral-400'
-                                    : 'font-medium text-neutral-500'
-                              }`}
-                            >
-                              {leg.label}
-                            </span>
-                            <span
-                              className="absolute left-1/2 top-full w-px bg-neutral-200"
-                              style={{ height: placement.row * LEG_LABEL_ROW_H }}
-                            />
-                          </div>
-                        );
-                      })}
-
-                      {/* 省带条：真实日期比例（窄段以真实中心为准对称撑开） */}
+                      {/* 省带条：真实日期比例，段与段相连成一整条（窄段以真实中心为准对称撑开） */}
                       <div
-                        className="absolute inset-x-0 bottom-0"
+                        className="absolute inset-x-0 bottom-0 overflow-hidden rounded-md"
                         style={{ height: LEG_BAND_BAR_H }}
                       >
                         {legs.map((leg, i) => {
                           const isCurrent = i === currentLegIdx;
-                          const placement = legLabels.map.get(i);
                           // 真实日期比例（含已排定的段；窄段已对称撑开，见 expandShortLegSpans）
                           const span = legSpans.get(i);
                           const startPct = span?.startPct ?? 0;
@@ -580,7 +551,9 @@ export default function RoleTimeline({
                               title={leg.fullName}
                               data-route-leg-start-date={leg.startDate}
                               data-route-leg-planned={leg.planned ? 'true' : 'false'}
-                              className={`absolute inset-y-0 flex items-center justify-center overflow-hidden rounded-sm ${
+                              className={`absolute inset-y-0 ${
+                                i > 0 ? 'border-l border-white' : ''
+                              } ${
                                 isCurrent
                                   ? 'bg-brand/25'
                                   : leg.planned
@@ -588,24 +561,37 @@ export default function RoleTimeline({
                                     : 'bg-neutral-100'
                               }`}
                               style={{
-                                left: `calc(${startPct}% + 1px)`,
-                                width: `calc(${endPct - startPct}% - 2px)`,
+                                left: `${startPct}%`,
+                                width: `${endPct - startPct}%`,
                               }}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      {/* 标签层：所有省名在条内同一行，不被段裁剪；窄段的标签横向滑到邻居空白处 */}
+                      <div
+                        className="absolute inset-x-0 bottom-0 pointer-events-none"
+                        style={{ height: LEG_BAND_BAR_H }}
+                      >
+                        {legs.map((leg, i) => {
+                          const placement = legLabels.map.get(i);
+                          if (!placement) return null;
+                          const isCurrent = i === currentLegIdx;
+                          return (
+                            <span
+                              key={`label-${leg.key}-${leg.startDate}`}
+                              className={`absolute top-1/2 -translate-y-1/2 text-[11px] whitespace-nowrap ${
+                                isCurrent
+                                  ? 'font-semibold text-neutral-800'
+                                  : leg.planned
+                                    ? 'font-medium text-neutral-400'
+                                    : 'font-medium text-neutral-600'
+                              }`}
+                              style={{ left: `${placement.leftPct}%` }}
                             >
-                              {placement?.row === 0 && (
-                                <span
-                                  className={`text-[10px] whitespace-nowrap ${
-                                    isCurrent
-                                      ? 'font-semibold text-neutral-800'
-                                      : leg.planned
-                                        ? 'font-medium text-neutral-400'
-                                        : 'font-medium text-neutral-500'
-                                  }`}
-                                >
-                                  {leg.label}
-                                </span>
-                              )}
-                            </div>
+                              {leg.label}
+                            </span>
                           );
                         })}
                       </div>
