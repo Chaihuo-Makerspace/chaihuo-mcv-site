@@ -121,6 +121,8 @@ function expandShortLegSpans(rawSpans: LegSpan[], minPct: number): LegSpan[] {
 
 /** 单人车道高度（px）——保持原有观感 */
 const LANE_SINGLE_ROW_H = 80;
+/** 单独显示的头像保持醒目；只有竖排簇使用较小头像 */
+const SINGLE_AVATAR = 36;
 /** 「一起在车」的人上下错开时的行距（px） */
 const CLUSTER_STEP = 34;
 /** 错开时的头像直径（px）；单独在车仍是 32 */
@@ -650,6 +652,9 @@ export default function RoleTimeline({
                               // 任期重叠且上车日期接近的人只在竖直方向错开；横坐标保留真实日期
                               const avatarOffset = layout?.offsetOf.get(seg.id) ?? 0;
                               const inCluster = (layout?.clusterSizeOf.get(seg.id) ?? 1) > 1;
+                              // 奇数人数的中间头像落在 bar 中线上；姓名移到半行空档，避免压在线上。
+                              const clusterNameOffset =
+                                inCluster && avatarOffset === 0 ? CLUSTER_STEP / 2 : 0;
                               const solidEndPct =
                                 isCurrentTerm && todayPct !== null
                                   ? Math.min(endPct, todayPct)
@@ -696,6 +701,8 @@ export default function RoleTimeline({
                                   key={seg.id}
                                   title={segmentTitle}
                                   data-timeline-start-date={seg.startDate}
+                                  data-timeline-crew-id={seg.crewId}
+                                  data-timeline-clustered={inCluster ? 'true' : 'false'}
                                   className="absolute -translate-y-1/2 h-7 group"
                                   style={{
                                     left: `${startPct}%`,
@@ -705,9 +712,13 @@ export default function RoleTimeline({
                                 >
                                   {/* Bar — 已排定的未来任期：淡黄底，表示还没上车 */}
                                   {isFutureTerm ? (
-                                    <div className="absolute inset-y-2 left-0 right-0 rounded-full bg-brand/15" />
+                                    <div
+                                      data-timeline-bar
+                                      className="absolute inset-y-2 left-0 right-0 rounded-full bg-brand/15"
+                                    />
                                   ) : (
                                     <div
+                                      data-timeline-bar
                                       className={`absolute inset-y-2 left-0 rounded-full ${
                                         isPastTerm
                                           ? 'bg-neutral-300'
@@ -745,19 +756,19 @@ export default function RoleTimeline({
 
                                   {/* Avatar + 名字：同一批一起上车的人上下错开；横条仍在同一条线上 */}
                                   <div
-                                    className="absolute left-0"
+                                    className="absolute left-0 z-30"
                                     style={{ top: `calc(50% + ${avatarOffset}px)` }}
                                   >
                                     <div
                                       className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 rounded-full overflow-hidden ring-2 ring-white bg-neutral-100 ${
-                                        inCluster ? 'w-6 h-6' : 'w-8 h-8'
+                                        inCluster ? 'w-6 h-6' : 'w-9 h-9'
                                       }`}
                                     >
                                       <img
                                         src={seg.avatarThumb}
                                         alt={seg.name}
-                                        width={inCluster ? CLUSTER_AVATAR : 32}
-                                        height={inCluster ? CLUSTER_AVATAR : 32}
+                                        width={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
+                                        height={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
                                         className="w-full h-full object-cover"
                                         style={
                                           seg.crewId === 'ye-kaiwei'
@@ -772,15 +783,20 @@ export default function RoleTimeline({
 
                                     {/* Name label — muted for alumni segments */}
                                     <div
-                                      className={`absolute whitespace-nowrap pl-1 ${
-                                        inCluster ? '-translate-y-1/2 text-[10px]' : 'text-[11px]'
+                                      data-timeline-name
+                                      className={`absolute whitespace-nowrap ${
+                                        inCluster
+                                          ? '-translate-y-1/2 rounded-sm bg-surface-card/90 px-1 py-0.5 text-[10px]'
+                                          : 'pl-1 text-[11px]'
                                       } ${
                                         isCurrentTerm
                                           ? 'font-medium text-neutral-700'
                                           : 'text-neutral-400'
                                       }`}
                                       style={
-                                        inCluster ? { left: 14, top: 0 } : { left: 0, top: 18 }
+                                        inCluster
+                                          ? { left: 14, top: clusterNameOffset }
+                                          : { left: 0, top: 20 }
                                       }
                                     >
                                       {seg.name}
