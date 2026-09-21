@@ -69,6 +69,40 @@ test('clustered crew names do not overlap the role bar', async ({ page }) => {
   }
 });
 
+test('clustered avatars paint above overlapping sibling bars', async ({ page }) => {
+  await installHarnessGuards(page);
+  await gotoRoute(page, { name: 'home-zh', path: '/', locale: 'zh' });
+  await settleForVisual(page);
+
+  const clusteredSegments = page.locator('[data-timeline-clustered="true"]');
+  const count = await clusteredSegments.count();
+  expect(count).toBeGreaterThan(0);
+
+  for (let i = 0; i < count; i++) {
+    const segment = clusteredSegments.nth(i);
+    const crewId = await segment.getAttribute('data-timeline-crew-id');
+    const img = segment.locator('img').first();
+    await img.scrollIntoViewIfNeeded();
+    const box = await img.boundingBox();
+    expect(box).not.toBeNull();
+    const x = (box?.x ?? 0) + (box?.width ?? 0) / 2;
+    const y = (box?.y ?? 0) + (box?.height ?? 0) / 2;
+
+    // 头像中心命中的最上层元素必须属于本段，而不是同车道后渲染兄弟段的黄条
+    const topCrewId = await page.evaluate(
+      ({ x: px, y: py }) =>
+        document
+          .elementFromPoint(px, py)
+          ?.closest('[data-timeline-crew-id]')
+          ?.getAttribute('data-timeline-crew-id') ?? null,
+      { x, y },
+    );
+    expect
+      .soft(topCrewId, `clustered crew ${crewId ?? i} avatar should paint above sibling bars`)
+      .toBe(crewId);
+  }
+});
+
 test('single crew avatars stay larger than vertically stacked avatars', async ({ page }) => {
   await installHarnessGuards(page);
   await gotoRoute(page, { name: 'home-zh', path: '/', locale: 'zh' });

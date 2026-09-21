@@ -696,6 +696,10 @@ export default function RoleTimeline({
                                   : ''
                               }`;
 
+                              // 不能用 -translate-y-1/2 居中：transform 会让段容器成为堆叠上下文，
+                              // 把头像的 z-30 困在本段内，同日上车、后渲染的兄弟段（如葛子涵）的
+                              // 黄条会盖住中间成员（潘石）的头像。改用 top 直接定位（h-7 = 28px，
+                              // 半高 14），头像的 z-30 在车道层面生效，始终压过同车道的黄条。
                               return (
                                 <div
                                   key={seg.id}
@@ -703,11 +707,11 @@ export default function RoleTimeline({
                                   data-timeline-start-date={seg.startDate}
                                   data-timeline-crew-id={seg.crewId}
                                   data-timeline-clustered={inCluster ? 'true' : 'false'}
-                                  className="absolute -translate-y-1/2 h-7 group"
+                                  className="absolute h-7 group"
                                   style={{
                                     left: `${startPct}%`,
                                     width: `${widthPct}%`,
-                                    top: railTop,
+                                    top: railTop - 14,
                                   }}
                                 >
                                   {/* Bar — 已排定的未来任期：淡黄底，表示还没上车 */}
