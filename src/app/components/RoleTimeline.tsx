@@ -70,9 +70,6 @@ function formatShortDate(iso: string, locale: 'zh' | 'en'): string {
   return `${d.getUTCMonth() + 1}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
 
-/** Minimum gap as % of timeline width to keep two avatars + labels from overlapping */
-const MIN_GAP_PCT = 4;
-
 /** Minimum width for a dated leg so the province label + borders stay readable */
 const MIN_LEG_PCT = 2.5;
 
@@ -136,23 +133,18 @@ interface LaneLayout {
   offsetOf: Map<string, number>;
   /** 段 id → 所在批次的人数（1 = 单独在车） */
   clusterSizeOf: Map<string, number>;
-  /** 段 id → 横向视觉起点（%）；同批人对齐到同一个 x */
-  visualStarts: Map<string, number>;
   /** 车道高度（px）：单人 80，一批人上下错开时按批大小略微撑开 */
   laneHeight: number;
 }
 
 /**
  * 同一角色同期多人此前被 4% 的防重叠间距一格一格往右推，头像+名字串成一条斜线。
- * 现在：一起上车的一批人（李世雯/潘石/葛子涵 同为 9-16 杭州上车）共用同一个 x，
- * 横条仍画在同一条线上，只在竖直方向上下错开；车道只按批大小略微撑开
- * （3 人 = 100px，不是三倍高度）。
+ * 现在：任期重叠且上车日期接近的人只在竖直方向错开，横坐标始终由各自真实
+ * 上车日期决定。同日上车的李世雯/潘石/葛子涵天然共用同一个 x；10-08 上海
+ * 上车的叶雨与 10-15 无锡上车的关乃莹虽然上下错开，仍分别对齐各自的计划站点。
+ * 车道只按批大小略微撑开（3 人 = 100px，不是三倍高度）。
  */
-function computeLaneLayout(
-  segments: Segment[],
-  projectStart: string,
-  totalDays: number,
-): LaneLayout {
+function computeLaneLayout(segments: Segment[]): LaneLayout {
   const sorted = [...segments].sort((a, b) => a.startDate.localeCompare(b.startDate));
   const clusters: Segment[][] = [];
   let clusterStart = '';
@@ -176,9 +168,7 @@ function computeLaneLayout(
 
   const offsetOf = new Map<string, number>();
   const clusterSizeOf = new Map<string, number>();
-  const visualStarts = new Map<string, number>();
   let laneHeight = LANE_SINGLE_ROW_H;
-  let lastOccupied = -Infinity;
 
   for (const cluster of clusters) {
     const size = cluster.length;
@@ -189,15 +179,9 @@ function computeLaneLayout(
     if (size > 1) {
       laneHeight = Math.max(laneHeight, (size - 1) * CLUSTER_STEP + CLUSTER_AVATAR + 8);
     }
-
-    // 同批人对齐到同一个起点（不再左右错开）；不同批之间沿用 4% 防重叠间距
-    const actualStart = pctOf(cluster[0].startDate, projectStart, totalDays);
-    const visualStart = Math.max(actualStart, lastOccupied);
-    for (const seg of cluster) visualStarts.set(seg.id, visualStart);
-    lastOccupied = visualStart + MIN_GAP_PCT;
   }
 
-  return { offsetOf, clusterSizeOf, visualStarts, laneHeight };
+  return { offsetOf, clusterSizeOf, laneHeight };
 }
 
 export default function RoleTimeline({
@@ -278,10 +262,10 @@ export default function RoleTimeline({
   const laneLayout = useMemo(() => {
     const result = new Map<string, LaneLayout>();
     for (const [role, segs] of segmentsByRole) {
-      result.set(role, computeLaneLayout(segs, projectStart, totalDays));
+      result.set(role, computeLaneLayout(segs));
     }
     return result;
-  }, [segmentsByRole, projectStart, totalDays]);
+  }, [segmentsByRole]);
 
   // Role key → localized label lookup
   const roleLabel = useMemo(() => {
@@ -592,6 +576,8 @@ export default function RoleTimeline({
                             <div
                               key={`${leg.key}-${leg.startDate}`}
                               title={leg.fullName}
+                              data-route-leg-start-date={leg.startDate}
+                              data-route-leg-planned={leg.planned ? 'true' : 'false'}
                               className={`absolute inset-y-0 flex items-center justify-center overflow-hidden rounded-sm ${
                                 isCurrent
                                   ? 'bg-brand/25'
@@ -631,8 +617,6 @@ export default function RoleTimeline({
                       const layout = laneLayout.get(role.key);
                       const laneHeight = layout?.laneHeight ?? LANE_SINGLE_ROW_H;
                       const railTop = laneHeight / 2;
-                      const visualStarts = layout?.visualStarts;
-
                       return (
                         <div
                           key={role.key}
@@ -648,8 +632,7 @@ export default function RoleTimeline({
                           {/* Segments */}
                           <div className="relative w-full h-full">
                             {laneSegments.map((seg) => {
-                              const actualStartPct = pctOf(seg.startDate, projectStart, totalDays);
-                              const startPct = visualStarts?.get(seg.id) ?? actualStartPct;
+                              const startPct = pctOf(seg.startDate, projectStart, totalDays);
                               const endPctRaw = seg.endDate
                                 ? pctOf(seg.endDate, projectStart, totalDays)
                                 : (todayPct ?? startPct + 0.5);
@@ -664,7 +647,7 @@ export default function RoleTimeline({
                                 : seg.endDate !== null;
                               const isFutureTerm = hasToday && seg.startDate > todayIso;
                               const isCurrentTerm = !isPastTerm && !isFutureTerm;
-                              // 一起上车的一批人：共用同一个 x，只在竖直方向上下错开
+                              // 任期重叠且上车日期接近的人只在竖直方向错开；横坐标保留真实日期
                               const avatarOffset = layout?.offsetOf.get(seg.id) ?? 0;
                               const inCluster = (layout?.clusterSizeOf.get(seg.id) ?? 1) > 1;
                               const solidEndPct =
@@ -712,6 +695,7 @@ export default function RoleTimeline({
                                 <div
                                   key={seg.id}
                                   title={segmentTitle}
+                                  data-timeline-start-date={seg.startDate}
                                   className="absolute -translate-y-1/2 h-7 group"
                                   style={{
                                     left: `${startPct}%`,

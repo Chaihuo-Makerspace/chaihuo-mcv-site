@@ -20,5 +20,6 @@
 - Astro 图片 import 传入 React 后可能不是字符串；沿用现有兼容提取方式获得 `.src`。
 - `HomeContent.tsx` 中 `react-slick` 的嵌套 `default` 处理是 Vite/CJS 兼容代码，保持该写法。
 - 当前站点状态、城市数和路线进度从 stop 数据计算，不写进组件常量或翻译字符串。
+- `RoleTimeline` 的省份带与人员任期共享真实日期轴。人员横坐标始终来自自己的 `boardedAt.date`；头像防碰撞只做纵向错开，不能把相近日期合并成同一个视觉起点。
 
 复杂地图 UI 属于 `src/features/route-map/`，同时遵守该目录的 `AGENTS.md`。
