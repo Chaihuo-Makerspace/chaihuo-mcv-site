@@ -1,188 +1,96 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+柴火基地车官网（普罗米修斯号）是 Astro 7 SSR + React 19 Islands 的中英双语站点。中文路由无前缀，英文路由位于 `/en/`。包管理器只用 `pnpm`。
 
-## Project Overview
+## 开始工作
 
-柴火基地车官网 (Chaihuo MCV Site) — a bilingual (zh/en) marketing website for Chaihuo's mobile AI laboratory vehicle "普罗米修斯号". Astro SSR site with route map, journals, and Content Collections for structured data.
+1. 先运行 `git status --short --branch`，保留现有改动；找到目标文件所在目录中最近的 `AGENTS.md` 并阅读。
+2. 从数据源追到页面：数据/Content Collection → `.astro` 装配与本地化 → React Island。先确认权威数据源，再改展示层。
+3. UI 改动先读 `docs/DESIGN.md`；路线、当前位置、站点、日记城市或场景分类改动先读 `docs/deployment-yuque-sync.md`。
+4. 做满足需求的最小完整改动。中文和英文、schema 和消费者、桌面和移动端必须一起考虑。
+5. 按 `docs/ai-iteration.md` 的改动矩阵验证；报告执行过的检查和仍存在的限制。
 
-**Location / journal city is locked.** Do not re-home Yuque journals, patch `yuque-journals.json` `city`, or invent arrivals from poetic titles. See **Hard locks: route location and journal city**.
+完成标准：目标行为已实现，权威数据源正确，中英入口一致，相关检查通过，工作区没有被顺带格式化或覆盖的无关改动。
 
-## Commands
+## 代码地图与局部规则
 
-- `pnpm dev` — start Astro dev server
-- `pnpm check` — run content/reference validation and Astro type diagnostics
-- `pnpm smoke` — run browser route smoke tests against production preview
-- `pnpm audit:ui` — run lightweight UI/accessibility semantics audit
-- `pnpm visual` — capture desktop/mobile screenshots and verify visual substance, overflow, and runtime errors
-- `pnpm harness` — run `pnpm check` and the full Playwright harness
-- `pnpm run images:covers|avatars|heroes|deconstruct` — regenerate image derivatives; all run automatically inside `pnpm dev` and `pnpm build` (details: `docs/image-derivatives.md`)
-- `pnpm build` — run checks, generate image derivatives, then production build (Node standalone)
-- `pnpm build:astro` — raw Astro build without the pre-build check wrapper
-- `pnpm preview` — preview production build locally
-- `pnpm start` — run production server (`node ./dist/server/entry.mjs`)
-- `./deploy.sh` — Docker build + deploy (one command)
+| 范围 | 职责 | 修改前读取 |
+|---|---|---|
+| `src/pages/` | Astro 路由、数据装配、SEO、zh/en 镜像 | `docs/agent-pages.md` |
+| `src/app/components/` | 页面 React Islands、共享交互组件 | `src/app/components/AGENTS.md` |
+| `src/features/route-map/` | 路线地图、站点装配、投影、时间轴 | `src/features/route-map/AGENTS.md` |
+| `src/content/` | 手写 Markdown、站点与遇见的人 | `src/content/AGENTS.md` |
+| `src/data/` | JSON 数据、生成物与人工数据 | `src/data/AGENTS.md` |
+| `scripts/` | 校验、同步、图片派生脚本 | `scripts/AGENTS.md` |
+| `tests/harness/` | Playwright smoke、语义和视觉检查 | `tests/harness/AGENTS.md` |
 
-**pnpm only.** Do not use `npm` or `yarn`. `.npmrc` sets `legacy-peer-deps=true` for React 19 compatibility.
+其他关键入口：
 
-No unit test framework or linter is configured. Use `pnpm check` as the main non-browser issue-discovery command, and `pnpm harness` when a change affects rendered behavior.
+- `src/content.config.ts`：Astro Content Collections schema，必须位于此路径；从 `astro/zod` 导入 `z`，从 `astro/loaders` 导入 loader。
+- `src/i18n/`：页面与共享翻译字典；`src/i18n/index.ts` 提供 `Locale`、`localize()`、`localePath()`。
+- `src/styles/theme.css`：设计令牌的单一事实来源；Tailwind v4 配置也在 CSS 中，没有 `tailwind.config`。
+- `src/app/components/ui/`：shadcn/Radix 基础组件，视为上游代码且不手工修改；业务样式和行为放在调用方。
+- `docs/CHANGELOG.md`：已完成的重要功能记录；不要把变更日志堆进本文件。
 
-## Architecture
+## 全局不变量
 
-**Stack:** Astro 7 + React 19 (Islands) + TypeScript + Tailwind CSS 4 + shadcn/ui (Radix) + Framer Motion
+### 数据权威
 
-**Deployment:** Node.js standalone via `@astrojs/node` adapter. Docker (`Dockerfile` + `docker-compose.yml`). GitHub push triggers Jenkins deploy through repository webhook job `chaihuo-chaihuo-mcv-site`. Runbook: `docs/deployment-yuque-sync.md`.
+- `src/data/live-videos.json` 来自飞书 Base，`src/data/yuque-journals.json` 来自语雀；两者是同步产物。内容修正应修改外部源或同步映射，生成物只可由同步流程重写。
+- 人工数据（如 `team.json`、`equipment.json`、`faq.json`、override 文件和 `src/content/stops/`）在仓库中维护。
+- 新字段要形成完整链路：权威源/schema → 装配或同步 → 类型/组件 → zh/en → 校验。
 
-**Live (`/live` + `/live/admin`):** A second compose service `capture` snapshots the EZVIZ onboard camera every `LIVE_INTERVAL_MINUTES` (default 3) into bind-mounted `./data/live`, groups near-identical frames by dHash, and prunes by `LIVE_KEEP_DAYS` (default 30); missing credentials park the container so deploys never fail. `/live` is a public, in-nav, indexed page (zh/en) with the live frame + 「一路上」 featured carousel. `/live/admin` (zh-only, noindex) is the members' backend behind `LIVE_ADMIN_PASSWORD` (HMAC cookie session, login rate-limited): archive browser with similar-frame folding, featured curation, recycle bin, original downloads. The web side only reads `LIVE_DATA_DIR` and never sees EZVIZ credentials. Full details: `docs/live-capture.md`; spec: `docs/superpowers/specs/2026-08-04-live-redesign-design.md`.
+### 路线位置与日记归属硬锁
 
-**Routing:** Astro file-based routing in `src/pages/`. Chinese is default (no prefix), English under `/en/`:
-- `/` `/en/` → Home (hero carousel, video modal, China route map SVG, mobile lab cards)
-- `/journals` `/en/journals` → Journals (city journal list, filters, detail pages)
-- `/route` `/en/route` → Route (interactive China map, city panels, linked journals)
-- `/deconstruct` `/en/deconstruct` → Deconstruct (modification logs, equipment list)
-- `/guide` `/en/guide` → Guide (participation guide, FAQ accordion, team)
-- `/about` `/en/about` → About (Chaihuo history timeline, GSAP scroll-driven)
-- `/live` `/en/live` → Live (public onboard-camera view, in nav, indexed)
-- `/live/admin` → Members' backend (zh-only, `noindex`)
+- 首页“位于”和地图黄点取 `order` 最大、`visited: true` 且非 `routeOnly` 的官方 stop；没有独立的 current-city 字段。移动位置要更新 stop，不在组件或 i18n 中硬编码城市和计数。
+- 已由人工标为 `visited: true` 的 stop 保持已访问；`routeOnly` 只表示途经点，不计入城市数和当前位置。
+- 已匹配的语雀日记城市是 sticky。不要根据诗意标题、正文或新增站点重新推断城市。
+- 用户明确指定日记归属时，按 `docs/deployment-yuque-sync.md` 同时维护 `journal-city-overrides.json` 和即时展示值；不要批量重排。
+- 日记 `category` 只用 `src/lib/scenes.mjs` 的 `science | industry | maker | education`，人工 pin 写入 `journal-category-overrides.json`，不从标题推断。
+- 除非用户明确要求更改锁本身，不改城市锁解析、overlay 和校验逻辑。
 
-**React Islands pattern:** Each Astro page renders a `*Content.tsx` React component with `client:load` or `client:visible`. Data is fetched in `.astro` frontmatter (via `getCollection()` or JSON import), localized, then passed as props.
+### 国际化与页面结构
 
-**Path alias:** `@` maps to `src/` (in `astro.config.mjs`)
+- 面向访客的新文案同时加入相关 `src/i18n/*.ts` 的 zh/en 字典；JSON 双语字段使用 `_en`，在 `.astro` 装配层通过 `localize()` 选择。
+- 公共中文页面在 `src/pages/`，英文镜像在 `src/pages/en/`。增加或删除公共路由时同步两边并更新导航、alternate URL、sitemap 与 smoke 覆盖。
+- `.astro` 负责数据读取、本地化和精简 props；React Island 负责交互。不要让组件自行重复读取同一份内容数据。
 
-## i18n System
+### UI 与实现
 
-**Config:** `astro.config.mjs` has `i18n: { defaultLocale: 'zh', locales: ['zh', 'en'], routing: { prefixDefaultLocale: false } }`
+- 使用 `theme.css` 已定义的 `brand`、`surface-*`、`neutral-*` 等令牌；不用硬编码页面颜色或 Tailwind `gray-*`。品牌黄只作小面积强调。
+- 页面内容列使用 `.page-rail`；例外是阅读页、全幅地图和后台，详见 `docs/DESIGN.md`。
+- 图标使用 Lucide React；交互元素具备可访问名称、`cursor-pointer` 和 `transition-colors duration-200`。
+- 动效复用 `src/app/components/motion.tsx`，尊重 `prefers-reduced-motion`；全页最多一个循环状态动画。
+- 空字段整块不渲染；“待补充 / To be updated”等占位内容不能进入公共 UI。
 
-**Translation dictionaries:** `src/i18n/` — one file per page + shared UI:
-- `index.ts` — `Locale` type, `getLangFromUrl()`, `t()`, `localize()`, `localePath()`, `getAlternateUrl()`
-- `ui.ts` — nav, footer, site-wide strings
-- `home.ts`, `journals.ts`, `route.ts`, `deconstruct.ts`, `guide.ts`, `about.ts` — page-specific strings
+## 常见陷阱
 
-Each dict exports `Record<Locale, Record<string, string>>`. Astro pages select the dict by locale and pass it as `t` prop to React Islands.
+- `react-slick` 是 CJS，沿用 `HomeContent.tsx` 现有的嵌套 `default` 兼容写法。
+- React 组件中的 Astro 图片 import 可能是 `{ src, width, height }`，传给 DOM 前提取 `.src`。
+- Astro 7 的 JSX HTML 压缩会移除内联元素之间的源码空白；需要空格时写显式 `{' '}`。Rust 编译器不会替你修复无效嵌套。
+- Docker 固定 `pnpm@11.5.0`。workspace/lockfile 变更用同版本生成和验证。
+- 生产由 Tengine/CDN + Jenkins 发布；排查线上陈旧版本时读 `docs/deployment-yuque-sync.md`，不要把 Cloudflare Workers/Pages 检查当作部署结果。
 
-**JSON data bilingualization:** JSON files in `src/data/` use `_en` suffix fields (`title_en`, `name_en`, `bio_en`, etc.). Use `localize(obj, ['field1', 'field2'], locale)` from `src/i18n/index.ts` to pick the right field before passing to React.
+## 命令
 
-**English routes:** `src/pages/en/` mirrors the Chinese pages. Each English page is self-contained (not a thin wrapper) — it imports dicts, localizes data, and renders with the same React Islands.
-
-**To add a new translatable string:**
-1. Add zh/en entries to the relevant `src/i18n/*.ts` dict
-2. Reference via `t['key.name']` in the React component
-
-**To add a new `_en` field to JSON data:**
-1. Add the field to the JSON file
-2. Add the optional field to the schema in `src/content.config.ts`
-3. Use `localize()` in the `.astro` page frontmatter
-
-## Content Layer
-
-- `src/content.config.ts` — Collection schemas (Zod). Collections: `notes`, `journals`, `equipment`, `team`, `faq`, `partners`, `heroes`
-- `src/content/notes/*.md` — 改装手记 (modification logs)
-- `src/content/journals/*.md` — 旅途日记 (travel journals)
-- `src/data/*.json` — Structured data: equipment, team, faq, partners, heroes, timeline
-
-Schema validation runs at build time — type errors will fail the build.
-
-`scripts/validate-site.mjs` runs before build through `pnpm check` and validates cross-file references that Astro schemas cannot see: i18n key parity, zh/en page mirrors, route city IDs, team IDs, equipment IDs, public image paths, journal references, and boarding handoffs.
-
-`playwright.config.ts` and `tests/harness/` provide AI self-iteration browser checks:
-- `smoke.spec.ts` verifies core zh/en routes, published journal detail routes, and legacy documentation redirects.
-- `ui-audit.spec.ts` verifies document language, landmarks, visible h1, image alt text, interactive accessible names, and link-name consistency.
-- `visual.spec.ts` captures screenshots, checks text/layout substance, mobile/desktop overflow, runtime errors, and verifies the deconstruct page does not render the removed vehicle canvas.
-
-See `docs/ai-iteration.md` for the recommended AI change loop.
-
-**Content Collections (Astro 7):** Config file must be at `src/content.config.ts` (NOT `src/content/config.ts`). Import `z` from `astro/zod`, loaders from `astro/loaders`.
-
-## Styling
-
-- Tailwind CSS v4 via `@tailwindcss/vite` — **no `tailwind.config` file**; all config in CSS via `@theme inline` in `theme.css`
-- Design tokens as CSS custom properties in `theme.css` (`:root` light, `.dark` dark mode)
-- `@theme inline { ... }` maps CSS vars to Tailwind tokens (`--color-*`, `--radius-*`)
-- Animation: `tw-animate-css` (CSS) + `motion` (Framer Motion JS)
-- **Color system**: Brand `brand` (#f3d230) as a small-area accent only (deep variant `brand-dark` for emphasis text/completed route), surfaces `surface`/`surface-card`/`surface-dark`/`surface-warm` (+`surface-warm-border`, 暖纸底人物/照片条), full neutral ramp `neutral-950`~`neutral-50` (all defined in `theme.css`; undefined shades silently do nothing)
-- **Use `text-brand`, `bg-surface`, `text-neutral-700` etc. — avoid hardcoded hex or Tailwind gray-xxx**
-
-## Design System
-
-设计规则分三档,详见 `docs/DESIGN.md`,可视化对照页 `/elements`(中)/ `/en/elements`(英)。**开发任何功能(尤其全新功能)前先对照这三档:**
-
-- **🔒 不可破(Invariants):** 颜色/字号/圆角/间距令牌(源:`src/styles/theme.css`)、探险黄只做小面积强调(60-30-10 已废弃)、全页循环动画 ≤1 个、占位内容不外露、`prefers-reduced-motion` 与对比度无障碍底线、中英对等。永远用 `text-brand`/`bg-surface` 等令牌,不硬编码 hex、不用 gray-xxx;中性色只用 `theme.css` 已定义的档位(不存在的档位静默不生效)。
-- **🧭 要领会延续(Principles):** 黄是点睛不是底色、视觉焦点即叙事(当前位置一眼可得)、地图/数据可视化用暖纸底+明度阶梯(不做冷灰也不做同饱和度黄褐)、高级克制动效、中文优先英文对等、内容即主体结构扁平。给全新功能(如地图类)用——结构可不同,气质要一致。
-- **🎨 自由发挥(Open):** 已有模式(卡片/手风琴/时间线/轮播/地图 feature)仅作参考,`DESIGN.md` 附真实反例清单(黄土地图/HUD 套娃/占位符外露等),新功能可大胆偏离,只要守住前两档、不踩反例。
-
-新功能开发流程:先列本次涉及的 🔒 令牌确保零硬编码 → 想清楚如何延续 🧭 → 复用或自由设计 🎨。
-
-## Gotchas
-
-**CJS interop:** `react-slick` is CJS. Required workaround in `HomeContent.tsx`:
-```typescript
-import ReactSlick from 'react-slick';
-const Slider = ('default' in ReactSlick ? (ReactSlick as any).default : ReactSlick) as typeof ReactSlick;
+```bash
+pnpm dev          # 派生图片后启动开发服务器
+pnpm check        # Biome + 内容引用校验 + Astro/TypeScript
+pnpm smoke        # 核心 zh/en 路由
+pnpm audit:ui     # 语义和可访问性
+pnpm visual       # 桌面/移动布局、溢出、运行时错误、截图
+pnpm harness      # check + 完整 Playwright harness
+pnpm build        # check + 图片派生 + Node standalone build
 ```
 
-**Astro image imports in React Islands:** `import img from '@/assets/foo.png'` returns `{ src, width, height }` in Astro (not a string). In React components, extract `.src`:
-```typescript
-import logoImport from '@/assets/logo.png';
-const logo = typeof logoImport === 'object' && logoImport !== null && 'src' in logoImport
-  ? (logoImport as { src: string }).src : logoImport as string;
-```
+浏览器检查默认由 Playwright 构建并在 `127.0.0.1:4322` 启动 preview。只在排查构建阶段时使用 `pnpm build:astro`；正常交付使用包含前置校验的 `pnpm build`。
 
-**Astro 7 behavior changes (from the v6 → v7 upgrade):**
-- `compressHTML` now defaults to `'jsx'`: whitespace between inline elements is stripped by JSX rules, so `<span>a</span>\n<em>b</em>` renders as `ab`. If a space goes missing between inline elements, add an explicit `{' '}` (or set `compressHTML: true` in `astro.config.mjs` to restore the v6 behavior).
-- The Rust compiler is the only compiler and is strict: unclosed non-void tags are build errors, and invalid HTML nesting (e.g. `<div>` inside `<p>`) is passed through as-is instead of being auto-corrected — check the rendered output when editing templates.
+## 按需文档
 
-**改装手记 "查看全部":** Links to external Yuque page: `https://www.yuque.com/chaihuo-mcv/home`.
-
-**Image derivatives:** large public images (Yuque covers, people avatars, hero carousel, deconstruct cards) are served through small WebP derivatives — **gitignored, rebuilt at dev/build time**, resolved in `.astro` frontmatter with an `existsSync` fallback to the original so a missing derivative degrades instead of 404-ing. Details: `docs/image-derivatives.md`.
-
-**Yuque journal sync:** `Sync Yuque Journals` GitHub Actions workflow syncs visible, publicly accessible Yuque `DOC` entries from `https://www.yuque.com/mouseart/mcv` every 10 minutes and via manual dispatch, then commits back to `main` (triggering Jenkins deploy). Inaccessible 401/403 docs are skipped. Title inference may assign `city` on first sight; after that the city is sticky, and human pins live in `src/data/journal-city-overrides.json`. Do not re-home cards from poetic titles. Journal `category` is the shared 场景 schema in `src/lib/scenes.mjs` (`science` | `industry` | `maker` | `education` = 科普/产业/创客社区/教育). `/journals` chips and `/route` map chips both read this field. New cards default to `science`; pins live in `src/data/journal-category-overrides.json`. Do not infer from titles. Do not author `themes` on stop Markdown. Details: `docs/deployment-yuque-sync.md` and **Hard locks** below.
-
-**Live videos sync:** `src/data/live-videos.json` is generated from the Feishu Base [基地车路上视频](https://seeedstudio.feishu.cn/base/EpPpbh8ndaHS1asFeCgcyp0Fnse) (table 路上视频) by `scripts/sync-live-videos.mjs` via the `Sync Live Videos` workflow (every 10 min + manual dispatch). Bilibili only (Douyin was tried and dropped — marketing publishes everything on Bilibili). No status gate: every record whose required fields are complete syncs (incomplete ones are skipped with warnings); order comes from the 排序 field (larger first), then date desc. Editors paste a Bilibili link, set 发布日期, and upload a 封面 attachment (screenshot or exported cover). Short links / tracking URLs / bare BV ids resolve to `https://www.bilibili.com/video/<BV>` and are written back to 视频链接 when the app can edit records. Covers are copied from the Base attachment (GitHub can reach Feishu; it cannot reach Bilibili's cover API). 「分类」is a multi-select; the sync reads the string array into `eyebrows` / `eyebrows_en` (EN mapped in `CATEGORY_EN`, with the Base 「分类 EN」formula as a single-tag fallback). 标题/描述 EN are filled by the Base's AI field shortcut. Do not hand-edit `live-videos.json` — edit the Base. Needs `FEISHU_APP_ID`/`FEISHU_APP_SECRET` secrets (tenant app added as a Base collaborator; record edit permission is needed to clean pasted links). The videos rail renders on the **home page** (「路上的故事」, below the map, above the partners bar) — not on `/live`.
-
-**Production deployment debugging:** Production is served through Tengine/CDN and Jenkins, not Cloudflare Workers — ignore GitHub's Cloudflare Workers/Pages check; it is not the source of truth for `mcv.chaihuo.org`. If production is stale, check GitHub webhook deliveries for the Jenkins queue item, then inspect Jenkins job `chaihuo-chaihuo-mcv-site`. See `docs/deployment-yuque-sync.md`.
-
-**Docker pnpm version:** Docker pins `pnpm@11.5.0`. Do not use `pnpm@latest` in Docker because pnpm lockfile validation can change across versions. If `pnpm-workspace.yaml` overrides change, regenerate and verify the lockfile with `corepack pnpm@11.5.0 install --lockfile-only --no-frozen-lockfile` and `corepack pnpm@11.5.0 install --frozen-lockfile --lockfile-only`.
-
-## Conventions
-
-- Content is in Simplified Chinese with English translations via i18n system
-- Each Astro page wraps a React Island `*Content.tsx` component
-- React components accept `locale` and `t` (dictionary) props for i18n
-- Icons: Lucide React SVGs only — no emoji icons in UI
-- Interactive elements must have `cursor-pointer` and `transition-colors duration-200`
-- Navigation and Footer receive `locale` prop; internal links use `localePath()` helper
-- `src/app/components/ui/` — shadcn/ui components — **do not modify manually**
-- **Data authority rule:** repo data files split into two kinds — *generated artifacts* (`src/data/live-videos.json`, `src/data/yuque-journals.json`; source of truth is the Feishu Base / Yuque, overwritten by sync, **never hand-edit**) and *human sources* (`team.json`, `equipment.json`, `faq.json`, `journal-city-overrides.json`, `journal-category-overrides.json`, stops, etc.; edited via PR as usual). Agents may freely change presentation/layout/components; for synced datasets they are read-only. Schema changes (new field) must update all three together: Feishu/Yuque column + sync script mapping + component. Location / journal-city edits follow **Hard locks** below — do not "fix" a city by patching the generated JSON.
-- **Tooling split for Feishu work:** verify/test sync behavior by running the project scripts (simulate the CI path, e.g. `node scripts/sync-live-videos.mjs`); modify Feishu docs / Base content or structure with `lark-cli` (`--as user`). Don't use lark-cli to "check" what a sync script would produce, and don't use scripts to edit Base structure.
-
-## Hard locks: route location and journal city
-
-Other agents have re-homed journals from poetic titles and hand-edited generated JSON. These rules are invariants. Do not weaken them to "help" a map mismatch. Skill: `update-route-stop`. Runbook: `docs/deployment-yuque-sync.md`.
-
-**Homepage 「位于」 / map yellow dot** = last official stop with `visited: true` and not `routeOnly`, by `order`. There is no "current city" field. Not journal `city`, not i18n copy, not `PROVINCE_VISITED`.
-
-- To move the vehicle: add or flip a stop in `src/content/stops/` (and follow that skill's sync list). Never hardcode `已出发` / `位于` / `已抵达` numbers in i18n or components.
-- Do not un-visit a stop a human set to `visited: true`.
-- `routeOnly` transit points (e.g. 秦皇岛途经点) are not cities and do not count in 「位于」 or 站数.
-
-**Journal `city`** is what map photo pins, the story river, and the arrival flipper key on. It is not a scratch field.
-
-- `src/data/yuque-journals.json` is generated. **Never hand-edit `city` as the lasting fix.** Title/date/cover may refresh; city must not be reshuffled.
-- To pin a card: edit `src/data/journal-city-overrides.json` (`<yuque-slug>: { "city": "<stop-id>", "note": "…" }`) and set the matching JSON `city` to the same id so the site is correct before the next 10-minute sync. `pnpm check` requires override city = stop id = JSON `city`.
-- After a card has a real stop id (not `yuque`), sync is **sticky**. Do not re-infer because the title changed, a new stop was added, or keywords "would be more accurate now".
-- `city: "yuque"` is the only unlocked state (still unmatched). To unlock one card for re-inference: delete its override and set JSON `city` to `yuque` — then stop. Do not batch-rewrite the file.
-- Poetic / classical titles are not place names (辞燕赴夷, 津门, 燕, 夷). Do not add a 雅称 alias table. Do not scan essay prose to invent an arrival. Do not infer 夷→山东/威海 or 燕→北京.
-
-**Journal `category`** is the shared 场景 schema in `src/lib/scenes.mjs` (科普/产业/创客社区/教育). `/journals` and `/route` both read it. New cards default to `science`. Pin in `src/data/journal-category-overrides.json`. Do not infer from titles or venue-name 场景 cells. Do not author `themes` on stop Markdown.
-
-**Do not touch these unless the user explicitly asked to change the lock itself:** `resolveSyncedCity` / `parseCityOverrides` in `scripts/lib/yuque-journal-sync.mjs`, the overlay in `scripts/sync-yuque-journals.mjs`, `validateJournalCityOverrides` in `scripts/validate-site.mjs`, or `src/data/journal-city-overrides.json` except to add a pin the user named. `CITY_KEYWORDS` is aliases/fold-ins only (定边→榆林); stop primary names come from `src/content/stops/` labels — do not re-register 济南/威海/天津 there.
-
-## Detailed Docs
-
-- `docs/DESIGN.md` — design rules (three tiers) and anti-patterns
-- `docs/ai-iteration.md` — recommended AI change loop
-- `docs/deployment-yuque-sync.md` — Yuque sync + Jenkins deploy runbook, city inference, incidents
-- `docs/live-capture.md` — EZVIZ capture service, `/live` and `/live/admin`
-- `docs/image-derivatives.md` — WebP derivative pipeline for public images
-- `docs/route-redesign.md` — `/route` page design notes
-- `docs/CHANGELOG.md` — completed features and changelog history (append new entries there, not here)
+- 设计、令牌、版心、动效或新 UI：`docs/DESIGN.md`；对照页 `/elements`、`/en/elements`。
+- Astro 路由、页面装配、SEO 或 zh/en 镜像：`docs/agent-pages.md`。
+- 验证选择与失败排查：`docs/ai-iteration.md`。
+- stop、当前位置、日记城市/分类、Yuque 同步或 Jenkins：`docs/deployment-yuque-sync.md`。
+- `/live`、capture 服务或后台：`docs/live-capture.md`。
+- public 大图、WebP 或图片生成脚本：`docs/image-derivatives.md`。
+- 路线页设计背景：`docs/route-redesign.md`，它是历史设计说明；当前行为以代码、schema 和 `docs/DESIGN.md` 为准。
