@@ -250,5 +250,17 @@
     "label": "杭州",
     "label_en": "Hangzhou",
     "province": "浙江省"
+  },
+  "南京": {
+    "id": "nanjing",
+    "label": "南京",
+    "label_en": "Nanjing",
+    "province": "江苏省"
+  },
+  "南京市": {
+    "id": "nanjing",
+    "label": "南京",
+    "label_en": "Nanjing",
+    "province": "江苏省"
   }
 }
