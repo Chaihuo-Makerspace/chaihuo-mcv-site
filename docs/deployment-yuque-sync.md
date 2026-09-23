@@ -88,6 +88,50 @@ rg "article-title-or-slug" /tmp/mcv-journals.html
 
 If GitHub Actions and webhook delivery are successful but production is stale, inspect the Jenkins console log for `chaihuo-chaihuo-mcv-site`.
 
+## Stale production checklist (fastest order)
+
+GitHub Actions green + webhook 200 + production unchanged means the **Jenkins
+Docker build failed**, so start from the build command, not from CI:
+
+```bash
+git switch main && git pull --ff-only origin main
+pnpm build            # = pnpm check + image derivatives + astro build; same command as Dockerfile
+curl -sI https://mcv.chaihuo.org/journals | grep -i last-modified   # HTTP is still 200 when stale
+```
+
+`Last-Modified` is the tell: a stale origin keeps serving the old timestamp
+while returning 200, so a status-code check never catches this. When production
+has not moved since a given date, diff the commits after that deploy and run
+`pnpm build` on the latest `main` — build-breaking data validation is the usual
+cause.
+
+## Orphaned override slugs break the build (2026-09-23)
+
+Symptom: journals published on Yuque never reach `/journals`; production stayed
+at the `Last-Modified` of a build from the day before.
+
+Cause: the author deleted and re-published a journal on Yuque, which issues a
+**new slug** (`eof49tfgl3mbhlsg` 《南京：黑客松准备》 →
+`ccao0hgfigymfpei` 《南京：黑客松Day1》). The old slug's entry in
+`src/data/journal-city-overrides.json` was left dangling, so
+`scripts/validate-site.mjs` failed with:
+
+```
+- src/data/journal-city-overrides.json:eof49tfgl3mbhlsg: slug is not in yuque-journals.json
+```
+
+That fails `pnpm check`, hence `pnpm build`, hence the Docker build — and
+because the failure is in Jenkins (not GitHub Actions, not the webhook), the
+sync pipeline looks healthy while nothing deploys. The same applies to
+`journal-category-overrides.json`.
+
+Fix: drop the dangling entry and re-pin the human correction on the current
+slug (note the migration in the `note`). When a journal card lands on an
+obviously wrong city after such a re-publish, check whether the title lacks a
+city name and geo-inference matched a **street name** in the body (e.g. 乌鲁木齐
+高新区「银川路」 → `yinchuan`); `city` values that are real stop ids are sticky,
+so only an override can correct them.
+
 ## City Inference
 
 How synced journals get attached to route stops
