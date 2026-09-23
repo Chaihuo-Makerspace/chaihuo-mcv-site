@@ -15,8 +15,12 @@
     "city": "nanjing",
     "note": "2026.9.20 抵达南京（影石黑客松场地：仙林白日方舟度假村）。标题写「杭州-南京」，词表会命中杭州；人订正为南京。"
   },
-  "eof49tfgl3mbhlsg": {
+  "ccao0hgfigymfpei": {
     "city": "nanjing",
-    "note": "2026.9.21 南京黑客松准备。卡片先被粘在杭州（当时还没有南京站），人订正为南京。"
+    "note": "2026.9.21 南京黑客松 Day1。作者在语雀删档重发，slug 由 eof49tfgl3mbhlsg（《南京：黑客松准备》）换成 ccao0hgfigymfpei（《南京：黑客松Day1》），编者在原 slug 上的人订正随之迁到新 slug。"
+  },
+  "npebachqdqpmdafc": {
+    "city": "urumqi",
+    "note": "2026.6.29 乌鲁木齐溢达创研村（正文：「溢达创研村在乌鲁木齐高新区银川路 966 号」）。标题无城市名，自动推断把路名「银川路」地理编码到银川（yinchuan），人订正为乌鲁木齐——同行程的 6.27-28 篇（kfnwgfsxywdfdx87）已挂在 urumqi。"
   }
 }
