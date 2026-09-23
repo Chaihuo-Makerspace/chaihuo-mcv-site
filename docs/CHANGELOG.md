@@ -34,6 +34,7 @@ history.
 
 | Date | Branch | Description |
 | --- | --- | --- |
+| 2026-09-23 | fix/journal-overrides-stale-slug | Fixed the silent deploy stall that kept the 2026.9.21–9.23 Nanjing journals (and the 2026.06.29 Urumqi backfill) off `/journals`: a Yuque delete-and-republish moved the 9.21 journal to a new slug, leaving `journal-city-overrides.json` pinned to the dead slug, which failed `validate-site.mjs` → `pnpm build` → the Jenkins Docker build, while GitHub Actions and the webhook stayed green. Migrated the Nanjing pin to the new slug, and re-pinned the 6.29 溢达创研村 card from `yinchuan` (geo-inference matched the street name 银川路) to `urumqi` (matching the 6.27-28 card). Runbook gained a stale-production checklist and this failure mode. |
 | 2026-09-22 | feat/route-nanjing-arrival | Added Nanjing as the latest visited stop (arrival 2026-09-20, Insta360-hackathon venue in Xianlin) after Hangzhou, so homepage 「位于」 and the map yellow dot move on from Hangzhou. Renumbered the planned stops to 58 上海 / 59 无锡 / 60 广东 (contiguous order), added 江苏省 to `PROVINCE_VISITED`, aliases for 南京/南京市, and pinned the 2026.9.20–9.21 journals from Hangzhou to Nanjing. |
 | 2026-09-17 | main | Added Hangzhou as the latest visited stop (arrival 2026-09-17) after Hefei, so homepage 「位于」 and the map yellow dot move on from Hefei. |
 | 2026-09-12 | main | Added Hefei as the latest visited stop (arrival 2026-09-12) after Luoyang, so homepage 「位于」 and the map yellow dot move on from Luoyang. |
