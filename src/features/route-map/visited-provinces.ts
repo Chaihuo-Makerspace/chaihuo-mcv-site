@@ -22,4 +22,5 @@ export const PROVINCE_VISITED = [
   '安徽省',
   '浙江省',
   '江苏省',
+  '上海市',
 ];

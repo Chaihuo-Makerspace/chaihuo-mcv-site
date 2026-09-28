@@ -1,7 +1,7 @@
 ---
 id: shanghai
 order: 58
-visited: false
+visited: true
 label: 上海
 label_en: Shanghai
 province: 上海市
