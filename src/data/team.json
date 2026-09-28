@@ -267,5 +267,15 @@
     "bio": "负责基地车整体资源协调、行程统筹与团队支持。",
     "bio_en": "Responsible for the MCV's overall resource coordination, journey planning, and team support.",
     "image": "/people/guan-nai-ying.webp"
+  },
+  {
+    "id": "li-shuijiao",
+    "name": "李水娇",
+    "name_en": "Li Shuijiao",
+    "role": "媒体担当",
+    "role_en": "Media Lead",
+    "bio": "内容创作者与传播策划，负责用影像、文字和社媒记录基地车的现场故事与创作瞬间；有机器人开发背景，也兼顾技术现场的记录与讲解。",
+    "bio_en": "Content creator and communications planner, documenting the MCV's on-site stories and creative moments through visuals, writing, and social media; also covers technical demos with a robotics development background.",
+    "image": "/people/li-shuijiao.webp"
   }
 ]

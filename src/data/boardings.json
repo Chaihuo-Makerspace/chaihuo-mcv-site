@@ -439,5 +439,20 @@
       "location": "广东",
       "location_en": "Guangdong"
     }
+  },
+  {
+    "id": "b30",
+    "crewId": "li-shuijiao",
+    "role": "媒体担当",
+    "boardedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai"
+    },
+    "disembarkedAt": {
+      "date": "2026-10-25",
+      "location": "广东",
+      "location_en": "Guangdong"
+    }
   }
 ]
