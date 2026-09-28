@@ -51,6 +51,7 @@ node -e "const s=require('sharp');const [i,o,w]=process.argv.slice(1);s(i).resiz
 - 交接换班:在前任的 `disembarkedAt` 里加 `handoffTo: "<新成员id>"`,并为新成员加一条只有 `boardedAt` 的片段。validate-site 会校验 `crewId`/`handoffTo` 必须是已知 team id。
 - 英文 fallback 是 `name_en || name`、`bio_en || bio`(index.astro 手写,不走 `localize()`),所以 `_en` 字段缺了不会报错,但英文页会显示中文——加成员时三个 `_en` 字段都应补齐。
 - journals frontmatter 的 `people: []` 也引用 team id(validate-site 校验),改 id 时要全局搜。
+- **同事给的排班/头像常常只发在群「话题(thread)」里,不在主聊流**:飞书 `container_id_type=chat` 的消息列表**不含**线程内消息,所以在群里翻消息会以为"没人给过照片"。改人员前先枚举话题 id(profile 日志里的 `omt_…`,或 Hermes sessions 表的 `thread_id`)并逐话题拉取:`/open-apis/im/v1/messages?container_id_type=thread&container_id=omt_…&sort_type=ByCreateTimeAsc`。曾经因为只看主聊流,把叶雨已在话题里发过的照片当成"缺头像"而漏加成员,5 天后被追问。
 
 ## 操作步骤
 
