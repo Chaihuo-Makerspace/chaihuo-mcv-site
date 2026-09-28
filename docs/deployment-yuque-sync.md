@@ -88,6 +88,28 @@ rg "article-title-or-slug" /tmp/mcv-journals.html
 
 If GitHub Actions and webhook delivery are successful but production is stale, inspect the Jenkins console log for `chaihuo-chaihuo-mcv-site`.
 
+## Container name conflict during deployment
+
+`docker compose up -d` recreates changed containers by first creating a temporary
+`<old-container-id>_<project>-<service>-1` container, then stopping/removing the
+old one and renaming the new one. If a previous recreate is interrupted after
+the temporary container is created, the next deploy may fail with `Conflict.
+The container name ... is already in use`. The images may have built successfully,
+but the web service can remain unavailable (502 at Tengine).
+
+On the deployment host, in the project directory, recover with:
+
+```bash
+docker compose down --remove-orphans   # clears the interrupted temporary containers
+docker compose up -d --wait --wait-timeout 60
+curl -fsS http://127.0.0.1:4321/ >/dev/null
+```
+
+`deploy.sh` runs the same cleanup after building, before starting the services.
+Do not add `--volumes` to `down`: live capture data is bind-mounted at `./data/live`.
+If concurrent deployments caused the interruption, serialize the Jenkins job as
+well; cleanup alone cannot prevent two simultaneous `up` commands from racing.
+
 ## Stale production checklist (fastest order)
 
 GitHub Actions green + webhook 200 + production unchanged means the **Jenkins
