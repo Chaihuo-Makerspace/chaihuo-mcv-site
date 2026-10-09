@@ -327,7 +327,12 @@
       "location": "哈尔滨",
       "location_en": "Harbin"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai",
+      "handoffTo": "li-shuijiao"
+    }
   },
   {
     "id": "b22",
@@ -370,7 +375,12 @@
       "location": "杭州",
       "location_en": "Hangzhou"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai",
+      "handoffTo": "hu-hui-zhong"
+    }
   },
   {
     "id": "b25",
@@ -381,7 +391,11 @@
       "location": "杭州",
       "location_en": "Hangzhou"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai"
+    }
   },
   {
     "id": "b26",
@@ -392,7 +406,11 @@
       "location": "杭州",
       "location_en": "Hangzhou"
     },
-    "disembarkedAt": null
+    "disembarkedAt": {
+      "date": "2026-10-08",
+      "location": "上海",
+      "location_en": "Shanghai"
+    }
   },
   {
     "id": "b27",
