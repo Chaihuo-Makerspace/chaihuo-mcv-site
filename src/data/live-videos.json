@@ -1,6 +1,30 @@
 {
   "videos": [
     {
+      "bvid": "BV1F9pY6RERq",
+      "url": "https://www.bilibili.com/video/BV1F9pY6RERq",
+      "cover": "/live/videos/BV1F9pY6RERq.webp",
+      "date": "2026-10-10",
+      "eyebrow": "陕西、山西、内蒙古、北京",
+      "eyebrow_en": "陕西, 山西, Inner Mongolia, 北京",
+      "eyebrows": [
+        "陕西",
+        "山西",
+        "内蒙古",
+        "北京"
+      ],
+      "eyebrows_en": [
+        "陕西",
+        "山西",
+        "Inner Mongolia",
+        "北京"
+      ],
+      "title": "一路向东！从陕西到北京",
+      "title_en": "Head east all the way! From Shaanxi to Beijing",
+      "description": "连接的不只是城市，更是散落各地的人。",
+      "description_en": "What it connects is not just cities, but also people scattered in every corner."
+    },
+    {
       "bvid": "BV1JLtR6fEVs",
       "url": "https://www.bilibili.com/video/BV1JLtR6fEVs",
       "cover": "/live/videos/BV1JLtR6fEVs.webp",
