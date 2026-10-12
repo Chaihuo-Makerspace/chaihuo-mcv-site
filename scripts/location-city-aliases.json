@@ -262,5 +262,17 @@
     "label": "南京",
     "label_en": "Nanjing",
     "province": "江苏省"
+  },
+  "苏州": {
+    "id": "suzhou",
+    "label": "苏州",
+    "label_en": "Suzhou",
+    "province": "江苏省"
+  },
+  "苏州市": {
+    "id": "suzhou",
+    "label": "苏州",
+    "label_en": "Suzhou",
+    "province": "江苏省"
   }
 }
