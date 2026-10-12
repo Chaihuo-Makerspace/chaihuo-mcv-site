@@ -1,6 +1,6 @@
 ---
 id: wuxi
-order: 59
+order: 60
 visited: false
 label: 无锡
 label_en: Wuxi
