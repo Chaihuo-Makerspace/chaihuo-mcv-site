@@ -1,7 +1,7 @@
 ---
 id: wuxi
 order: 60
-visited: false
+visited: true
 label: 无锡
 label_en: Wuxi
 province: 江苏省
