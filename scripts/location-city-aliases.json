@@ -274,5 +274,29 @@
     "label": "苏州",
     "label_en": "Suzhou",
     "province": "江苏省"
+  },
+  "无锡": {
+    "id": "wuxi",
+    "label": "无锡",
+    "label_en": "Wuxi",
+    "province": "江苏省"
+  },
+  "无锡市": {
+    "id": "wuxi",
+    "label": "无锡",
+    "label_en": "Wuxi",
+    "province": "江苏省"
+  },
+  "义乌": {
+    "id": "yiwu",
+    "label": "义乌",
+    "label_en": "Yiwu",
+    "province": "浙江省"
+  },
+  "义乌市": {
+    "id": "yiwu",
+    "label": "义乌",
+    "label_en": "Yiwu",
+    "province": "浙江省"
   }
 }
