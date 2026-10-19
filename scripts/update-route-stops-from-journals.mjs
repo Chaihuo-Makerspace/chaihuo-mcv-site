@@ -200,8 +200,10 @@ function main() {
       ? `Updated ${changedCount} stop(s).`
       : 'No planned stops matched new journals.',
   );
-  if (changedLabels.length > 0)
+  if (changedLabels.length > 0) {
     emitGithubOutput('summary', `基地车抵达${changedLabels.join('、')}`);
+    emitGithubOutput('cities', changedLabels.join('、'));
+  }
 }
 
 // One-line summary for the workflow's commit message, e.g. "基地车抵达临汾".

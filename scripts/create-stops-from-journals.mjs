@@ -97,18 +97,25 @@ function normalizeCityName(name) {
 }
 
 // 标题 → 到达城市候选。返回 { name, highConfidence }：
-//  "A→B" 链的 B 端是结构化高置信，唯一允许自动建站的路径；
-//  无箭头时取日期后首个地名 token——一律进待确认清单，不自动建站
+//  转场链（→ / - / ~ / ～ 分隔，如「无锡-义乌」）的末端是结构化高置信，
+//  是自动建站的主路径；「抵达X」只信坐标表命中（Photon 单发命中也进待确认），
+//  防止「抵达义乌数贸中心」这类标题把整段活动名当成城市；
+//  无链无抵达时取日期后首个地名 token——一律进待确认清单，不自动建站
 //  （行为比方案更保守：宁可人工看一眼，也不猜）。
+//  分隔符刻意不含破折号 —/–（中文标点，误判风险高），与
+//  scripts/lib/yuque-journal-sync.mjs 的 extractRouteTokens 保持一致。
 function extractDestination(title) {
-  const chain = title.match(/[一-鿿]{2,}(?:\s*→\s*[一-鿿]{2,})+/);
+  // 标题结构是「日期 路线链：正文描述」，链只认冒号前的部分
+  const head = title.split(/[:：]/)[0];
+  const chain = head.match(/[一-鿿]{2,}(?:\s*[→~～-]\s*[一-鿿]{2,})+/);
   if (chain) {
-    const tokens = chain[0].split(/\s*→\s*/);
+    const tokens = chain[0].split(/\s*[→~～-]\s*/);
     return { name: tokens[tokens.length - 1], highConfidence: true };
   }
-  // 无箭头：形如 "基地车日记|2026.0812 赤峰：..." → 取「：」前的最后一个 token
-  const beforeColon = title.split(/[:：]/)[0];
-  const seg = beforeColon.split(/[|｜\s]+/).filter(Boolean);
+  const arrival = head.match(/(?:抵达|到达)([一-鿿]{2,6})/);
+  if (arrival) return { name: arrival[1], highConfidence: 'arrival' };
+  // 无链无抵达：形如 "基地车日记|2026.0812 赤峰：..." → 取「：」前的最后一个 token
+  const seg = head.split(/[|｜\s]+/).filter(Boolean);
   const candidate = seg[seg.length - 1] ?? '';
   // 至少 2 个汉字且不完全是日期/数字
   if (!/^[\u4e00-\u9fff]{2,}$/.test(candidate)) return { name: null, highConfidence: false };
@@ -128,7 +135,14 @@ function tableLookup(name, table) {
 }
 
 async function geocodePhoton(name, cache) {
-  if (name in cache) return cache[name];
+  // 旧缓存条目没有 osmKey/osmValue 字段，城市级过滤对它们永远失效——重取一次
+  const cached = cache[name];
+  if (
+    cached === null ||
+    (Array.isArray(cached) && (cached.length === 0 || 'osmValue' in cached[0]))
+  ) {
+    return cached;
+  }
   try {
     const url = new URL(PHOTON_URL);
     url.searchParams.set('q', name);
@@ -146,6 +160,8 @@ async function geocodePhoton(name, cache) {
         lat: Number(item.geometry.coordinates[1]),
         name: item.properties?.name ?? '',
         state: item.properties?.state ?? '',
+        osmKey: item.properties?.osm_key ?? '',
+        osmValue: item.properties?.osm_value ?? '',
       }));
     cache[name] = points.length > 0 ? points : null;
   } catch (error) {
@@ -179,7 +195,9 @@ async function geocodeNameEn(name) {
   }
 }
 
-// 低置信候选必须「唯一定位」：Photon 中国候选恰有 1 个且名字可核对，才算高置信。
+// 低置信候选必须「唯一定位」。Photon 多点结果中若恰有 1 个城市级
+// （osm_value = city/town）命中，也视为唯一定位——覆盖坐标表未收录的
+// 县级市（如义乌）；其余多点歧义 → 待确认，不自动。
 async function resolvePoint(name, { table, cache }) {
   const hit = tableLookup(name, table);
   if (hit) {
@@ -196,14 +214,16 @@ async function resolvePoint(name, { table, cache }) {
   }
   const points = await geocodePhoton(name, cache);
   if (!points || points.length === 0) return null;
-  if (points.length > 1) return null; // 歧义 → 待确认，不自动
-  const p = points[0];
+  // 城市级命中要求 osm_key=place + osm_value=city（OSM 里中国的 town 多为「镇」，不收）
+  const cityLevel = points.filter((p) => p.osmKey === 'place' && p.osmValue === 'city');
+  const chosen = points.length === 1 ? points[0] : cityLevel.length === 1 ? cityLevel[0] : null;
+  if (!chosen) return null;
   return {
-    lng: p.lng,
-    lat: p.lat,
-    province: p.state ?? '',
+    lng: chosen.lng,
+    lat: chosen.lat,
+    province: chosen.state ?? '',
     adcode: null,
-    labelEn: p.name ?? '',
+    labelEn: chosen.name ?? '',
     source: 'photon',
   };
 }
@@ -283,8 +303,22 @@ async function main() {
 
   for (const journal of journals) {
     if (!journal?.title || !journal.date) continue;
-    const { name, highConfidence } = extractDestination(journal.title);
+    let { name, highConfidence } = extractDestination(journal.title);
     if (!name) continue;
+    // 「抵达X」只信坐标表：标题里的 X 可能带场馆/语气词后缀（如「抵达义乌数贸中心」），
+    // 从长到短逐字收缩直到命中坐标表；整段都命不中 → 待确认，绝不用 Photon 猜
+    if (highConfidence === 'arrival') {
+      let trimmed = null;
+      for (let len = name.length; len >= 2 && !trimmed; len--) {
+        if (tableLookup(normalizeCityName(name.slice(0, len)), table)) trimmed = name.slice(0, len);
+      }
+      if (!trimmed) {
+        pending.push({ city: name, journal: journal.title, reason: '抵达式标题且坐标表未收录' });
+        continue;
+      }
+      name = trimmed;
+      highConfidence = true;
+    }
     const normalized = normalizeCityName(name);
     if (!normalized || known.has(normalized)) continue;
     if (visited.has(normalized)) continue; // 同一 run 内去重
@@ -377,6 +411,7 @@ async function main() {
   if (created.length > 0) {
     log(`SUMMARY: 新站点 ${created.map((s) => s.label).join('、')} 已自动建站`);
     emitGithubOutput('summary', `新站点 ${created.map((s) => s.label).join('、')} 已自动建站`);
+    emitGithubOutput('cities', created.map((s) => s.label).join('、'));
   }
   if (pending.length > 0) {
     console.log('\n[create-stops] PENDING（待人工确认，未自动建站）:');
