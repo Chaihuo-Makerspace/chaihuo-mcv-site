@@ -144,11 +144,31 @@ export function dateOnlyInShanghai(isoString) {
   }).format(date);
 }
 
-// 从正文日期行提取 "A→B→C" 中转链，最后一个地名即目的地。
+// 从标题/正文日期行提取中转链，最后一个地名即目的地。
+// 分隔符支持 →（箭头）、-（连字符）、~/～（波浪线）——2026 年下半年的日记
+// 标题多用「无锡-义乌」「苏州-无锡」这类连字符格式。刻意不收破折号 —/–：
+// 中文正文常拿它当标点，收进来会把普通句子误判成路线链。
+const ROUTE_TOKEN = '[一-鿿]{2,}';
+const ROUTE_SEP = '\\s*[→~～-]\\s*';
+const ROUTE_CHAIN_RE = new RegExp(`${ROUTE_TOKEN}(?:${ROUTE_SEP}${ROUTE_TOKEN})+`);
+const ROUTE_SPLIT_RE = new RegExp(ROUTE_SEP);
+
 export function extractRouteTokens(text) {
-  const chain = text.match(/[一-鿿]{2,}(?:\s*→\s*[一-鿿]{2,})+/);
-  if (!chain) return [];
-  return chain[0].split(/\s*→\s*/);
+  // 同一段文字可能有多条链（如正文日期行「多云-小雨 | 临汾→太原」里，
+  // 天气对也满足连字符链的形态）。取 token 最多的链；并列取最后一条
+  // （日期行的结构是 日期 | 天气 | 路线，路线总在后面）。
+  const chains = [...text.matchAll(new RegExp(ROUTE_CHAIN_RE.source, 'g'))].map((m) => m[0]);
+  if (chains.length === 0) return [];
+  let best = chains[0];
+  let bestLen = best.split(ROUTE_SPLIT_RE).length;
+  for (const chain of chains.slice(1)) {
+    const len = chain.split(ROUTE_SPLIT_RE).length;
+    if (len >= bestLen) {
+      best = chain;
+      bestLen = len;
+    }
+  }
+  return best.split(ROUTE_SPLIT_RE);
 }
 
 export function haversineKm(lng1, lat1, lng2, lat2) {
@@ -244,7 +264,9 @@ export function inferCityId(title, stopKeywords = loadStopCityKeywords()) {
   };
 
   // 中转标题优先按最后一个地名(目的地)归属，再回退到全文关键词。
-  const destination = extractRouteTokens(title).at(-1);
+  // 标题结构是「日期 路线链：正文描述」，链只认冒号前的部分，防止正文里的
+  // 连字符短语（如「参观中科院-苏大联合实验室」）被当成路线。
+  const destination = extractRouteTokens(String(title).split(/[:：]/)[0]).at(-1);
   if (destination) {
     const cityId = choose(destination);
     if (cityId) return cityId;

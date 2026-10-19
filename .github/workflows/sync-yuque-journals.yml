@@ -9,6 +9,12 @@ on:
 permissions:
   contents: write
 
+# 定时与手动触发可能撞车：同一时刻只跑一个，后来的排队（不取消），
+# 避免并发提交冲突和重复播报
+concurrency:
+  group: sync-yuque-journals
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -62,3 +68,17 @@ jobs:
         with:
           commit_message: ${{ steps.msg.outputs.message }}
           file_pattern: src/data/yuque-journals.json src/data/geocode-cache.json src/data/city-coordinates.json public/yuque-journals/* src/content/stops/*.md scripts/location-city-aliases.json src/features/route-map/visited-provinces.ts
+
+      # 地图位置真的变了（抵达新城/建新站）才往「柴火基地车」群播报；
+      # 仅同步日记卡片时保持安静。播报失败不影响同步主流程。
+      - name: Notify Feishu group when the map location changed
+        if: ${{ steps.stops.outputs.cities != '' || steps.newstops.outputs.cities != '' }}
+        continue-on-error: true
+        timeout-minutes: 2
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_CHAT_ID: ${{ secrets.FEISHU_CHAT_ID }}
+          ARRIVAL_CITIES: ${{ steps.stops.outputs.cities }}
+          NEW_STOP_CITIES: ${{ steps.newstops.outputs.cities }}
+        run: node scripts/notify-feishu-location.mjs

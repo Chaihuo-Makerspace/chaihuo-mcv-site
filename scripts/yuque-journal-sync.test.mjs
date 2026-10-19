@@ -5,7 +5,9 @@ import {
   extractAppData,
   extractCoverFromDocHtml,
   extractFirstImageFromDocContent,
+  extractRouteTokens,
   imageExtensionFromUrl,
+  inferCityId,
   loadStopTimeline,
   normalizeYuqueToc,
   parseCategoryOverrides,
@@ -90,6 +92,54 @@ describe('yuque journal sync helpers', () => {
     assert.equal(parseJournalDate('基地车日记｜2026.05.11-12｜绵阳骆驼房车'), '2026-05-11');
     assert.equal(parseJournalDate('基地车日记|2026.0707哈密→敦煌'), '2026-07-07');
     assert.equal(parseJournalDate('没有日期'), null);
+  });
+
+  it('extracts route chains joined by arrows, hyphens or waves', () => {
+    assert.deepEqual(extractRouteTokens('2026.08.01 | 晴 | 临汾→洪洞→太原'), [
+      '临汾',
+      '洪洞',
+      '太原',
+    ]);
+    assert.deepEqual(extractRouteTokens('基地车日记｜2026.10.17无锡-义乌：高速追夕阳的一天'), [
+      '无锡',
+      '义乌',
+    ]);
+    assert.deepEqual(extractRouteTokens('无锡～义乌'), ['无锡', '义乌']);
+    assert.deepEqual(extractRouteTokens('深圳-广东科学中心 → 阳江'), [
+      '深圳',
+      '广东科学中心',
+      '阳江',
+    ]);
+    assert.deepEqual(extractRouteTokens('贵州赫章 - 四川宜宾'), ['贵州赫章', '四川宜宾']);
+  });
+
+  it('does not treat date ranges or prose dashes as route chains', () => {
+    assert.deepEqual(extractRouteTokens('基地车日记｜2026.9.25-9.27 上海：体验非典型中秋节'), []);
+    assert.deepEqual(extractRouteTokens('车轮——我们的家'), []);
+    assert.deepEqual(extractRouteTokens('基地车日记|2026.10.14 苏州：从苏大光电实验室出发'), []);
+  });
+
+  it('prefers the real route over weather pairs in a dateline', () => {
+    // 日期行结构是 日期 | 天气 | 路线：「多云-小雨」也满足连字符链的形态，
+    // 取 token 最多/并列取最后的规则必须保住真正的路线
+    assert.deepEqual(extractRouteTokens('2026.08.01 | 多云-小雨 | 临汾→太原'), ['临汾', '太原']);
+    assert.deepEqual(extractRouteTokens('2026.08.01 | 晴 | 临汾→洪洞→太原'), [
+      '临汾',
+      '洪洞',
+      '太原',
+    ]);
+  });
+
+  it('homes hyphen-chain titles to the destination city', () => {
+    const keywords = [
+      ['wuxi', ['无锡']],
+      ['suzhou', ['苏州']],
+    ];
+    assert.equal(
+      inferCityId('基地车日记|2026.10.15 苏州-无锡：皮皮虾的江南初体验', keywords),
+      'wuxi',
+    );
+    assert.equal(inferCityId('基地车日记|2026.10.14 苏州：一天三站', keywords), 'suzhou');
   });
 
   it('parses unpadded month/day in journal titles', () => {
