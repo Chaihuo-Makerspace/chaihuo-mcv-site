@@ -70,19 +70,25 @@
       "lng": 117.7877873,
       "lat": 40.0183459,
       "name": "京秦高速",
-      "state": "河北省"
+      "state": "河北省",
+      "osmKey": "highway",
+      "osmValue": "motorway"
     },
     {
       "lng": 117.9506947,
       "lat": 30.3305661,
       "name": "京台高速",
-      "state": "安徽省"
+      "state": "安徽省",
+      "osmKey": "highway",
+      "osmValue": "motorway"
     },
     {
       "lng": 116.5180966,
       "lat": 39.8044081,
       "name": "京沪高速",
-      "state": ""
+      "state": "",
+      "osmKey": "highway",
+      "osmValue": "motorway"
     }
   ],
   "中国科学技术馆": [
@@ -90,25 +96,33 @@
       "lng": 116.3925323,
       "lat": 40.00447,
       "name": "中国科学技术馆",
-      "state": ""
+      "state": "",
+      "osmKey": "tourism",
+      "osmValue": "museum"
     },
     {
       "lng": 116.3864831,
       "lat": 39.9690054,
       "name": "中国科学技术馆旧址",
-      "state": ""
+      "state": "",
+      "osmKey": "tourism",
+      "osmValue": "museum"
     },
     {
       "lng": 117.2627078,
       "lat": 31.8430314,
       "name": "中国科学技术大学",
-      "state": "安徽省"
+      "state": "安徽省",
+      "osmKey": "highway",
+      "osmValue": "bus_stop"
     },
     {
       "lng": 117.2609152,
       "lat": 31.8395355,
       "name": "中国科学技术大学",
-      "state": "安徽省"
+      "state": "安徽省",
+      "osmKey": "highway",
+      "osmValue": "bus_stop"
     }
   ],
   "晋蒙交界": null,
@@ -117,19 +131,25 @@
       "lng": 111.0144684,
       "lat": 36.7116815,
       "name": "隰县",
-      "state": "山西省"
+      "state": "山西省",
+      "osmKey": "place",
+      "osmValue": "county"
     },
     {
       "lng": 110.9309565,
       "lat": 36.693694,
       "name": "隰县",
-      "state": "山西省"
+      "state": "山西省",
+      "osmKey": "place",
+      "osmValue": "city"
     },
     {
       "lng": 110.9764509,
       "lat": 36.7010714,
       "name": "隰光线",
-      "state": "山西省"
+      "state": "山西省",
+      "osmKey": "highway",
+      "osmValue": "primary"
     }
   ],
   "西安收官": null,
@@ -138,31 +158,41 @@
       "lng": 109.0036175,
       "lat": 34.2211917,
       "name": "西安理工大三期公寓",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "landuse",
+      "osmValue": "residential"
     },
     {
       "lng": 108.9944988,
       "lat": 34.2560206,
       "name": "西安理工大学金花住宅区",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "landuse",
+      "osmValue": "residential"
     },
     {
       "lng": 108.853565,
       "lat": 34.2017334,
       "name": "西安理工大学科技园",
-      "state": "陕西"
+      "state": "陕西",
+      "osmKey": "landuse",
+      "osmValue": "industrial"
     },
     {
       "lng": 108.9949164,
       "lat": 34.2556984,
       "name": "西安理工大学社区",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "place",
+      "osmValue": "neighbourhood"
     },
     {
       "lng": 108.9073389,
       "lat": 34.273038,
       "name": "西安理工大学高等技术学院",
-      "state": "陕西"
+      "state": "陕西",
+      "osmKey": "amenity",
+      "osmValue": "university"
     }
   ],
   "西安培华学院": [
@@ -170,31 +200,41 @@
       "lng": 108.9054465,
       "lat": 34.2271889,
       "name": "西安培华学院(高新校区)",
-      "state": "陕西"
+      "state": "陕西",
+      "osmKey": "amenity",
+      "osmValue": "college"
     },
     {
       "lng": 108.9301208,
       "lat": 34.1237118,
       "name": "西安培华学院（长安校区）",
-      "state": "陕西"
+      "state": "陕西",
+      "osmKey": "amenity",
+      "osmValue": "university"
     },
     {
       "lng": 108.9066429,
       "lat": 34.2272907,
       "name": "西安培华学院东区-3号楼",
-      "state": "陕西"
+      "state": "陕西",
+      "osmKey": "building",
+      "osmValue": "school"
     },
     {
       "lng": 108.9069769,
       "lat": 34.2278139,
       "name": "西安培华学院东区-1号楼",
-      "state": "陕西"
+      "state": "陕西",
+      "osmKey": "building",
+      "osmValue": "school"
     },
     {
       "lng": 108.9488844,
       "lat": 34.2119216,
       "name": "西安财经学院",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "amenity",
+      "osmValue": "college"
     }
   ],
   "定边": [
@@ -202,31 +242,41 @@
       "lng": 107.794126,
       "lat": 37.397578,
       "name": "定边县",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "place",
+      "osmValue": "county"
     },
     {
       "lng": 107.5723113,
       "lat": 37.5609872,
       "name": "定边",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "railway",
+      "osmValue": "station"
     },
     {
       "lng": 107.5915288,
       "lat": 37.5928413,
       "name": "定边县",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "place",
+      "osmValue": "city"
     },
     {
       "lng": 121.3577224,
       "lat": 31.2582683,
       "name": "定边路",
-      "state": "上海市"
+      "state": "上海市",
+      "osmKey": "railway",
+      "osmValue": "station"
     },
     {
       "lng": 107.5920551,
       "lat": 37.5801056,
       "name": "定边街道",
-      "state": "陕西省"
+      "state": "陕西省",
+      "osmKey": "place",
+      "osmValue": "suburb"
     }
   ],
   "吴忠南川二村": null,
@@ -235,31 +285,41 @@
       "lng": 103.7311825,
       "lat": 36.0565217,
       "name": "兰州理工大学西校区",
-      "state": "甘肃省"
+      "state": "甘肃省",
+      "osmKey": "amenity",
+      "osmValue": "university"
     },
     {
       "lng": 103.7786124,
       "lat": 36.0514291,
       "name": "兰州理工大学家园",
-      "state": "甘肃省"
+      "state": "甘肃省",
+      "osmKey": "landuse",
+      "osmValue": "residential"
     },
     {
       "lng": 103.7727964,
       "lat": 36.0522137,
       "name": "兰州理工大学家属院",
-      "state": "甘肃省"
+      "state": "甘肃省",
+      "osmKey": "place",
+      "osmValue": "neighbourhood"
     },
     {
       "lng": 103.7352236,
       "lat": 36.0827582,
       "name": "兰州理工中等专业学校",
-      "state": "甘肃省"
+      "state": "甘肃省",
+      "osmKey": "amenity",
+      "osmValue": "college"
     },
     {
-      "lng": 103.7783596,
-      "lat": 36.0578998,
-      "name": "兰州理工大学附属中学",
-      "state": "甘肃省"
+      "lng": 103.7754257,
+      "lat": 36.0513343,
+      "name": "兰州理工大学幼儿园",
+      "state": "甘肃省",
+      "osmKey": "amenity",
+      "osmValue": "kindergarten"
     }
   ],
   "肃南皇城": null,
@@ -269,166 +329,78 @@
       "lng": 118.2631684,
       "lat": 28.6926393,
       "name": "玉山二中",
-      "state": "江西省"
+      "state": "江西省",
+      "osmKey": "amenity",
+      "osmValue": "school"
     }
   ],
   "敦煌校园行": null,
   "拉萨市科技众创空间": null,
-  "左贡": [
-    {
-      "lng": 97.8405948,
-      "lat": 29.6742285,
-      "name": "左贡县 མཛོ་སྒང་རྫོང་།",
-      "state": "西藏自治区 བོད་རང་སྐྱོང་ལྗོངས།"
-    },
-    {
-      "lng": 99.2382917,
-      "lat": 28.4654462,
-      "name": "左贡",
-      "state": "四川省"
-    },
-    {
-      "lng": 97.9808772,
-      "lat": 29.7226432,
-      "name": "左贡二十一道班",
-      "state": "西藏自治区 བོད་རང་སྐྱོང་ལྗོངས།"
-    },
-    {
-      "lng": 97.7568805,
-      "lat": 29.7365116,
-      "name": "左贡兵站",
-      "state": "西藏自治区 བོད་རང་སྐྱོང་ལྗོངས།"
-    },
-    {
-      "lng": 97.8519276,
-      "lat": 29.6639701,
-      "name": "左贡县消防救援大队",
-      "state": "西藏自治区 བོད་རང་སྐྱོང་ལྗོངས།"
-    }
-  ],
+  "左贡": null,
   "塔公的日照金山": null,
   "喝断片": null,
   "带我们回老家": null,
   "的第一顿酒": null,
-  "四川科技馆": [
-    {
-      "lng": 104.0632955,
-      "lat": 30.6625837,
-      "name": "四川科技馆",
-      "state": "四川省"
-    }
-  ],
+  "四川科技馆": null,
   "成都社区走访": null,
-  "星球学院": [
-    {
-      "lng": 113.3759757,
-      "lat": 23.057199,
-      "name": "星海学院",
-      "state": "广东省"
-    }
-  ],
+  "星球学院": null,
   "天桥下的夜": null,
   "绵阳骆驼房车升级基地车": null,
-  "外曹家巷火锅": [
-    {
-      "lng": 104.0858949,
-      "lat": 30.6758561,
-      "name": "外曹家巷",
-      "state": "四川省"
-    }
-  ],
+  "外曹家巷火锅": null,
   "四川宜宾": [
     {
       "lng": 104.607038,
       "lat": 28.7134758,
       "name": "四川省宜宾市第一中学校（叙州校区）",
-      "state": "四川省"
+      "state": "四川省",
+      "osmKey": "amenity",
+      "osmValue": "school"
     },
     {
       "lng": 116.4023741,
       "lat": 39.8918528,
       "name": "四川省宜宾五粮液集团有限公司北京办事处",
-      "state": ""
+      "state": "",
+      "osmKey": "office",
+      "osmValue": "company"
     },
     {
       "lng": 104.663485,
       "lat": 28.7995468,
       "name": "四川省宜宾市三江新区第一高级中学校",
-      "state": "四川省"
+      "state": "四川省",
+      "osmKey": "amenity",
+      "osmValue": "school"
     },
     {
       "lng": 104.5991987,
       "lat": 28.8067132,
       "name": "四川省宜宾市第四中学校",
-      "state": "四川省"
+      "state": "四川省",
+      "osmKey": "amenity",
+      "osmValue": "school"
     },
     {
-      "lng": 104.635649,
-      "lat": 28.8290427,
-      "name": "四川省宜宾市第四中学校(岷江校区)",
-      "state": "四川省"
+      "lng": 104.614735,
+      "lat": 28.741328,
+      "name": "四川省宜宾市职业技术学校",
+      "state": "四川省",
+      "osmKey": "amenity",
+      "osmValue": "school"
     }
   ],
-  "赫章": [
-    {
-      "lng": 104.630354,
-      "lat": 27.192859,
-      "name": "赫章县",
-      "state": "贵州省"
-    },
-    {
-      "lng": 104.7223246,
-      "lat": 27.1196771,
-      "name": "赫章县",
-      "state": "贵州省"
-    },
-    {
-      "lng": 104.826495,
-      "lat": 27.1182808,
-      "name": "赫章南",
-      "state": "贵州省"
-    },
-    {
-      "lng": 104.7161782,
-      "lat": 27.1310484,
-      "name": "赫章特大桥",
-      "state": "贵州省"
-    },
-    {
-      "lng": 104.7268651,
-      "lat": 27.1220205,
-      "name": "赫章县人民医院",
-      "state": "贵州省"
-    }
-  ],
+  "赫章": null,
   "韦伯空间": null,
   "广西柳州柳江区三都镇": null,
-  "广西科技馆": [
-    {
-      "lng": 108.3261242,
-      "lat": 22.8149677,
-      "name": "广西科技馆",
-      "state": "广西壮族自治区"
-    },
-    {
-      "lng": 112.4399978,
-      "lat": 23.631098,
-      "name": "广宁科技馆",
-      "state": "广东省"
-    },
-    {
-      "lng": 112.4401971,
-      "lat": 23.6313229,
-      "name": "广宁科技馆",
-      "state": "广东省"
-    }
-  ],
+  "广西科技馆": null,
   "广西玉林科技馆": [
     {
       "lng": 108.3261242,
       "lat": 22.8149677,
       "name": "广西科技馆",
-      "state": "广西壮族自治区"
+      "state": "广西壮族自治区",
+      "osmKey": "tourism",
+      "osmValue": "museum"
     }
   ],
   "阳江科学馆": null,
@@ -437,26 +409,7 @@
   "送走基地车": null,
   "格尔木取车": null,
   "阿克苏老秦果园": null,
-  "老街夜": [
-    {
-      "lng": 114.1109101,
-      "lat": 22.5472003,
-      "name": "老街站",
-      "state": "广东省"
-    },
-    {
-      "lng": 114.1097522,
-      "lat": 22.5465202,
-      "name": "老街站（在建）",
-      "state": "广东省"
-    },
-    {
-      "lng": 114.1108594,
-      "lat": 22.5472942,
-      "name": "老街",
-      "state": "广东省"
-    }
-  ],
+  "老街夜": null,
   "夜奔库车": null,
   "怀古行路": null,
   "天津到山东": null,
@@ -471,31 +424,41 @@
       "lng": 113.9999999,
       "lat": 34.0000001,
       "name": "河南省",
-      "state": ""
-    },
-    {
-      "lng": 102.5889384,
-      "lat": 29.235078,
-      "name": "河南乡",
-      "state": "四川省"
-    },
-    {
-      "lng": 126.02,
-      "lat": 47.9648,
-      "name": "河南乡",
-      "state": "黑龙江省"
+      "state": "",
+      "osmKey": "place",
+      "osmValue": "state"
     },
     {
       "lng": 101.5456887,
       "lat": 34.5134583,
       "name": "河南蒙古族自治县 ᠾᠧᠨᠠᠨ ᠮᠣᠩᠭᠣᠯ ᠥᠪᠡᠷᠲᠡᠭᠡᠨ ᠵᠠᠰᠠᠬᠤ ᠰᠢᠶᠠᠨ",
-      "state": "青海省"
+      "state": "青海省",
+      "osmKey": "place",
+      "osmValue": "county"
+    },
+    {
+      "lng": 102.5889384,
+      "lat": 29.235078,
+      "name": "河南乡",
+      "state": "四川省",
+      "osmKey": "place",
+      "osmValue": "town"
+    },
+    {
+      "lng": 126.02,
+      "lat": 47.9648,
+      "name": "河南乡",
+      "state": "黑龙江省",
+      "osmKey": "place",
+      "osmValue": "town"
     },
     {
       "lng": 114.3020252,
       "lat": 34.8172435,
       "name": "河南大学金明校区",
-      "state": "河南省"
+      "state": "河南省",
+      "osmKey": "amenity",
+      "osmValue": "university"
     }
   ],
   "转场克拉玛依": null,
@@ -505,7 +468,9 @@
       "lng": 85.7859927,
       "lat": 45.9261452,
       "name": "艾里克湖",
-      "state": "新疆维吾尔自治区 شىنجاڭ ئۇيغۇر ئاپتونوم رايونی"
+      "state": "新疆维吾尔自治区 شىنجاڭ ئۇيغۇر ئاپتونوم رايونی",
+      "osmKey": "natural",
+      "osmValue": "water"
     }
   ],
   "到乌鲁木齐": null,
@@ -515,5 +480,66 @@
   "哈密驰骋科技": null,
   "哈密交接棒": null,
   "深圳启程": null,
-  "上海收官": null
+  "上海收官": null,
+  "荣成": [
+    {
+      "lng": 122.3666919,
+      "lat": 37.0846411,
+      "name": "荣成",
+      "state": "山东省",
+      "osmKey": "highway",
+      "osmValue": "motorway_junction"
+    },
+    {
+      "lng": 122.4025972,
+      "lat": 37.1437568,
+      "name": "荣成",
+      "state": "山东省",
+      "osmKey": "railway",
+      "osmValue": "station"
+    },
+    {
+      "lng": 122.482296,
+      "lat": 37.1649467,
+      "name": "荣成市",
+      "state": "山东省",
+      "osmKey": "place",
+      "osmValue": "city"
+    },
+    {
+      "lng": 122.4026204,
+      "lat": 37.1437256,
+      "name": "荣成站",
+      "state": "山东省",
+      "osmKey": "building",
+      "osmValue": "train_station"
+    },
+    {
+      "lng": 122.4199247,
+      "lat": 37.0881345,
+      "name": "荣成经济开发区",
+      "state": "山东省",
+      "osmKey": "place",
+      "osmValue": "suburb"
+    }
+  ],
+  "乌鲁木齐白杨沟": [
+    {
+      "lng": 87.5564107,
+      "lat": 43.8570027,
+      "name": "汉庭酒店（乌鲁木齐小西沟店）",
+      "state": "新疆维吾尔自治区 شىنجاڭ ئۇيغۇر ئاپتونوم رايونی",
+      "osmKey": "tourism",
+      "osmValue": "hotel"
+    }
+  ],
+  "普莫雍错": null,
+  "出摊拉萨师范学院": null,
+  "吃瓜看晚霞": null,
+  "和胡老师拜访拉萨第二职业技术学校": null,
+  "怒江": null,
+  "民生路小吃街": null,
+  "格凸河": null,
+  "浩坤湖": null,
+  "七百弄": null
 }
