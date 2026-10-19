@@ -411,7 +411,6 @@ async function main() {
   if (created.length > 0) {
     log(`SUMMARY: 新站点 ${created.map((s) => s.label).join('、')} 已自动建站`);
     emitGithubOutput('summary', `新站点 ${created.map((s) => s.label).join('、')} 已自动建站`);
-    emitGithubOutput('cities', created.map((s) => s.label).join('、'));
   }
   if (pending.length > 0) {
     console.log('\n[create-stops] PENDING（待人工确认，未自动建站）:');

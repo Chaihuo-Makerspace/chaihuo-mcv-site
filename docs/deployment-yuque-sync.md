@@ -22,11 +22,15 @@ path for `mcv.chaihuo.org`.
 - Sync script: `scripts/sync-yuque-journals.mjs`
 - Route stop flipper: `scripts/update-route-stops-from-journals.mjs` (flips planned stops to `visited` + `event.date` on journal-confirmed arrival, and mirrors the province into `PROVINCE_VISITED` on first province entry)
 - New-stop creator: `scripts/create-stops-from-journals.mjs` (transit titles joined by `→` / `-` / `~` / `～` — e.g. 《无锡-义乌》— auto-create stops for geocoded new cities; `抵达X` titles only auto-create on a city-table hit)
-- Feishu group notifier: `scripts/notify-feishu-location.mjs` (posts to the 柴火基地车 group when the map location actually changed — a planned stop flipped or a new stop was created; silent on journal-only syncs; needs `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_CHAT_ID` repo secrets)
 - Sync helpers/tests: `scripts/lib/yuque-journal-sync.mjs`, `scripts/yuque-journal-sync.test.mjs`
 - Jenkins webhook job: `chaihuo-chaihuo-mcv-site`
 - GitHub webhook endpoint: Jenkins generic webhook trigger
 - Docker deploy entrypoint in repo: `deploy.sh`
+
+> Group announcements when the map location changes are intentionally NOT sent
+> from this repo's workflow — the 基地车 Agent announces from its own cron after
+> checking the deployed stops data, so the repo stays free of messaging
+> credentials and the announcement follows task execution, not CI.
 
 ## Important Deployment Notes
 
