@@ -36,6 +36,7 @@ const PROVINCE_SHORT: Record<string, { zh: string; en: string; enFull: string }>
   浙江省: { zh: '浙', en: 'ZJ', enFull: 'Zhejiang' },
   上海市: { zh: '沪', en: 'SH', enFull: 'Shanghai' },
   江苏省: { zh: '苏', en: 'JS', enFull: 'Jiangsu' },
+  福建省: { zh: '闽', en: 'FJ', enFull: 'Fujian' },
 };
 
 // Event dates come in loose formats: "2026.04.22", "2026.04.24 / 04.25", "2026.05.05–07".

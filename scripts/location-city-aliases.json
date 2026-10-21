@@ -298,5 +298,17 @@
     "label": "义乌",
     "label_en": "Yiwu",
     "province": "浙江省"
+  },
+  "福州": {
+    "id": "fuzhou",
+    "label": "福州",
+    "label_en": "Fuzhou",
+    "province": "福建省"
+  },
+  "福州市": {
+    "id": "fuzhou",
+    "label": "福州",
+    "label_en": "Fuzhou",
+    "province": "福建省"
   }
 }
