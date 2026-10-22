@@ -74,6 +74,8 @@ const home: Record<Locale, Record<string, string>> = {
     'videos.all': '全部',
     'videos.playlist': '影片列表',
     'videos.filmstrip': '切换影片',
+    'videos.loading': '播放器加载中…',
+    'videos.slow': '加载有点慢，可点下方「在 B 站观看」',
 
     'cta.label': '旅途日记',
     'press.label': '媒体报道',
@@ -164,6 +166,8 @@ const home: Record<Locale, Record<string, string>> = {
     'videos.all': 'All',
     'videos.playlist': 'Film list',
     'videos.filmstrip': 'Choose a film',
+    'videos.loading': 'Loading player…',
+    'videos.slow': 'Taking a while — try “Watch on Bilibili” below',
 
     'cta.label': 'Journals',
     'press.label': 'Media Coverage',
