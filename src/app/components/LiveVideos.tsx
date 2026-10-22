@@ -103,23 +103,39 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
     return () => cancel(id as number);
   }, []);
 
-  // 选中项滚进桌面列表 / 移动端胶片条，不带动整页
+  // 只有选中项落在可视区外（例如切换筛选 chips 换了列表内容）才把它带进桌面列表 / 移动端胶片条。
+  // 完全可见时一动不动：点击列表项不该把点中的项滑走。对齐一律 behavior:'auto' 瞬时完成，
+  // 只改容器自身的 scrollTop/scrollLeft，不动整页滚动。
   useEffect(() => {
     if (!current) return;
-    const listItem = listRef.current?.querySelector<HTMLElement>(`[data-bvid="${current.bvid}"]`);
-    if (listItem && listRef.current) {
-      const list = listRef.current;
-      const itemTop = listItem.offsetTop;
-      const itemBottom = itemTop + listItem.offsetHeight;
-      if (itemTop < list.scrollTop || itemBottom > list.scrollTop + list.clientHeight) {
-        list.scrollTo({ top: itemTop - 8, behavior: 'smooth' });
+    const selector = `[data-bvid="${current.bvid}"]`;
+
+    const list = listRef.current;
+    const listItem = list?.querySelector<HTMLElement>(selector);
+    if (list && listItem) {
+      const listRect = list.getBoundingClientRect();
+      const itemRect = listItem.getBoundingClientRect();
+      const fullyVisible = itemRect.top >= listRect.top && itemRect.bottom <= listRect.bottom;
+      if (!fullyVisible) {
+        // offsetTop 的 offsetParent 不保证是列表本身，改用 rect 差值换算成相对滚动内容的偏移
+        const itemTop = itemRect.top - listRect.top + list.scrollTop;
+        list.scrollTo({ top: itemTop - 8, behavior: 'auto' });
       }
     }
+
     const strip = stripRef.current;
-    const stripItem = strip?.querySelector<HTMLElement>(`[data-bvid="${current.bvid}"]`);
+    const stripItem = strip?.querySelector<HTMLElement>(selector);
     if (strip && stripItem) {
-      const left = stripItem.offsetLeft - strip.clientWidth / 2 + stripItem.clientWidth / 2;
-      strip.scrollTo({ left, behavior: 'smooth' });
+      const stripRect = strip.getBoundingClientRect();
+      const itemRect = stripItem.getBoundingClientRect();
+      const fullyVisible = itemRect.left >= stripRect.left && itemRect.right <= stripRect.right;
+      if (!fullyVisible) {
+        const itemLeft = itemRect.left - stripRect.left + strip.scrollLeft;
+        strip.scrollTo({
+          left: itemLeft - (strip.clientWidth - itemRect.width) / 2,
+          behavior: 'auto',
+        });
+      }
     }
   }, [current]);
 
@@ -231,11 +247,13 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                         <li
                           key={video.bvid}
                           data-bvid={video.bvid}
-                          className="w-28 shrink-0 snap-start"
+                          // 对齐位置必须是「居中」本身：容器是 snap-mandatory，程序化瞬时滚动落到
+                          // 非 snap 位置时浏览器会把矩形回吸到 snap 点，snap-start 会把居中结果拉回左对齐
+                          className="w-28 shrink-0 snap-center"
                         >
                           <button
                             type="button"
-                            onClick={(event) => openPlayer(video, event.currentTarget)}
+                            onClick={() => setActiveId(video.bvid)}
                             aria-current={selected ? 'true' : undefined}
                             aria-label={video.title}
                             className={`block w-full cursor-pointer overflow-hidden rounded-md transition-colors duration-200 ${
@@ -285,7 +303,7 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                       <li key={video.bvid} data-bvid={video.bvid}>
                         <button
                           type="button"
-                          onClick={(event) => openPlayer(video, event.currentTarget)}
+                          onClick={() => setActiveId(video.bvid)}
                           aria-current={selected ? 'true' : undefined}
                           className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors duration-200 ${
                             selected
