@@ -125,6 +125,9 @@ const CATEGORY_EN = {
   深圳: 'Shenzhen',
   宁夏: 'Ningxia',
   甘宁: 'Gansu–Ningxia',
+  陕西: 'Shaanxi',
+  山西: 'Shanxi',
+  北京: 'Beijing',
   guizhou: 'Guizhou',
 };
 
@@ -247,7 +250,11 @@ async function writeBackCanonicalUrls(token, resolved) {
         body: JSON.stringify({
           records: updates.map((item) => ({
             record_id: item.recordId,
-            fields: { 视频链接: item.canonicalUrl },
+            // 表中「视频链接」是 Url 字段（type 15），必须写 {link,text} 对象；
+            // 直接写字符串会报 URLFieldConvFail (1254068)。
+            fields: {
+              视频链接: { link: item.canonicalUrl, text: item.canonicalUrl },
+            },
           })),
         }),
       },
