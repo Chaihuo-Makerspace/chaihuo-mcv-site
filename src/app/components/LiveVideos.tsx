@@ -1,4 +1,4 @@
-import { ExternalLinkIcon, PlayIcon } from 'lucide-react';
+import { ExternalLinkIcon, Loader2Icon, PlayIcon } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/app/components/ui/dialog';
@@ -50,6 +50,8 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
   const [playerReady, setPlayerReady] = useState(false);
   // 空闲时用一个隐藏 iframe 预热播放器的共享 JS/CSS，首次点开弹层就不再是冷启动
   const [warmPlayer, setWarmPlayer] = useState(false);
+  // 播放器 8 秒仍未就绪：提示改走 B 站原站（弱网 / 播放器被拦时不让人干等）
+  const [playerSlow, setPlayerSlow] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
   const [activeId, setActiveId] = useState(videos[0]?.bvid ?? '');
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -121,9 +123,20 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
     }
   }, [current]);
 
+  useEffect(() => {
+    if (!playing || playerReady) {
+      setPlayerSlow(false);
+      return;
+    }
+    const id = window.setTimeout(() => setPlayerSlow(true), 8000);
+    return () => window.clearTimeout(id);
+  }, [playing, playerReady]);
+
   const openPlayer = (video: LiveVideo, opener: HTMLButtonElement | null) => {
     openerRef.current = opener;
     setPlayerReady(false);
+    setPlayerSlow(false);
+    setActiveId(video.bvid);
     setPlaying(video);
   };
 
@@ -192,6 +205,7 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                   alt=""
                   width={960}
                   height={540}
+                  decoding="async"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 <span className="absolute inset-0 bg-neutral-950/0 transition-colors duration-200 group-hover:bg-neutral-950/30 group-focus-visible:bg-neutral-950/30" />
@@ -221,7 +235,7 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                         >
                           <button
                             type="button"
-                            onClick={() => setActiveId(video.bvid)}
+                            onClick={(event) => openPlayer(video, event.currentTarget)}
                             aria-current={selected ? 'true' : undefined}
                             aria-label={video.title}
                             className={`block w-full cursor-pointer overflow-hidden rounded-md transition-colors duration-200 ${
@@ -271,7 +285,7 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                       <li key={video.bvid} data-bvid={video.bvid}>
                         <button
                           type="button"
-                          onClick={() => setActiveId(video.bvid)}
+                          onClick={(event) => openPlayer(video, event.currentTarget)}
                           aria-current={selected ? 'true' : undefined}
                           className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors duration-200 ${
                             selected
@@ -353,6 +367,17 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                   alt=""
                   className={`pointer-events-none absolute inset-0 z-10 h-full w-full object-cover transition-opacity duration-500 ${playerReady ? 'opacity-0' : 'opacity-100'}`}
                 />
+                {!playerReady && (
+                  <div
+                    role="status"
+                    className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-neutral-950/40 text-white"
+                  >
+                    <Loader2Icon className="h-8 w-8 animate-spin motion-reduce:animate-none" />
+                    <span className="px-4 text-center text-sm">
+                      {playerSlow ? t['videos.slow'] : t['videos.loading']}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* B 站播放器在部分网络/浏览器里加载不出来，始终留一条外链兜底 */}
@@ -360,7 +385,7 @@ export default function LiveVideos({ locale = 'zh', t, videos }: LiveVideosProps
                 href={playing.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex w-fit cursor-pointer items-center gap-1.5 text-sm transition-colors duration-200 hover:text-brand"
+                className={`inline-flex w-fit cursor-pointer items-center gap-1.5 text-sm transition-colors duration-200 hover:text-brand ${playerSlow ? 'font-medium text-brand' : ''}`}
               >
                 {t['videos.external']}
                 <ExternalLinkIcon className="h-3.5 w-3.5" />
