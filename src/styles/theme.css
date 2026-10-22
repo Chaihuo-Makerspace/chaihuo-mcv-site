@@ -219,6 +219,17 @@
   html {
     font-size: var(--font-size);
     scroll-behavior: smooth;
+    /* 弹层（Radix Dialog）锁滚动时滚动条会消失、可视宽度 +15px：固定顶栏与居中栏位随之重排，
+       看起来就是「点开视频弹层，页面横向一跳」。用滚动条槽位把视口宽度钉住。 */
+    scrollbar-gutter: stable;
+  }
+
+  /* Radix(react-remove-scroll) 在锁滚动时会自己给 body 补 margin-right: 15px，
+     那是为「滚动条消失」做的补偿；上面已用 scrollbar-gutter 预留槽位，
+     这里必须取消，否则宽度被扣两次、正文栏位反而左移 7.5px。
+     !important 必要：Radix 运行时注入的是无层级声明，会压过 @layer base 的普通声明。 */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
 
   h1 {
