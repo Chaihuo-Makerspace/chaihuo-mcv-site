@@ -310,5 +310,11 @@
     "label": "福州",
     "label_en": "Fuzhou",
     "province": "福建省"
+  },
+  "厦门": {
+    "id": "city-350200",
+    "label": "厦门",
+    "label_en": "Xiamen",
+    "province": "福建省"
   }
 }
