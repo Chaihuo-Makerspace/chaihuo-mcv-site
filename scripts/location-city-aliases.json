@@ -322,5 +322,11 @@
     "label": "三明",
     "label_en": "三明",
     "province": "福建省"
+  },
+  "吉安": {
+    "id": "city-360800",
+    "label": "吉安",
+    "label_en": "Ji'an",
+    "province": "江西省"
   }
 }
