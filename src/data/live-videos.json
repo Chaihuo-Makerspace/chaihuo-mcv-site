@@ -1,6 +1,26 @@
 {
   "videos": [
     {
+      "bvid": "BV11AxM6YEjr",
+      "url": "https://www.bilibili.com/video/BV11AxM6YEjr",
+      "cover": "/live/videos/BV11AxM6YEjr.webp",
+      "date": "2026-10-28",
+      "eyebrow": "东北、天津",
+      "eyebrow_en": "东北, 天津",
+      "eyebrows": [
+        "东北",
+        "天津"
+      ],
+      "eyebrows_en": [
+        "东北",
+        "天津"
+      ],
+      "title": "遇到研究生命的人",
+      "title_en": "Meet people who study life",
+      "description": "从黑土地走进实验室，我们遇见了一群用几十年光阴研究生命的人。",
+      "description_en": "From the black soil into the laboratory, we met a group of people who have spent decades studying life."
+    },
+    {
       "bvid": "BV1F9pY6RERq",
       "url": "https://www.bilibili.com/video/BV1F9pY6RERq",
       "cover": "/live/videos/BV1F9pY6RERq.webp",
