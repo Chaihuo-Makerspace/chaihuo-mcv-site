@@ -328,5 +328,11 @@
     "label": "吉安",
     "label_en": "Ji'an",
     "province": "江西省"
+  },
+  "南昌": {
+    "id": "city-360100",
+    "label": "南昌",
+    "label_en": "Nanchang",
+    "province": "江西省"
   }
 }
