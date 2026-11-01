@@ -334,5 +334,11 @@
     "label": "南昌",
     "label_en": "Nanchang",
     "province": "江西省"
+  },
+  "长沙": {
+    "id": "city-430100",
+    "label": "长沙",
+    "label_en": "Changsha County",
+    "province": "湖南省"
   }
 }
