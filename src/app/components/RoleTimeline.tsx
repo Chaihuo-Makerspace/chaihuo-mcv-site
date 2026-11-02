@@ -365,18 +365,19 @@ export default function RoleTimeline({
   // 省带标签落位：所有省名都在条内同一行，不上移。条是相连的一整条，所以标签不被
   // 自己的段裁剪——窄段的标签横向滑到邻居段的空白处（8 月「蒙/京/黑/吉/辽」连续
   // 1–3 天的短省按真实日期比例挤在 ~100px 里，向左右的晋/津宽段借位排开）。
-  // 每个标签尽量对准自己段的中心：先从左往右防碰撞往右推，再从右往左把顶出
-  // 右边界的标签收回来（移动端 960px 轴上标签一路右推会全堆在末端）。
-  // 今日竖线压在省带上：刚进入的省（如 10-31 进湘、今天 11-02）段只有一两天宽，
+  // 互相碰撞的标签合并成一组，整组以组员「理想位置（对准段中心）」的均值落位，
+  // 位移平方和最小；不再单向往右推——单向推会把 8 月的拥挤一路传到末端，
+  // 让湘/鄂整体错到邻省格子上。
+  // 今日竖线压在省带上：刚进入的省（如 10-31 进湘、今天 11-02）段只有几天宽，
   // 居中的标签会被竖线穿过——跨线的标签在不离开自己段的前提下退到线左侧，前面的
   // 标签依次向左让位；退不进自己段就保持居中（宁可被线穿过，也不能压到邻省的格子上）。
   const legLabels = useMemo(() => {
     const map = new Map<number, { leftPct: number; centerPct: number }>();
     const pxToPct = (px: number) => (axisWidthPx > 0 ? (px / axisWidthPx) * 100 : 0);
     const gapPct = pxToPct(3);
-    let prevRight = Number.NEGATIVE_INFINITY; // 上一个标签占到的右缘
-    const placed: {
+    const items: {
       i: number;
+      idealLeft: number;
       leftPct: number;
       textPct: number;
       centerPct: number;
@@ -389,29 +390,64 @@ export default function RoleTimeline({
       const ascii = /^[\x20-\x7f]+$/.test(leg.label);
       const textPct = pxToPct(leg.label.length * (ascii ? 7 : 12) + 4);
       const centerPct = (span.startPct + span.endPct) / 2;
-      const leftPct = Math.max(centerPct - textPct / 2, prevRight + gapPct, 0);
-      prevRight = leftPct + textPct;
-      placed.push({ i, leftPct, textPct, centerPct, spanStartPct: span.startPct });
+      const idealLeft = centerPct - textPct / 2;
+      items.push({
+        i,
+        idealLeft,
+        leftPct: idealLeft,
+        textPct,
+        centerPct,
+        spanStartPct: span.startPct,
+      });
     });
 
-    let limit = 100; // 下一个（右侧）标签左缘再减间距：当前标签右缘不越过这里
-    for (let k = placed.length - 1; k >= 0; k--) {
-      const p = placed[k];
-      let right = Math.min(p.leftPct + p.textPct, limit);
-      if (
-        todayPct !== null &&
-        p.centerPct < todayPct &&
-        right - p.textPct < todayPct &&
-        right > todayPct - gapPct &&
-        todayPct - gapPct - p.textPct >= p.spanStartPct
-      ) {
-        right = todayPct - gapPct;
+    // 组：first..last 连续排列；sum = Σ(idealLeft - 组内偏移)，组左缘 = clamp(sum / n)
+    type Group = { first: number; last: number; sum: number; width: number; left: number };
+    const groups: Group[] = [];
+    const place = (g: Group) => {
+      const n = g.last - g.first + 1;
+      g.left = Math.min(Math.max(g.sum / n, 0), Math.max(0, 100 - g.width));
+    };
+    items.forEach((item, k) => {
+      let cur: Group = { first: k, last: k, sum: item.idealLeft, width: item.textPct, left: 0 };
+      place(cur);
+      for (let prev = groups.at(-1); prev && prev.left + prev.width + gapPct > cur.left; ) {
+        const offset = prev.width + gapPct;
+        prev.sum += cur.sum - offset * (cur.last - cur.first + 1);
+        prev.width = offset + cur.width;
+        prev.last = cur.last;
+        place(prev);
+        groups.pop();
+        cur = prev;
+        prev = groups.at(-1);
       }
-      p.leftPct = Math.max(0, right - p.textPct);
-      limit = p.leftPct - gapPct;
-      map.set(p.i, { leftPct: p.leftPct, centerPct: p.centerPct });
+      groups.push(cur);
+    });
+    for (const g of groups) {
+      let left = g.left;
+      for (let k = g.first; k <= g.last; k++) {
+        items[k].leftPct = left;
+        left += items[k].textPct + gapPct;
+      }
     }
 
+    if (todayPct !== null) {
+      const crossing = items.findIndex(
+        (p) => p.centerPct <= todayPct && p.leftPct < todayPct && p.leftPct + p.textPct > todayPct,
+      );
+      const p = items[crossing];
+      if (p && todayPct - gapPct - p.textPct >= p.spanStartPct) {
+        let limit = todayPct - gapPct; // 当前标签右缘不越过这里
+        for (let k = crossing; k >= 0; k--) {
+          const q = items[k];
+          if (q.leftPct + q.textPct <= limit) break;
+          q.leftPct = Math.max(0, limit - q.textPct);
+          limit = q.leftPct - gapPct;
+        }
+      }
+    }
+
+    for (const item of items) map.set(item.i, { leftPct: item.leftPct, centerPct: item.centerPct });
     return { map };
   }, [legs, legSpans, axisWidthPx, todayPct]);
 
