@@ -3,7 +3,7 @@ export const prerender = true;
 
 import HomeContent from '@/app/components/HomeContent';
 import type { LiveVideo } from '@/app/components/LiveVideos';
-import { PROJECT_END, PROJECT_START } from '@/config/project';
+import { PROJECT_START, timelineEndFor } from '@/config/project';
 import boardingsData from '@/data/boardings.json';
 import heroesData from '@/data/heroes.json';
 import videosData from '@/data/live-videos.json';
@@ -138,8 +138,10 @@ const roles = ROLE_ORDER.map((r) => {
 });
 
 const monthMarkers: Array<{ label: string; pct: number }> = [];
+const legs = buildRouteLegs(cities, locale);
+const timelineEnd = timelineEndFor(legs.at(-1)?.startDate);
 const startDate = new Date(`${PROJECT_START}T00:00:00Z`);
-const endDate = new Date(`${PROJECT_END}T00:00:00Z`);
+const endDate = new Date(`${timelineEnd}T00:00:00Z`);
 const totalMs = endDate.getTime() - startDate.getTime();
 const cursor = new Date(startDate);
 cursor.setUTCDate(1);
@@ -160,9 +162,9 @@ const timeline = {
   roles,
   segments,
   monthMarkers,
-  legs: buildRouteLegs(cities, locale),
+  legs,
   projectStart: PROJECT_START,
-  projectEnd: PROJECT_END,
+  projectEnd: timelineEnd,
 };
 
 // 首页 Project 结构化数据（GEO）：与 zh 首页一致

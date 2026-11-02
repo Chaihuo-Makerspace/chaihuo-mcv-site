@@ -214,6 +214,7 @@ function validateStructuredData() {
   const routeCityIds = hasUniqueIds(routeCities, 'stops');
 
   for (const member of team) {
+    if (!member.image) continue;
     check(
       publicAssetExists(member.image),
       `team.json:${member.id}: missing public image ${member.image}`,

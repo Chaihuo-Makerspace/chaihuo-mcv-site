@@ -40,7 +40,7 @@ interface TimelineSegment {
   role: string;
   crewId: string;
   name: string;
-  image: string;
+  image?: string;
   avatarThumb: string;
   avatarCard: string;
   startDate: string;

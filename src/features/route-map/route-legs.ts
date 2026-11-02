@@ -37,6 +37,15 @@ const PROVINCE_SHORT: Record<string, { zh: string; en: string; enFull: string }>
   上海市: { zh: '沪', en: 'SH', enFull: 'Shanghai' },
   江苏省: { zh: '苏', en: 'JS', enFull: 'Jiangsu' },
   福建省: { zh: '闽', en: 'FJ', enFull: 'Fujian' },
+  江西省: { zh: '赣', en: 'JX', enFull: 'Jiangxi' },
+  湖南省: { zh: '湘', en: 'HN', enFull: 'Hunan' },
+  湖北省: { zh: '鄂', en: 'HB', enFull: 'Hubei' },
+  重庆市: { zh: '渝', en: 'CQ', enFull: 'Chongqing' },
+  云南省: { zh: '滇', en: 'YN', enFull: 'Yunnan' },
+  海南省: { zh: '琼', en: 'HI', enFull: 'Hainan' },
+  香港特别行政区: { zh: '港', en: 'HK', enFull: 'Hong Kong' },
+  澳门特别行政区: { zh: '澳', en: 'MO', enFull: 'Macao' },
+  台湾省: { zh: '台', en: 'TW', enFull: 'Taiwan' },
 };
 
 // Event dates come in loose formats: "2026.04.22", "2026.04.24 / 04.25", "2026.05.05–07".

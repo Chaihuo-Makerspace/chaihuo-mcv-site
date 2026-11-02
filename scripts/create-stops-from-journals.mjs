@@ -25,7 +25,14 @@
 //
 // Dry-run by default; pass --apply to write files (workflow uses --apply).
 
-import { appendFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
@@ -73,7 +80,8 @@ function readStops() {
     const lng = Number(get('lng'));
     const lat = Number(get('lat'));
     const province = get('province');
-    if (id && label) stops.push({ id, label, order, lng, lat, province });
+    const visited = get('visited') === 'true';
+    if (id && label) stops.push({ id, label, order, lng, lat, province, visited, file });
   }
   return stops;
 }
@@ -296,7 +304,10 @@ async function main() {
   // 别名里的 id 也视为已知（如 长春 已被登记过就不再建）
   for (const a of Object.values(aliases)) if (a?.id) known.add(a.id);
 
-  const maxOrder = stops.reduce((m, s) => Math.max(m, s.order), 0);
+  // 新站插在「最后一个已访问站」之后、尚未抵达的计划尾段（如终点广东）之前；
+  // 否则新站会排到计划终点后面，省带和路线出现 闽→粤→闽 的倒序。
+  const maxOrder = stops.reduce((m, s) => (s.visited ? Math.max(m, s.order) : m), 0);
+  const plannedTail = stops.filter((s) => !s.visited && s.order > maxOrder);
   const visited = new Set();
   const created = [];
   const pending = [];
@@ -359,6 +370,28 @@ async function main() {
       lat: point.lat,
       date,
     });
+  }
+
+  // 计划尾段整体后移，给新站腾出 order（倒序改名，避免文件名撞车）
+  if (created.length > 0) {
+    for (const tail of [...plannedTail].sort((a, b) => b.order - a.order)) {
+      const next = tail.order + created.length;
+      const nextPad = String(next).padStart(2, '0');
+      const base = tail.file.replace(/^\d+-/, '').replace(/\.md$/, '');
+      if (shouldApply) {
+        const zhText = readFileSync(join(stopsDir, tail.file), 'utf8');
+        writeFileSync(
+          join(stopsDir, tail.file),
+          zhText.replace(/^order:\s*\d+$/m, `order: ${next}`),
+        );
+        renameSync(join(stopsDir, tail.file), join(stopsDir, `${nextPad}-${base}.md`));
+        const enFile = tail.file.replace(/\.md$/, '.en.md');
+        if (existsSync(join(stopsDir, enFile))) {
+          renameSync(join(stopsDir, enFile), join(stopsDir, `${nextPad}-${base}.en.md`));
+        }
+      }
+      log(`${shouldApply ? 'Moved' : 'Would move'} planned ${tail.file} → order ${next}`);
+    }
   }
 
   // 写文件
