@@ -85,7 +85,9 @@ function loadTsModule(relativePath) {
     {
       exports: module.exports,
       module,
+      // 只放行仓库内 `@/` 别名（如 i18n 读 @/config/project 的天数常量），同样转译加载
       require: (specifier) => {
+        if (specifier.startsWith('@/')) return loadTsModule(`src/${specifier.slice(2)}.ts`);
         throw new Error(`${relativePath}: unexpected runtime import ${specifier}`);
       },
     },

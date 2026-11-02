@@ -95,7 +95,7 @@ interface LegSpan {
 }
 
 /**
- * Short legs (a 1–3 day province crossing) collapse to a few px on the 200-day
+ * Short legs (a 1–3 day province crossing) collapse to a few px on the 220-day
  * axis, and their borders would vanish between neighbours. So widen the short
  * ones — but around their own real centre, not by pushing everything to the
  * right: the old cascade-and-redistribute version gave every leg a minimum

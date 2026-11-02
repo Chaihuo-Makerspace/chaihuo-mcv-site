@@ -9,6 +9,7 @@ const Slider = (
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { ChevronDown, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { PROJECT_PLANNED_DAYS } from '@/config/project';
 import expeditionConfig from '@/data/expedition-config.json';
 import { daysOnRoad } from '@/features/route-map/expedition-timeline';
 import { MAP_BG } from '@/features/route-map/map-style';
@@ -100,8 +101,6 @@ type HomeStop = ProjectableStop & {
   event?: { summary: string; link?: string };
 };
 
-// 官方计划全程天数(见 src/content/stops/00-shenzhen.md 与 press.json 报道标题)
-const TOTAL_ROUTE_DAYS = 200;
 const labCards = [
   [
     'lab.aiTitle',
@@ -457,7 +456,7 @@ export default function HomeContent({
                       <span className="text-sm font-bold tabular-nums text-neutral-400">
                         {(t['telemetry.daysTotal'] ?? '/ {total} 天').replace(
                           '{total}',
-                          String(TOTAL_ROUTE_DAYS),
+                          String(PROJECT_PLANNED_DAYS),
                         )}
                       </span>
                       <span className="text-xs tabular-nums text-neutral-500">
