@@ -1,6 +1,7 @@
-// Project-level constants. Source of truth for the home timeline axis (220 days since 2026-11 re-route;
-// the "200 天" copy in i18n is separate). PROJECT_END is computed from start + planned days, so adjusting the
-// planned duration here will ripple through the timeline visualization.
+// Project-level constants. PROJECT_PLANNED_DAYS is the single source for the journey length:
+// the home timeline axis, the「/ N 天」counter and every「N 天」line in src/i18n read it.
+// 2026-11 改线（武汉→巴东→恩施）后由 200 改为 220。启动时的 press 报道标题与
+// 00-shenzhen 出发记录是历史原文，不跟随修改。
 
 export const PROJECT_START = '2026-04-22';
 export const PROJECT_PLANNED_DAYS = 220;

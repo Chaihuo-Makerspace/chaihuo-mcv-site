@@ -1,3 +1,4 @@
+import { PROJECT_PLANNED_DAYS } from '@/config/project';
 import type { Locale } from './index';
 
 const home: Record<Locale, Record<string, string>> = {
@@ -8,8 +9,7 @@ const home: Record<Locale, Record<string, string>> = {
     'hero.title': '柴火基地车',
     'hero.slogan': '生而荒野 行向未来',
     'hero.subtitle': '一台正在穿越中国的移动 AI 实验室',
-    'hero.body':
-      '以柴火数字基地车为移动载体，深入山野、草原与乡土，把 AI 带到真实场景中。用 200 天行走中国，在极限环境里检验技术，与在地居民共创解决方案，让每一个人都有机会驾驭AI。',
+    'hero.body': `以柴火数字基地车为移动载体，深入山野、草原与乡土，把 AI 带到真实场景中。用 ${PROJECT_PLANNED_DAYS} 天行走中国，在极限环境里检验技术，与在地居民共创解决方案，让每一个人都有机会驾驭AI。`,
     'hero.watchVideo': '基地车视频',
     'hero.comingSoon': '敬请期待',
     'hero.joinAction': '加入行动',
@@ -49,13 +49,13 @@ const home: Record<Locale, Record<string, string>> = {
     'journal.upcomingDesc': '此城正在计划中，更多细节将在抵达前公开',
 
     'timeline.eyebrow': '在路上的人',
-    'timeline.title': '一棒接一棒，200 天',
+    'timeline.title': `一棒接一棒，${PROJECT_PLANNED_DAYS} 天`,
     'timeline.body': '四个核心岗位接力前行——领队、技术担当、媒体担当、场景担当。',
     'timeline.totalDays': '共 {days} 天',
     'timeline.today': '今日',
     'timeline.onTheRoad': '在路上',
     'timeline.currentlyAboard': '当前在车',
-    'timeline.scrollHint': '← 拖动查看完整 200 天 →',
+    'timeline.scrollHint': `← 拖动查看完整 ${PROJECT_PLANNED_DAYS} 天 →`,
 
     'lab.title': '移动的AI实验室',
     'lab.subtitle': '一个可移动的AI实验室，集成边缘算力、数字加工与实验场景能力',
@@ -95,8 +95,7 @@ const home: Record<Locale, Record<string, string>> = {
     'hero.title': 'Chaihuo MCV',
     'hero.slogan': 'Born for the Wild, Driving the Future',
     'hero.subtitle': 'A mobile AI lab traversing China',
-    'hero.body':
-      'Using the Chaihuo Mobile Creative Vehicle as a moving platform, we venture deep into mountains, grasslands, and rural communities to bring AI into real-world scenarios. Over 200 days across China, we test technology in extreme environments, co-create solutions with local residents, and give everyone the opportunity to harness AI.',
+    'hero.body': `Using the Chaihuo Mobile Creative Vehicle as a moving platform, we venture deep into mountains, grasslands, and rural communities to bring AI into real-world scenarios. Over ${PROJECT_PLANNED_DAYS} days across China, we test technology in extreme environments, co-create solutions with local residents, and give everyone the opportunity to harness AI.`,
     'hero.watchVideo': 'MCV Video',
     'hero.comingSoon': 'Coming soon',
     'hero.joinAction': 'Get Involved',
@@ -137,14 +136,14 @@ const home: Record<Locale, Record<string, string>> = {
       'This stop is still being planned. Details will appear closer to arrival.',
 
     'timeline.eyebrow': 'People on the Road',
-    'timeline.title': 'A Relay, 200 Days Long',
+    'timeline.title': `A Relay, ${PROJECT_PLANNED_DAYS} Days Long`,
     'timeline.body':
       'Four core roles passed hand to hand — Team Lead, Tech Lead, Media Lead, Scenario Lead.',
     'timeline.totalDays': '{days} days total',
     'timeline.today': 'Today',
     'timeline.onTheRoad': 'On the road',
     'timeline.currentlyAboard': 'Currently Aboard',
-    'timeline.scrollHint': '← Drag to see all 200 days →',
+    'timeline.scrollHint': `← Drag to see all ${PROJECT_PLANNED_DAYS} days →`,
 
     'lab.title': 'Mobile AI Laboratory',
     'lab.subtitle':

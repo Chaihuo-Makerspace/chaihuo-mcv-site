@@ -1,3 +1,4 @@
+import { PROJECT_PLANNED_DAYS } from '@/config/project';
 import type { Locale } from './index';
 
 const guide: Record<Locale, Record<string, string>> = {
@@ -12,7 +13,7 @@ const guide: Record<Locale, Record<string, string>> = {
     'methods.subtitle': '从跟车到落地，找到你的位置',
 
     'ride.title': '上车同行',
-    'ride.body': '跟车出发，深度参与200天旅程。可选单段或全程，灵活加入。',
+    'ride.body': `跟车出发，深度参与 ${PROJECT_PLANNED_DAYS} 天旅程。可选单段或全程，灵活加入。`,
     'ride.role1': '技术担当 1-2人',
     'ride.role2': '媒体担当 1-2人',
     'ride.apply': '发送邮件报名',
@@ -51,8 +52,7 @@ const guide: Record<Locale, Record<string, string>> = {
     'methods.subtitle': 'From riding along to making an impact on the ground',
 
     'ride.title': 'Ride Along',
-    'ride.body':
-      'Join the crew for a 200-day journey across China. Choose a segment or the full trip — flexible participation.',
+    'ride.body': `Join the crew for a ${PROJECT_PLANNED_DAYS}-day journey across China. Choose a segment or the full trip — flexible participation.`,
     'ride.role1': 'Tech crew: 1–2 people',
     'ride.role2': 'Media crew: 1–2 people',
     'ride.apply': 'Apply via Email',
