@@ -7,9 +7,9 @@ interface Segment {
   role: string;
   crewId: string;
   name: string;
-  image: string;
-  avatarThumb: string; // 64px WebP — 车道 32px 头像(@2x)
-  avatarCard: string; // 256px WebP — "在车上"最大 128px 头像(@2x)
+  image?: string;
+  avatarThumb: string; // 64px WebP — 车道 32px 头像(@2x)；空串 = 无照片
+  avatarCard: string; // 256px WebP — "在车上"最大 128px 头像(@2x)；空串 = 无照片
   bio?: string;
   startDate: string;
   endDate: string | null; // null = ongoing
@@ -68,6 +68,19 @@ function formatShortDate(iso: string, locale: 'zh' | 'en'): string {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   }
   return `${d.getUTCMonth() + 1}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+/** 无照片成员的头像：姓名首字（拉丁名取首字母） */
+function AvatarInitial({ name, className }: { name: string; className: string }) {
+  return (
+    <span
+      role="img"
+      aria-label={name}
+      className={`flex h-full w-full items-center justify-center bg-neutral-200 font-semibold text-neutral-600 ${className}`}
+    >
+      {Array.from(name.trim())[0]?.toUpperCase()}
+    </span>
+  );
 }
 
 /** 段的最小宽度（%）：只保证 0–1 天的短段在条上还有可见的分隔，不再为容纳标签服务 */
@@ -352,29 +365,55 @@ export default function RoleTimeline({
   // 省带标签落位：所有省名都在条内同一行，不上移。条是相连的一整条，所以标签不被
   // 自己的段裁剪——窄段的标签横向滑到邻居段的空白处（8 月「蒙/京/黑/吉/辽」连续
   // 1–3 天的短省按真实日期比例挤在 ~100px 里，向左右的晋/津宽段借位排开）。
-  // 每个标签尽量对准自己段的中心，防碰撞只往右推。
+  // 每个标签尽量对准自己段的中心：先从左往右防碰撞往右推，再从右往左把顶出
+  // 右边界的标签收回来（移动端 960px 轴上标签一路右推会全堆在末端）。
+  // 今日竖线压在省带上：刚进入的省（如 10-31 进湘、今天 11-02）段只有一两天宽，
+  // 居中的标签会被竖线穿过——跨线的标签在不离开自己段的前提下退到线左侧，前面的
+  // 标签依次向左让位；退不进自己段就保持居中（宁可被线穿过，也不能压到邻省的格子上）。
   const legLabels = useMemo(() => {
     const map = new Map<number, { leftPct: number; centerPct: number }>();
     const pxToPct = (px: number) => (axisWidthPx > 0 ? (px / axisWidthPx) * 100 : 0);
     const gapPct = pxToPct(3);
     let prevRight = Number.NEGATIVE_INFINITY; // 上一个标签占到的右缘
+    const placed: {
+      i: number;
+      leftPct: number;
+      textPct: number;
+      centerPct: number;
+      spanStartPct: number;
+    }[] = [];
 
     legs.forEach((leg, i) => {
       const span = legSpans.get(i);
       if (!span) return;
       const ascii = /^[\x20-\x7f]+$/.test(leg.label);
-      const textPct = pxToPct(leg.label.length * (ascii ? 8 : 12) + 4);
+      const textPct = pxToPct(leg.label.length * (ascii ? 7 : 12) + 4);
       const centerPct = (span.startPct + span.endPct) / 2;
-      const leftPct = Math.min(
-        Math.max(centerPct - textPct / 2, prevRight + gapPct, 0),
-        100 - textPct,
-      );
-      prevRight = Math.max(prevRight, leftPct + textPct);
-      map.set(i, { leftPct, centerPct });
+      const leftPct = Math.max(centerPct - textPct / 2, prevRight + gapPct, 0);
+      prevRight = leftPct + textPct;
+      placed.push({ i, leftPct, textPct, centerPct, spanStartPct: span.startPct });
     });
 
+    let limit = 100; // 下一个（右侧）标签左缘再减间距：当前标签右缘不越过这里
+    for (let k = placed.length - 1; k >= 0; k--) {
+      const p = placed[k];
+      let right = Math.min(p.leftPct + p.textPct, limit);
+      if (
+        todayPct !== null &&
+        p.centerPct < todayPct &&
+        right - p.textPct < todayPct &&
+        right > todayPct - gapPct &&
+        todayPct - gapPct - p.textPct >= p.spanStartPct
+      ) {
+        right = todayPct - gapPct;
+      }
+      p.leftPct = Math.max(0, right - p.textPct);
+      limit = p.leftPct - gapPct;
+      map.set(p.i, { leftPct: p.leftPct, centerPct: p.centerPct });
+    }
+
     return { map };
-  }, [legs, legSpans, axisWidthPx]);
+  }, [legs, legSpans, axisWidthPx, todayPct]);
 
   const legBandHeightPx = LEG_BAND_BAR_H;
 
@@ -486,10 +525,10 @@ export default function RoleTimeline({
 
             <div
               ref={scrollerRef}
-              className="flex-1 min-w-0 overflow-x-auto md:overflow-visible pb-2"
+              className="flex-1 min-w-0 overflow-x-auto xl:overflow-visible pb-2"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              <div className="relative min-w-[720px] md:min-w-0 pl-4" ref={axisRef}>
+              <div className="relative min-w-[960px] xl:min-w-0 pl-4" ref={axisRef}>
                 {/* Month scale */}
                 <div className="relative h-7 mb-3 border-b border-neutral-200">
                   {monthMarkers.map((m) => (
@@ -754,21 +793,28 @@ export default function RoleTimeline({
                                         inCluster ? 'w-6 h-6' : 'w-9 h-9'
                                       }`}
                                     >
-                                      <img
-                                        src={seg.avatarThumb}
-                                        alt={seg.name}
-                                        width={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
-                                        height={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
-                                        className="w-full h-full object-cover"
-                                        style={
-                                          seg.crewId === 'ye-kaiwei'
-                                            ? {
-                                                transform: 'translateX(25%) scale(1.45)',
-                                                transformOrigin: '26% 35%',
-                                              }
-                                            : undefined
-                                        }
-                                      />
+                                      {seg.avatarThumb ? (
+                                        <img
+                                          src={seg.avatarThumb}
+                                          alt={seg.name}
+                                          width={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
+                                          height={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
+                                          className="w-full h-full object-cover"
+                                          style={
+                                            seg.crewId === 'ye-kaiwei'
+                                              ? {
+                                                  transform: 'translateX(25%) scale(1.45)',
+                                                  transformOrigin: '26% 35%',
+                                                }
+                                              : undefined
+                                          }
+                                        />
+                                      ) : (
+                                        <AvatarInitial
+                                          name={seg.name}
+                                          className={inCluster ? 'text-[10px]' : 'text-sm'}
+                                        />
+                                      )}
                                     </div>
 
                                     {/* Name label — muted for alumni segments */}
@@ -806,7 +852,7 @@ export default function RoleTimeline({
           </div>
 
           {/* Mobile scroll hint */}
-          <p className="md:hidden mt-10 text-center text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+          <p className="xl:hidden mt-10 text-center text-[10px] uppercase tracking-[0.2em] text-neutral-400">
             {t['timeline.scrollHint']}
           </p>
         </motion.div>
@@ -856,21 +902,25 @@ export default function RoleTimeline({
                           key={member.id}
                           className={`rounded-full overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 ${avatarClass}`}
                         >
-                          <img
-                            src={member.avatarCard}
-                            alt={member.name}
-                            width={128}
-                            height={128}
-                            className="w-full h-full object-cover"
-                            style={
-                              member.crewId === 'ye-kaiwei'
-                                ? {
-                                    transform: 'translateX(25%) scale(1.45)',
-                                    transformOrigin: '26% 35%',
-                                  }
-                                : undefined
-                            }
-                          />
+                          {member.avatarCard ? (
+                            <img
+                              src={member.avatarCard}
+                              alt={member.name}
+                              width={128}
+                              height={128}
+                              className="w-full h-full object-cover"
+                              style={
+                                member.crewId === 'ye-kaiwei'
+                                  ? {
+                                      transform: 'translateX(25%) scale(1.45)',
+                                      transformOrigin: '26% 35%',
+                                    }
+                                  : undefined
+                              }
+                            />
+                          ) : (
+                            <AvatarInitial name={member.name} className="text-3xl" />
+                          )}
                         </div>
                       ))}
                     </div>

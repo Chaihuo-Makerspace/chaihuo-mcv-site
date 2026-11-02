@@ -422,9 +422,10 @@
       "location_en": "Shanghai"
     },
     "disembarkedAt": {
-      "date": "2026-10-31",
-      "location": "广东",
-      "location_en": "Guangdong"
+      "date": "2026-10-30",
+      "location": "南昌",
+      "location_en": "Nanchang",
+      "handoffTo": "chen-ruoyu"
     }
   },
   {
@@ -453,9 +454,10 @@
       "location_en": "Wuxi"
     },
     "disembarkedAt": {
-      "date": "2026-10-31",
-      "location": "广东",
-      "location_en": "Guangdong"
+      "date": "2026-10-30",
+      "location": "南昌",
+      "location_en": "Nanchang",
+      "handoffTo": "zhang-anqi"
     }
   },
   {
@@ -468,9 +470,55 @@
       "location_en": "Shanghai"
     },
     "disembarkedAt": {
-      "date": "2026-10-25",
-      "location": "广东",
-      "location_en": "Guangdong"
+      "date": "2026-10-23",
+      "location": "福州",
+      "location_en": "Fuzhou",
+      "handoffTo": "lin-xi"
+    }
+  },
+  {
+    "id": "b31",
+    "crewId": "lin-xi",
+    "role": "媒体担当",
+    "boardedAt": {
+      "date": "2026-10-23",
+      "location": "福州",
+      "location_en": "Fuzhou"
+    },
+    "disembarkedAt": {
+      "date": "2026-11-11",
+      "location": "恩施",
+      "location_en": "Enshi"
+    }
+  },
+  {
+    "id": "b32",
+    "crewId": "zhang-anqi",
+    "role": "领队",
+    "boardedAt": {
+      "date": "2026-10-28",
+      "location": "吉安",
+      "location_en": "Ji'an"
+    },
+    "disembarkedAt": {
+      "date": "2026-11-11",
+      "location": "恩施",
+      "location_en": "Enshi"
+    }
+  },
+  {
+    "id": "b33",
+    "crewId": "chen-ruoyu",
+    "role": "技术担当",
+    "boardedAt": {
+      "date": "2026-10-30",
+      "location": "南昌",
+      "location_en": "Nanchang"
+    },
+    "disembarkedAt": {
+      "date": "2026-11-11",
+      "location": "恩施",
+      "location_en": "Enshi"
     }
   }
 ]

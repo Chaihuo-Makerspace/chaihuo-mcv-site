@@ -277,5 +277,32 @@
     "bio": "内容创作者与传播策划，负责用影像、文字和社媒记录基地车的现场故事与创作瞬间；有机器人开发背景，也兼顾技术现场的记录与讲解。",
     "bio_en": "Content creator and communications planner, documenting the MCV's on-site stories and creative moments through visuals, writing, and social media; also covers technical demos with a robotics development background.",
     "image": "/people/li-shuijiao.webp"
+  },
+  {
+    "id": "zhang-anqi",
+    "name": "张安琪",
+    "name_en": "Zhang Anqi",
+    "role": "领队",
+    "role_en": "Team Lead",
+    "bio": "负责基地车整体资源协调、行程统筹与团队支持。",
+    "bio_en": "Responsible for the MCV's overall resource coordination, journey planning, and team support."
+  },
+  {
+    "id": "chen-ruoyu",
+    "name": "陈若玙",
+    "name_en": "Chen Ruoyu",
+    "role": "技术担当",
+    "role_en": "Tech Lead",
+    "bio": "负责基地车技术系统的搭建与运维，为沿途创作提供稳定的技术支撑。",
+    "bio_en": "Responsible for building and maintaining the MCV's technical systems, providing reliable support for on-site creation."
+  },
+  {
+    "id": "lin-xi",
+    "name": "林汐",
+    "name_en": "Lin Xi",
+    "role": "媒体担当",
+    "role_en": "Media Lead",
+    "bio": "内容记录与传播支持，负责用影像和文字记录基地车沿途的故事与现场。",
+    "bio_en": "Content and communications support, documenting the MCV's journey and on-site stories through visuals and writing."
   }
 ]

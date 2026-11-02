@@ -1,6 +1,6 @@
 ---
 id: guangdong
-order: 63
+order: 71
 visited: false
 label: 广东
 label_en: Guangdong
@@ -9,7 +9,7 @@ lng: 113.2806
 lat: 23.1252
 altitude: "21"
 event:
-  date: "2026.10.31"
+  date: "2026.11.11"
 ---
 
 # 广东

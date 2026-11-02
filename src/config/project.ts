@@ -12,3 +12,12 @@ const computeEndDate = (start: string, days: number): string => {
 };
 
 export const PROJECT_END = computeEndDate(PROJECT_START, PROJECT_PLANNED_DAYS);
+
+// 行程按实际站点延后时（如 2026-10 改线，恩施→广东 11-11 才收尾），首页时间轴
+// 需要覆盖到最后一站，否则末尾的计划段被压成几像素宽，省名挤出自己的段。
+// 「200 天」叙事不变；时间轴取 PROJECT_END 与「最后一站 + 1 天」中较晚者。
+export const timelineEndFor = (lastStopDate: string | undefined): string => {
+  if (!lastStopDate) return PROJECT_END;
+  const end = computeEndDate(lastStopDate, 1);
+  return end > PROJECT_END ? end : PROJECT_END;
+};

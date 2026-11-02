@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
  * existsSync 只能跑在 SSR/构建期 —— 请在 .astro frontmatter 里调用,
  * 不要把本模块引进 client island。
  */
-export function withAvatarDerivatives<T extends { image: string }>(
+export function withAvatarDerivatives<T extends { image?: string }>(
   items: T[],
 ): Array<T & { avatarThumb: string; avatarCard: string }> {
   // dev 下 import.meta.url 是源码路径;构建预渲染时却是 dist/server 产物
@@ -21,15 +21,16 @@ export function withAvatarDerivatives<T extends { image: string }>(
     fileURLToPath(new URL('../../public', import.meta.url)),
     join(process.cwd(), 'public'),
   ].find((dir) => existsSync(join(dir, 'people')));
-  const resolve = (image: string, variant: '64' | '256'): string | undefined => {
-    if (!publicDir || !image.startsWith('/people/')) return undefined;
+  const resolve = (image: string | undefined, variant: '64' | '256'): string | undefined => {
+    if (!publicDir || !image?.startsWith('/people/')) return undefined;
     const name = image.slice('/people/'.length).replace(/\.[^.]+$/, '');
     const url = `/people/avatars/${variant}/${name}.webp`;
     return existsSync(join(publicDir, url)) ? url : undefined;
   };
   return items.map((item) => ({
     ...item,
-    avatarThumb: resolve(item.image, '64') ?? item.image,
-    avatarCard: resolve(item.image, '256') ?? item.image,
+    // 无照片 → 空串，组件改画姓名首字
+    avatarThumb: resolve(item.image, '64') ?? item.image ?? '',
+    avatarCard: resolve(item.image, '256') ?? item.image ?? '',
   }));
 }

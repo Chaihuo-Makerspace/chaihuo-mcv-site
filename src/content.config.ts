@@ -75,7 +75,8 @@ const team = defineCollection({
     name_en: z.string().optional(),
     role: z.string(),
     role_en: z.string().optional(),
-    image: z.string(),
+    // 没有照片的成员省略 image，时间线用姓名首字头像
+    image: z.string().optional(),
     bio: z.string().optional(),
     bio_en: z.string().optional(),
   }),
