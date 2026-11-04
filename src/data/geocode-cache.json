@@ -542,5 +542,24 @@
   "格凸河": null,
   "浩坤湖": null,
   "七百弄": null,
-  "长沙长塘里小学": null
+  "长沙长塘里小学": null,
+  "长塘里小学": [
+    {
+      "lng": 115.7211165,
+      "lat": 23.806523,
+      "name": "长塘小学",
+      "state": "广东省",
+      "osmKey": "amenity",
+      "osmValue": "school"
+    },
+    {
+      "lng": 113.9284787,
+      "lat": 22.944481,
+      "name": "长塘小学",
+      "state": "广东省",
+      "osmKey": "amenity",
+      "osmValue": "school"
+    }
+  ],
+  "从农田到实验室": null
 }
