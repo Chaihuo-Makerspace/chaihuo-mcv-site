@@ -1,6 +1,28 @@
 {
   "videos": [
     {
+      "bvid": "BV1J74t6UE2f",
+      "url": "https://www.bilibili.com/video/BV1J74t6UE2f",
+      "cover": "/live/videos/BV1J74t6UE2f.webp",
+      "date": "2026-11-06",
+      "eyebrow": "山东、合肥、河南",
+      "eyebrow_en": "山东, 合肥, 河南",
+      "eyebrows": [
+        "山东",
+        "合肥",
+        "河南"
+      ],
+      "eyebrows_en": [
+        "山东",
+        "合肥",
+        "河南"
+      ],
+      "title": "进入中原，寻找WHY",
+      "title_en": "Enter the Central Plains and search for WHY",
+      "description": "我们看到了创造力在不同领域的应用，也看到了创造者持续书写的热忱",
+      "description_en": "We have witnessed the application of creativity across different fields, as well as the enduring passion of creators as they keep on writing."
+    },
+    {
       "bvid": "BV11AxM6YEjr",
       "url": "https://www.bilibili.com/video/BV11AxM6YEjr",
       "cover": "/live/videos/BV11AxM6YEjr.webp",
