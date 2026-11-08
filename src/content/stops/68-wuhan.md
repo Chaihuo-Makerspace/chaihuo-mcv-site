@@ -1,7 +1,7 @@
 ---
 id: wuhan
 order: 68
-visited: false
+visited: true
 label: 武汉
 label_en: Wuhan
 province: 湖北省

@@ -1,7 +1,7 @@
 ---
 id: badong
 order: 69
-visited: false
+visited: true
 label: 巴东
 label_en: Badong
 province: 湖北省
