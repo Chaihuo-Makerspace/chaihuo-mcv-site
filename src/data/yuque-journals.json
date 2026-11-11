@@ -3,7 +3,7 @@
     "name": "柴火基地车车长日记",
     "namespace": "mouseart/mcv",
     "url": "https://www.yuque.com/mouseart/mcv",
-    "syncedAt": "2026-11-10T18:53:25.577Z",
+    "syncedAt": "2026-11-11T04:24:56.087Z",
     "intervalMinutes": 10
   },
   "journals": [
@@ -543,7 +543,7 @@
       "city": "kaifeng",
       "href": "https://www.yuque.com/mouseart/mcv/cg0ggsvsiz5f0llp",
       "updatedAt": "2026-11-10T13:26:49.301Z",
-      "coverImage": "/yuque-journals/cg0ggsvsiz5f0llp.jpg",
+      "coverImage": null,
       "category": "science"
     },
     {
