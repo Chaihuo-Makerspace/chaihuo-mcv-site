@@ -307,5 +307,15 @@
     "bio": "内容记录与传播支持，负责用影像和文字记录基地车沿途的故事与现场。",
     "bio_en": "Content and communications support, documenting the MCV's journey and on-site stories through visuals and writing.",
     "image": "/people/lin-xi.webp"
+  },
+  {
+    "id": "qie-xi",
+    "name": "且曦",
+    "name_en": "Qie Xi",
+    "role": "场景担当",
+    "role_en": "Scenario Lead",
+    "bio": "负责和用户沟通，了解场景需求，共创解决方案。",
+    "bio_en": "Responsible for communicating with users, understanding their scenario needs, and co-creating solutions.",
+    "image": "/people/qie-xi.webp"
   }
 ]
