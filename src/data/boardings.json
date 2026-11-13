@@ -520,5 +520,15 @@
       "location": "待定",
       "location_en": "TBD"
     }
+  },
+  {
+    "id": "b34",
+    "crewId": "qie-xi",
+    "role": "场景担当",
+    "boardedAt": {
+      "date": "2026-11-06",
+      "location": "武汉",
+      "location_en": "Wuhan"
+    }
   }
 ]
