@@ -2,6 +2,8 @@
 id: guangzhou-final
 order: 71
 visited: true
+routeOnly: true
+revisitOf: guangzhou
 label: 广州
 label_en: Guangzhou
 province: 广东省
@@ -15,3 +17,5 @@ event:
 # 广州
 
 ## 现场记
+
+11 月 13 日返程回到广州，回到 4 月去程停留过的这座城市，也是这趟环线最后一段的折返终点。

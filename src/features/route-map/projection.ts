@@ -2,7 +2,7 @@ import { geoMercator, geoPath } from 'd3-geo';
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import chinaGeoJson from '@/data/china-provinces.json' with { type: 'json' };
 import { MAP_HEIGHT, MAP_SCALE_DENOMINATOR, MAP_TRANSLATE_Y_OFFSET, MAP_WIDTH } from './constants';
-import { isRouteOnlyCity, type ProjectableStop, type ProjectedCity } from './types';
+import { currentCity, isRouteOnlyCity, type ProjectableStop, type ProjectedCity } from './types';
 
 // ─── 地图投影 ───
 export { MAP_HEIGHT, MAP_WIDTH } from './constants';
@@ -73,7 +73,7 @@ export function getElevationOffset(altitude: string): number {
 // ─── label placement (auto, no manual offsets) ───
 export function projectCities(cities: ProjectableStop[]): ProjectedCity[] {
   const sorted = [...cities].sort((a, b) => a.order - b.order);
-  const lastVisited = [...sorted].reverse().find((c) => c.visited && !isRouteOnlyCity(c));
+  const lastVisited = currentCity(sorted);
   return sorted.flatMap((c) => {
     const p = projection([c.lng, c.lat]);
     if (!p) return [];

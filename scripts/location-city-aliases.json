@@ -384,19 +384,19 @@
     "province": "湖北省"
   },
   "广州": {
-    "id": "guangzhou-final",
+    "id": "guangzhou",
     "label": "广州",
     "label_en": "Guangzhou",
     "province": "广东省"
   },
   "广州市": {
-    "id": "guangzhou-final",
+    "id": "guangzhou",
     "label": "广州",
     "label_en": "Guangzhou",
     "province": "广东省"
   },
   "广东科学中心": {
-    "id": "guangzhou-final",
+    "id": "guangzhou",
     "label": "广州",
     "label_en": "Guangzhou",
     "province": "广东省"

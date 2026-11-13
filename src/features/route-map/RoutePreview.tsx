@@ -9,7 +9,7 @@ import {
   placeLabels,
   projectCities,
 } from './projection';
-import { isRouteOnlyCity, type ProjectableStop } from './types';
+import { currentCity, isRouteOnlyCity, type ProjectableStop } from './types';
 import { PROVINCE_VISITED } from './visited-provinces';
 
 interface Props {
@@ -24,10 +24,7 @@ export default function RoutePreview({ cities, ariaLabel }: Props) {
   const segments = useMemo(() => buildCityLines(projected), [projected]);
 
   // Find current city (last visited)
-  const current = useMemo(
-    () => [...projected].reverse().find((city) => city.visited && !isRouteOnlyCity(city)),
-    [projected],
-  );
+  const current = useMemo(() => currentCity(projected), [projected]);
 
   // Auto-calculated label offsets to prevent collision
   const labelOffsets = useMemo(() => placeLabels(projected), [projected]);

@@ -37,7 +37,7 @@ const CITY_KEYWORDS = [
   ['nanning', ['南宁', '广西科技馆', '浩坤湖']],
   ['yulin', ['玉林']],
   ['yangjiang', ['阳江']],
-  ['guangzhou-final', ['广州', '广东科学中心']],
+  ['guangzhou', ['广州', '广东科学中心']],
   ['lhasa', ['拉萨']],
   ['batang', ['巴塘']],
   ['yaan', ['雅安']],
@@ -83,6 +83,7 @@ function loadStops(stopsDir) {
     );
     if (!frontmatter) continue;
     const id = frontmatter[1].match(/^id:\s*(\S+)\s*$/m)?.[1];
+    const revisitOf = frontmatter[1].match(/^revisitOf:\s*([a-z0-9-]+)\s*$/m)?.[1];
     const label = frontmatter[1].match(/^label:\s*(.+?)\s*$/m)?.[1];
     const order = Number(frontmatter[1].match(/^order:\s*(\d+)\s*$/m)?.[1] ?? 0);
     const lng = Number(frontmatter[1].match(/^lng:\s*([-\d.]+)\s*$/m)?.[1]);
@@ -90,7 +91,8 @@ function loadStops(stopsDir) {
     const visited = /^visited:\s*true\s*$/m.test(frontmatter[1]);
     const eventDateRaw = frontmatter[1].match(/^ {2}date:\s*"?([^"\n]+?)"?\s*$/m)?.[1];
     const eventDate = eventDateRaw ? parseJournalDate(eventDateRaw) : null;
-    if (id && label) stops.push({ id, label, order, lng, lat, visited, eventDate });
+    if (id && label)
+      stops.push({ id: revisitOf ?? id, label, order, lng, lat, visited, eventDate });
   }
 
   return stops.sort((a, b) => b.order - a.order);

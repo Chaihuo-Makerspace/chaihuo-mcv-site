@@ -11,6 +11,10 @@ export const stopFrontmatterSchema = z.object({
   isOrigin: z.boolean().optional(),
   anchor: z.boolean().optional(),
   routeOnly: z.boolean().optional(),
+  revisitOf: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
 
   label: z.string(),
   label_en: z.string().optional(),

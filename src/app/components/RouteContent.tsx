@@ -17,7 +17,7 @@ import {
 import type { MapViewMode } from '@/features/route-map/MapLibreCanvas';
 import StoryRiver from '@/features/route-map/StoryRiver';
 import type { ThemeType } from '@/features/route-map/theme';
-import { isRouteOnlyCity, type RouteCity } from '@/features/route-map/types';
+import { currentCity, isRouteOnlyCity, type RouteCity } from '@/features/route-map/types';
 import type { Locale } from '@/i18n/index';
 
 interface SerializedJournal {
@@ -75,10 +75,7 @@ export default function RouteContent({ cities, journals, locale = 'zh', t }: Pro
     setLiveDays(daysOnRoad());
   }, []);
 
-  const lastVisited = useMemo(
-    () => [...visibleCities].reverse().find((c) => c.visited) ?? null,
-    [visibleCities],
-  );
+  const lastVisited = useMemo(() => currentCity(themedCities) ?? null, [themedCities]);
 
   // Panel starts closed: the map's current-position pulse carries "where are
   // we now"; the panel opens on pin/marker/river click.

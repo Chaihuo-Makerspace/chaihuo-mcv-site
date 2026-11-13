@@ -4,7 +4,13 @@ import { horseRouteGeoJson } from './horse-geo';
 import { bboxAt, labelDims, placeLabels, rectsOverlap } from './label-layout';
 import { buildMapStyle, buildRouteSource, CHINA_BOUNDS, MAP_BG } from './map-style';
 import type { ThemeType } from './theme';
-import { isRouteOnlyCity, type ProjectedCity, type Rect, type RouteCity } from './types';
+import {
+  currentCity,
+  isRouteOnlyCity,
+  type ProjectedCity,
+  type Rect,
+  type RouteCity,
+} from './types';
 
 // Kick off the ~1MB maplibre chunk fetch the moment this module evaluates
 // (rather than after React mount + effect), so download overlaps hydration.
@@ -147,7 +153,7 @@ export default function MapLibreCanvas({
     const map = mapRef.current;
     if (!map) return;
     const visible = cities.filter((c) => !isRouteOnlyCity(c));
-    const lastVisited = [...visible].reverse().find((c) => c.visited);
+    const lastVisited = currentCity(cities);
 
     const projected: ProjectedCity[] = visible.map((c) => {
       const p = map.project([c.lng, c.lat]);
@@ -377,7 +383,7 @@ export default function MapLibreCanvas({
       map.on('load', () => {
         if (cancelled) return;
         // 最新抵达城市 = 全页视觉焦点(唯一的循环动画 marker)
-        const lastVisited = [...cities].reverse().find((c) => c.visited && !isRouteOnlyCity(c));
+        const lastVisited = currentCity(cities);
         for (const city of cities) {
           if (isRouteOnlyCity(city)) continue;
           const isLatest = city.id === lastVisited?.id;
