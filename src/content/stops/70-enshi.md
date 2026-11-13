@@ -1,7 +1,7 @@
 ---
 id: enshi
 order: 70
-visited: false
+visited: true
 label: 恩施
 label_en: Enshi
 province: 湖北省
