@@ -3,6 +3,7 @@ export const prerender = true;
 
 import JournalsContent from '@/app/components/JournalsContent';
 import { loadLocalizedStops } from '@/features/route-map/stops-loader';
+import { isRouteOnlyCity } from '@/features/route-map/types';
 import type { Locale } from '@/i18n/index';
 import journalsDict from '@/i18n/journals';
 import BaseLayout from '@/layouts/BaseLayout.astro';
@@ -21,11 +22,13 @@ const journalsCollection = await getAllJournals({ includeDrafts: false });
 // Map all journals to localized formats
 const localizedJournals = journalsCollection.map((entry) => localizeJournal(entry, cities, locale));
 
-// Island payload: city filter labels only.
-const islandCities = cities.map((c) => ({
-  id: c.id,
-  label: c.label,
-}));
+// Island payload: city filter labels only（途经/折返点不进公开城市列表）
+const islandCities = cities
+  .filter((c) => !isRouteOnlyCity(c))
+  .map((c) => ({
+    id: c.id,
+    label: c.label,
+  }));
 
 // Journal cards render id/slug/title/date/city/href/coverImage only (updatedAt dropped)
 const yuqueCards = yuqueJournalsData.journals.map((j) => ({

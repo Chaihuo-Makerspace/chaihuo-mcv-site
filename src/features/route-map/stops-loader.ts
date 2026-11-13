@@ -28,6 +28,7 @@ export type Stop = {
   isOrigin?: boolean;
   anchor?: boolean;
   routeOnly?: boolean;
+  revisitOf?: string;
   label: string;
   province?: string;
   lng: number;
@@ -165,6 +166,7 @@ export async function loadLocalizedStops(requestedLocale: Locale): Promise<Stop[
       isOrigin: fm.isOrigin,
       anchor: fm.anchor,
       routeOnly: fm.routeOnly,
+      revisitOf: fm.revisitOf,
       label: requestedLocale === 'en' && fm.label_en ? fm.label_en : fm.label,
       province: fm.province,
       lng: fm.lng,

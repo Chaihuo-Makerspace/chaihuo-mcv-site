@@ -14,7 +14,7 @@ import expeditionConfig from '@/data/expedition-config.json';
 import { daysOnRoad } from '@/features/route-map/expedition-timeline';
 import { MAP_BG } from '@/features/route-map/map-style';
 import RoutePreview from '@/features/route-map/RoutePreview';
-import { isRouteOnlyCity, type ProjectableStop } from '@/features/route-map/types';
+import { currentCity, isRouteOnlyCity, type ProjectableStop } from '@/features/route-map/types';
 import type { Locale } from '@/i18n/index';
 import { localePath } from '@/i18n/index';
 import {
@@ -134,10 +134,7 @@ export default function HomeContent({
     () => sortedCities.filter((city) => !isRouteOnlyCity(city)),
     [sortedCities],
   );
-  const lastVisited = useMemo(
-    () => [...officialCities].reverse().find((c) => c.visited) ?? null,
-    [officialCities],
-  );
+  const lastVisited = useMemo(() => currentCity(sortedCities) ?? null, [sortedCities]);
   const visitedCount = useMemo(
     () => officialCities.filter((city) => city.visited).length,
     [officialCities],
