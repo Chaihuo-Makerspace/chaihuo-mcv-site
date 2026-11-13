@@ -486,9 +486,9 @@
       "location_en": "Fuzhou"
     },
     "disembarkedAt": {
-      "date": "2026-11-11",
-      "location": "恩施",
-      "location_en": "Enshi"
+      "date": "2026-11-25",
+      "location": "待定",
+      "location_en": "TBD"
     }
   },
   {
@@ -501,9 +501,9 @@
       "location_en": "Ji'an"
     },
     "disembarkedAt": {
-      "date": "2026-11-11",
-      "location": "恩施",
-      "location_en": "Enshi"
+      "date": "2026-11-25",
+      "location": "待定",
+      "location_en": "TBD"
     }
   },
   {
@@ -516,9 +516,9 @@
       "location_en": "Nanchang"
     },
     "disembarkedAt": {
-      "date": "2026-11-11",
-      "location": "恩施",
-      "location_en": "Enshi"
+      "date": "2026-11-25",
+      "location": "待定",
+      "location_en": "TBD"
     }
   }
 ]
