@@ -743,9 +743,11 @@ export default function RoleTimeline({
                                       ? locale === 'en'
                                         ? ` (handed over to ${seg.handoffName})`
                                         : ` · 交接给 ${seg.handoffName}`
-                                      : locale === 'en'
-                                        ? ' (term ended)'
-                                        : ' · 任期结束'
+                                      : isPastTerm
+                                        ? locale === 'en'
+                                          ? ' (term ended)'
+                                          : ' · 任期结束'
+                                        : ''
                                   }`;
                               const segmentTitle = `${seg.name} · ${seg.role}${locale === 'en' ? ': ' : '：'}${
                                 seg.startLocation
