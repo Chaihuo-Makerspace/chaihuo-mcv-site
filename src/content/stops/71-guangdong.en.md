@@ -1,3 +1,0 @@
-# Guangdong
-
-## Event

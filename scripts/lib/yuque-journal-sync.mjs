@@ -37,7 +37,7 @@ const CITY_KEYWORDS = [
   ['nanning', ['南宁', '广西科技馆', '浩坤湖']],
   ['yulin', ['玉林']],
   ['yangjiang', ['阳江']],
-  ['guangzhou', ['广州', '广东科学中心']],
+  ['guangzhou-final', ['广州', '广东科学中心']],
   ['lhasa', ['拉萨']],
   ['batang', ['巴塘']],
   ['yaan', ['雅安']],
