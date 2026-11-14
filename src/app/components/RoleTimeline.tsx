@@ -70,6 +70,26 @@ function formatShortDate(iso: string, locale: 'zh' | 'en'): string {
   return `${d.getUTCMonth() + 1}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
 
+/** 档案卡用的点分日期：04.22 */
+function formatDotDate(iso: string): string {
+  return `${iso.slice(5, 7)}.${iso.slice(8, 10)}`;
+}
+
+/** 叶开炜的原图人物偏右，所有头像位置共用同一套裁切 */
+const avatarCropStyle = (crewId: string) =>
+  crewId === 'ye-kaiwei'
+    ? { transform: 'translateX(25%) scale(1.45)', transformOrigin: '26% 35%' }
+    : undefined;
+
+interface CrewArchiveEntry {
+  crewId: string;
+  name: string;
+  avatarCard: string;
+  bio?: string;
+  roles: string[];
+  segments: Segment[];
+}
+
 /** 无照片成员的头像：姓名首字（拉丁名取首字母） */
 function AvatarInitial({ name, className }: { name: string; className: string }) {
   return (
@@ -247,18 +267,41 @@ export default function RoleTimeline({
   // 客户端拿到今天之前（SSR / 首帧）沿用「无下车日 = 在车」的旧判定，避免闪烁。
   const hasToday = todayPct !== null;
 
+  // 收官态：所有省段都已走过、所有任期都已结束。由数据推出，不写死日期。
+  const finaleIso = useMemo(() => {
+    if (!hasToday || segments.length === 0) return null;
+    if (legs.some((leg) => leg.planned)) return null;
+    let last = '';
+    for (const seg of segments) {
+      if (!seg.endDate || seg.endDate > todayIso) return null;
+      if (seg.endDate > last) last = seg.endDate;
+    }
+    return last || null;
+  }, [hasToday, segments, legs, todayIso]);
+  const isFinale = finaleIso !== null;
+  // 竖线位置：进行中 = 今天；收官 = 最后一棒交还的那天
+  const pointerPct = useMemo(() => {
+    if (todayPct === null) return null;
+    if (!finaleIso) return todayPct;
+    return Math.max(0, Math.min(100, pctOf(finaleIso, projectStart, totalDays)));
+  }, [todayPct, finaleIso, projectStart, totalDays]);
+
+  // 时间轴 ↔ 档案墙联动
+  const [selectedCrewId, setSelectedCrewId] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+
   // Mobile horizontal scroll: auto-scroll to today on mount
   const scrollerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (todayPct === null || !scrollerRef.current) return;
+    if (pointerPct === null || !scrollerRef.current) return;
     const el = scrollerRef.current;
-    const target = (el.scrollWidth * todayPct) / 100 - el.clientWidth / 2;
+    const target = (el.scrollWidth * pointerPct) / 100 - el.clientWidth / 2;
     // Respect prefers-reduced-motion: jump straight to today instead of smooth-scrolling.
     const reduce =
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     el.scrollTo({ left: Math.max(0, target), behavior: reduce ? 'auto' : 'smooth' });
-  }, [todayPct]);
+  }, [pointerPct]);
 
   // 时间轴刻度区的像素宽度：省带标签要不要上移，取决于「这一段放不放得下这个名字」，
   // 这需要把 % 换算成 px，所以量一下（SSR 时为 0，先按条内渲染）。
@@ -302,36 +345,68 @@ export default function RoleTimeline({
     return map;
   }, [roles]);
 
-  // Active members (currently aboard), ordered by role then boarding date.
-  // A segment counts as aboard only when today falls inside it: a member with a scheduled future
-  // disembarkAt is still aboard today, and one scheduled to board later is not aboard yet.
-  // Before hydration (todayPct === null) keep the endDate-only rule so SSR output stays stable.
-  const activeSegments = useMemo(() => {
-    const roleIndex = new Map(roles.map((r, i) => [r.key, i] as const));
-    return segments
-      .filter((s) =>
+  // 今天在车的成员（收官后为空）。水合前沿用 endDate === null 的判定，SSR 输出稳定。
+  const aboardIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (isFinale) return ids;
+    for (const seg of segments) {
+      const aboard =
         todayPct === null
-          ? s.endDate === null
-          : s.startDate <= todayIso && (s.endDate === null || s.endDate > todayIso),
-      )
-      .sort((a, b) => {
-        const ai = roleIndex.get(a.role) ?? 99;
-        const bi = roleIndex.get(b.role) ?? 99;
-        if (ai !== bi) return ai - bi;
-        return a.startDate.localeCompare(b.startDate);
-      });
-  }, [segments, roles, todayPct, todayIso]);
-
-  // Active members grouped by role for the "currently aboard" cards
-  const activeGroups = useMemo(() => {
-    const groups = new Map<string, Segment[]>();
-    for (const segment of activeSegments) {
-      const members = groups.get(segment.role);
-      if (members) members.push(segment);
-      else groups.set(segment.role, [segment]);
+          ? seg.endDate === null
+          : seg.startDate <= todayIso && (seg.endDate === null || seg.endDate > todayIso);
+      if (aboard) ids.add(seg.crewId);
     }
-    return Array.from(groups, ([role, members]) => ({ role, members }));
-  }, [activeSegments]);
+    return ids;
+  }, [segments, todayPct, todayIso, isFinale]);
+
+  // 同行者档案：一人一张卡，多段任期合并展示；按第一次上车日期排序
+  const crewArchive = useMemo(() => {
+    const byCrew = new Map<string, CrewArchiveEntry>();
+    const sorted = [...segments].sort((a, b) => a.startDate.localeCompare(b.startDate));
+    for (const seg of sorted) {
+      const entry = byCrew.get(seg.crewId);
+      if (entry) {
+        entry.segments.push(seg);
+        if (!entry.roles.includes(seg.role)) entry.roles.push(seg.role);
+        if (!entry.bio && seg.bio) entry.bio = seg.bio;
+        if (!entry.avatarCard && seg.avatarCard) entry.avatarCard = seg.avatarCard;
+        continue;
+      }
+      byCrew.set(seg.crewId, {
+        crewId: seg.crewId,
+        name: seg.name,
+        avatarCard: seg.avatarCard,
+        bio: seg.bio,
+        roles: [seg.role],
+        segments: [seg],
+      });
+    }
+    return Array.from(byCrew.values());
+  }, [segments]);
+
+  const visibleArchive = useMemo(
+    () =>
+      roleFilter === 'all'
+        ? crewArchive
+        : crewArchive.filter((entry) => entry.roles.includes(roleFilter)),
+    [crewArchive, roleFilter],
+  );
+
+  // scroll = 从时间轴点进来：选中并滚到卡片；卡片自身点击则切换选中
+  const selectCrew = (crewId: string, scroll: boolean) => {
+    setSelectedCrewId((prev) => (prev === crewId && !scroll ? null : crewId));
+    const entry = crewArchive.find((e) => e.crewId === crewId);
+    if (entry && roleFilter !== 'all' && !entry.roles.includes(roleFilter)) setRoleFilter('all');
+    if (!scroll || typeof document === 'undefined') return;
+    requestAnimationFrame(() => {
+      const card = document.getElementById(`crew-card-${crewId}`);
+      if (!card) return;
+      const reduce =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      card.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    });
+  };
 
   // Last leg that has actually started — planned legs (unvisited) carry placeholder
   // dates and are laid out right of the today pointer instead of by date.
@@ -351,7 +426,7 @@ export default function RoleTimeline({
       let endPct = legEndPct;
       // 已走的最后一段拉到今天；已排定的最后一段拉到时间轴末端（项目结束）。
       // 中间那些已排定的段直接按自己的日期画 —— 和下面「已排定」的人对齐。
-      if (i === lastVisitedIdx && todayPct !== null) endPct = Math.max(legEndPct, todayPct);
+      if (i === lastVisitedIdx && pointerPct !== null) endPct = Math.max(legEndPct, pointerPct);
       if (i === lastIdx && leg.planned) endPct = 100;
       return { startPct, endPct: Math.min(100, Math.max(startPct + 0.5, endPct)) };
     });
@@ -360,7 +435,7 @@ export default function RoleTimeline({
       spans.set(i, span);
     });
     return spans;
-  }, [legs, projectStart, totalDays, lastVisitedIdx, todayPct]);
+  }, [legs, projectStart, totalDays, lastVisitedIdx, pointerPct]);
 
   // 省带标签落位：所有省名都在条内同一行，不上移。条是相连的一整条，所以标签不被
   // 自己的段裁剪——窄段的标签横向滑到邻居段的空白处（8 月「蒙/京/黑/吉/辽」连续
@@ -431,13 +506,14 @@ export default function RoleTimeline({
       }
     }
 
-    if (todayPct !== null) {
+    if (pointerPct !== null) {
       const crossing = items.findIndex(
-        (p) => p.centerPct <= todayPct && p.leftPct < todayPct && p.leftPct + p.textPct > todayPct,
+        (p) =>
+          p.centerPct <= pointerPct && p.leftPct < pointerPct && p.leftPct + p.textPct > pointerPct,
       );
       const p = items[crossing];
-      if (p && todayPct - gapPct - p.textPct >= p.spanStartPct) {
-        let limit = todayPct - gapPct; // 当前标签右缘不越过这里
+      if (p && pointerPct - gapPct - p.textPct >= p.spanStartPct) {
+        let limit = pointerPct - gapPct; // 当前标签右缘不越过这里
         for (let k = crossing; k >= 0; k--) {
           const q = items[k];
           if (q.leftPct + q.textPct <= limit) break;
@@ -449,20 +525,20 @@ export default function RoleTimeline({
 
     for (const item of items) map.set(item.i, { leftPct: item.leftPct, centerPct: item.centerPct });
     return { map };
-  }, [legs, legSpans, axisWidthPx, todayPct]);
+  }, [legs, legSpans, axisWidthPx, pointerPct]);
 
   const legBandHeightPx = LEG_BAND_BAR_H;
 
   // The leg the journey is currently in — its column carries down through the lanes
   const currentLegIdx = useMemo(() => {
-    if (todayPct === null || lastVisitedIdx < 0) return null;
+    if (todayPct === null || lastVisitedIdx < 0 || isFinale) return null;
     const idx = legs.findIndex(
       (leg) => !leg.planned && todayIso >= leg.startDate && todayIso < leg.endDate,
     );
     // Between dated stops the exact leg may not contain today — fall back to the
     // most recent visited leg.
     return idx >= 0 ? idx : lastVisitedIdx;
-  }, [todayPct, todayIso, legs, lastVisitedIdx]);
+  }, [todayPct, todayIso, legs, lastVisitedIdx, isFinale]);
 
   const currentLegRange = useMemo(() => {
     if (todayPct === null || currentLegIdx === null) return null;
@@ -494,21 +570,21 @@ export default function RoleTimeline({
               transition={springTransition}
               className="text-xs uppercase tracking-[0.3em] text-neutral-400 mb-3"
             >
-              {t['timeline.eyebrow']}
+              {isFinale ? t['timeline.eyebrowFinale'] : t['timeline.eyebrow']}
             </motion.p>
             <motion.h2
               variants={fadeUp}
               transition={springTransition}
               className="text-3xl md:text-4xl font-bold text-neutral-900 leading-tight"
             >
-              {t['timeline.title']}
+              {isFinale ? t['timeline.titleFinale'] : t['timeline.title']}
             </motion.h2>
             <motion.p
               variants={fadeUp}
               transition={springTransition}
               className="text-neutral-500 mt-3 max-w-md"
             >
-              {t['timeline.body']}
+              {isFinale ? t['timeline.bodyFinale'] : t['timeline.body']}
             </motion.p>
           </div>
           <motion.div
@@ -595,14 +671,30 @@ export default function RoleTimeline({
                   )}
 
                   {/* Today vertical line — from the legs band down through all lanes */}
-                  {todayPct !== null && (
+                  {pointerPct !== null && (
                     <div
-                      className="absolute top-0 bottom-0 w-px bg-brand z-20 pointer-events-none"
-                      style={{ left: `${todayPct}%` }}
+                      className={`absolute top-0 bottom-0 z-20 pointer-events-none ${
+                        isFinale ? 'w-0.5 bg-brand-dark' : 'w-px bg-brand'
+                      }`}
+                      style={{ left: `${pointerPct}%` }}
                     >
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-brand" />
-                      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-mono uppercase tracking-[0.15em] text-brand-dark bg-white px-1.5">
-                        {t['timeline.today']} · {formatShortDate(todayIso, locale)}
+                      <div
+                        className={`absolute left-1/2 -translate-x-1/2 rounded-full ${
+                          isFinale
+                            ? '-top-1.5 w-3 h-3 bg-brand ring-2 ring-brand-dark'
+                            : '-top-1 w-2 h-2 bg-brand'
+                        }`}
+                      />
+                      <div
+                        className={`absolute -bottom-7 whitespace-nowrap text-[10px] font-mono uppercase tracking-[0.15em] px-1.5 ${
+                          isFinale
+                            ? 'right-0 rounded-sm bg-neutral-900 py-0.5 font-semibold text-brand'
+                            : 'left-1/2 -translate-x-1/2 bg-white text-brand-dark'
+                        }`}
+                      >
+                        {finaleIso
+                          ? `${t['timeline.finale']} · ${formatShortDate(finaleIso, locale)}`
+                          : `${t['timeline.today']} · ${formatShortDate(todayIso, locale)}`}
                       </div>
                     </div>
                   )}
@@ -630,10 +722,12 @@ export default function RoleTimeline({
                                 i > 0 ? 'border-l border-white' : ''
                               } ${
                                 isCurrent
-                                  ? 'bg-brand/25'
+                                  ? 'bg-brand/45'
                                   : leg.planned
-                                    ? 'bg-brand/10'
-                                    : 'bg-neutral-100'
+                                    ? 'bg-neutral-100'
+                                    : i % 2 === 0
+                                      ? 'bg-brand/25'
+                                      : 'bg-brand/15'
                               }`}
                               style={{
                                 left: `${startPct}%`,
@@ -661,7 +755,7 @@ export default function RoleTimeline({
                                   ? 'font-semibold text-neutral-800'
                                   : leg.planned
                                     ? 'font-medium text-neutral-400'
-                                    : 'font-medium text-neutral-600'
+                                    : 'font-medium text-neutral-700'
                               }`}
                               style={{ left: `${placement.leftPct}%` }}
                             >
@@ -688,17 +782,17 @@ export default function RoleTimeline({
                         >
                           {/* 一条基线：一起上车的人共用这条线，只在竖直方向上下错开 */}
                           <div
-                            className="absolute inset-x-0 -translate-y-1/2 h-1.5 rounded-full bg-neutral-100"
+                            className="absolute inset-x-0 -translate-y-1/2 h-1.5 rounded-full bg-brand-light"
                             style={{ top: railTop }}
                           />
 
                           {/* Segments */}
                           <div className="relative w-full h-full">
-                            {laneSegments.map((seg) => {
+                            {laneSegments.map((seg, segIdx) => {
                               const startPct = pctOf(seg.startDate, projectStart, totalDays);
                               const endPctRaw = seg.endDate
                                 ? pctOf(seg.endDate, projectStart, totalDays)
-                                : (todayPct ?? startPct + 0.5);
+                                : (pointerPct ?? startPct + 0.5);
                               const endPct = Math.max(endPctRaw, startPct + 0.5);
                               const widthPct = endPct - startPct;
 
@@ -710,6 +804,7 @@ export default function RoleTimeline({
                                 : seg.endDate !== null;
                               const isFutureTerm = hasToday && seg.startDate > todayIso;
                               const isCurrentTerm = !isPastTerm && !isFutureTerm;
+                              const isSelected = selectedCrewId === seg.crewId;
                               // 任期重叠且上车日期接近的人只在竖直方向错开；横坐标保留真实日期
                               const avatarOffset = layout?.offsetOf.get(seg.id) ?? 0;
                               const inCluster = (layout?.clusterSizeOf.get(seg.id) ?? 1) > 1;
@@ -764,13 +859,18 @@ export default function RoleTimeline({
                               // 黄条会盖住中间成员（潘石）的头像。改用 top 直接定位（h-7 = 28px，
                               // 半高 14），头像的 z-30 在车道层面生效，始终压过同车道的黄条。
                               return (
+                                // 横条点击是鼠标捷径；键盘入口是下面的头像按钮
+                                // biome-ignore lint/a11y/noStaticElementInteractions: avatar button is the keyboard entry
+                                // biome-ignore lint/a11y/useKeyWithClickEvents: avatar button is the keyboard entry
                                 <div
                                   key={seg.id}
                                   title={segmentTitle}
                                   data-timeline-start-date={seg.startDate}
                                   data-timeline-crew-id={seg.crewId}
                                   data-timeline-clustered={inCluster ? 'true' : 'false'}
-                                  className="absolute h-7 group"
+                                  data-timeline-selected={isSelected ? 'true' : 'false'}
+                                  onClick={() => selectCrew(seg.crewId, true)}
+                                  className="absolute h-7 group cursor-pointer"
                                   style={{
                                     left: `${startPct}%`,
                                     width: `${widthPct}%`,
@@ -786,11 +886,13 @@ export default function RoleTimeline({
                                   ) : (
                                     <div
                                       data-timeline-bar
-                                      className={`absolute inset-y-2 left-0 rounded-full ${
+                                      className={`absolute inset-y-2 left-0 rounded-full transition-colors duration-200 ${
                                         isPastTerm
-                                          ? 'bg-neutral-300'
+                                          ? segIdx % 2 === 0
+                                            ? 'bg-gradient-to-r from-brand/90 to-brand/60'
+                                            : 'bg-gradient-to-r from-brand-dark/55 to-brand/55'
                                           : 'bg-gradient-to-r from-brand to-brand/70'
-                                      }`}
+                                      } ${isSelected ? 'ring-2 ring-brand-dark ring-offset-1 ring-offset-white' : ''}`}
                                       style={{ width: isPastTerm ? '100%' : `${solidWidthPct}%` }}
                                     />
                                   )}
@@ -826,10 +928,19 @@ export default function RoleTimeline({
                                     className="absolute left-0 z-30"
                                     style={{ top: `calc(50% + ${avatarOffset}px)` }}
                                   >
-                                    <div
-                                      className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 rounded-full overflow-hidden ring-2 ring-white bg-neutral-100 ${
-                                        inCluster ? 'w-6 h-6' : 'w-9 h-9'
-                                      }`}
+                                    <button
+                                      type="button"
+                                      aria-label={`${seg.name} · ${roleLabel.get(seg.role) ?? seg.role}`}
+                                      aria-pressed={isSelected}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        selectCrew(seg.crewId, true);
+                                      }}
+                                      className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 block p-0 rounded-full overflow-hidden bg-neutral-100 cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:ring-brand-dark ${
+                                        isSelected
+                                          ? 'ring-[3px] ring-brand-dark'
+                                          : 'ring-2 ring-white'
+                                      } ${inCluster ? 'w-6 h-6' : 'w-9 h-9'}`}
                                     >
                                       {seg.avatarThumb ? (
                                         <img
@@ -838,14 +949,7 @@ export default function RoleTimeline({
                                           width={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
                                           height={inCluster ? CLUSTER_AVATAR : SINGLE_AVATAR}
                                           className="w-full h-full object-cover"
-                                          style={
-                                            seg.crewId === 'ye-kaiwei'
-                                              ? {
-                                                  transform: 'translateX(25%) scale(1.45)',
-                                                  transformOrigin: '26% 35%',
-                                                }
-                                              : undefined
-                                          }
+                                          style={avatarCropStyle(seg.crewId)}
                                         />
                                       ) : (
                                         <AvatarInitial
@@ -853,9 +957,9 @@ export default function RoleTimeline({
                                           className={inCluster ? 'text-[10px]' : 'text-sm'}
                                         />
                                       )}
-                                    </div>
+                                    </button>
 
-                                    {/* Name label — muted for alumni segments */}
+                                    {/* Name label — 走完的棒次同样清晰可读；在车/选中加粗 */}
                                     <div
                                       data-timeline-name
                                       className={`absolute whitespace-nowrap ${
@@ -863,9 +967,13 @@ export default function RoleTimeline({
                                           ? '-translate-y-1/2 rounded-sm bg-surface-card/90 px-1 py-0.5 text-[10px]'
                                           : 'pl-1 text-[11px]'
                                       } ${
-                                        isCurrentTerm
-                                          ? 'font-medium text-neutral-700'
-                                          : 'text-neutral-400'
+                                        isSelected
+                                          ? 'font-semibold text-neutral-900'
+                                          : isFutureTerm
+                                            ? 'text-neutral-500'
+                                            : isCurrentTerm
+                                              ? 'font-semibold text-neutral-800'
+                                              : 'font-medium text-neutral-700'
                                       }`}
                                       style={
                                         inCluster
@@ -895,87 +1003,143 @@ export default function RoleTimeline({
           </p>
         </motion.div>
 
-        {/* Currently aboard — grouped by role */}
-        {activeGroups.length > 0 && (
-          <motion.div
-            variants={stagger(0.08)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="mt-16 md:mt-20 pt-10 border-t border-neutral-200"
-          >
-            <motion.h3
-              variants={fadeUp}
-              transition={springTransition}
-              className="text-xs uppercase tracking-[0.3em] text-neutral-400 mb-8"
-            >
-              {t['timeline.currentlyAboard']}
-            </motion.h3>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-8">
-              {activeGroups.map(({ role, members }) => {
-                const isSharedRole = members.length > 1;
-                const memberNames = members.map((m) => m.name).join(' & ');
-                const isTriple = members.length >= 3;
-                const avatarClass = isTriple
-                  ? 'w-20 h-20 md:w-24 md:h-24'
-                  : isSharedRole
-                    ? 'w-24 h-24 md:w-28 md:h-28'
-                    : 'w-32 h-32';
-                const gapClass = isTriple ? 'gap-2' : isSharedRole ? 'gap-4' : '';
-
-                return (
-                  <motion.div
-                    key={role}
-                    variants={fadeUp}
-                    transition={springTransition}
-                    className="group w-full sm:w-[calc(50%-0.75rem)] md:w-[calc(25%-1.5rem)]"
-                  >
-                    <div
-                      className={`h-32 flex items-center justify-center mb-4 ${
-                        isSharedRole ? gapClass : ''
+        {/* 同行者档案：全员接力名录，按角色筛选；与上方时间轴双向联动 */}
+        {crewArchive.length > 0 && (
+          <div className="mt-16 md:mt-20 pt-10 border-t border-neutral-200">
+            <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h3 className="text-xs uppercase tracking-[0.3em] text-neutral-400 mb-3">
+                  {t['timeline.archive.eyebrow']}
+                </h3>
+                <p className="text-xl md:text-2xl font-bold text-neutral-900">
+                  {t['timeline.archive.title'].replace('{count}', String(crewArchive.length))}
+                </p>
+                <p className="mt-2 text-sm text-neutral-500">{t['timeline.archive.hint']}</p>
+              </div>
+              <fieldset
+                aria-label={t['timeline.archive.filterAria']}
+                className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0"
+              >
+                {[{ key: 'all', label: t['timeline.archive.all'] }, ...roles].map((role) => {
+                  const active = roleFilter === role.key;
+                  return (
+                    <button
+                      key={role.key}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setRoleFilter(role.key)}
+                      className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
+                        active
+                          ? 'border-neutral-900 bg-neutral-900 text-white'
+                          : 'border-neutral-200 bg-surface-card text-neutral-600 hover:border-neutral-400 hover:text-neutral-900'
                       }`}
                     >
-                      {members.map((member) => (
-                        <div
-                          key={member.id}
-                          className={`rounded-full overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 ${avatarClass}`}
-                        >
-                          {member.avatarCard ? (
+                      {role.label}
+                    </button>
+                  );
+                })}
+              </fieldset>
+            </div>
+
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+              {visibleArchive.map((entry) => {
+                const isSelected = selectedCrewId === entry.crewId;
+                const isAboard = aboardIds.has(entry.crewId);
+                return (
+                  <li key={entry.crewId} id={`crew-card-${entry.crewId}`} className="scroll-mt-24">
+                    <button
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => selectCrew(entry.crewId, false)}
+                      className={`flex h-full w-full cursor-pointer flex-col rounded-2xl border p-5 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
+                        isSelected
+                          ? 'border-brand-dark bg-brand-light'
+                          : 'border-neutral-200 bg-surface-card hover:border-neutral-300'
+                      }`}
+                    >
+                      <span className="flex items-center gap-4">
+                        <span className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-neutral-100 ring-1 ring-neutral-200">
+                          {entry.avatarCard ? (
                             <img
-                              src={member.avatarCard}
-                              alt={member.name}
-                              width={128}
-                              height={128}
-                              className="w-full h-full object-cover"
-                              style={
-                                member.crewId === 'ye-kaiwei'
-                                  ? {
-                                      transform: 'translateX(25%) scale(1.45)',
-                                      transformOrigin: '26% 35%',
-                                    }
-                                  : undefined
-                              }
+                              src={entry.avatarCard}
+                              alt=""
+                              width={64}
+                              height={64}
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                              style={avatarCropStyle(entry.crewId)}
                             />
                           ) : (
-                            <AvatarInitial name={member.name} className="text-3xl" />
+                            <AvatarInitial name={entry.name} className="text-xl" />
                           )}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-brand-dark font-semibold mb-1.5 text-center">
-                      {roleLabel.get(role) ?? role}
-                    </p>
-                    <h4 className="text-lg font-bold text-neutral-900 leading-tight mb-2 text-center">
-                      {memberNames}
-                    </h4>
-                    {members[0].bio && (
-                      <p className="text-sm text-neutral-600 leading-relaxed">{members[0].bio}</p>
-                    )}
-                  </motion.div>
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[11px] font-semibold uppercase tracking-[0.15em] text-brand-dark">
+                            {entry.roles.map((r) => roleLabel.get(r) ?? r).join(' · ')}
+                          </span>
+                          <span className="mt-0.5 flex items-center gap-2 text-lg font-bold leading-tight text-neutral-900">
+                            {entry.name}
+                            {isAboard && (
+                              <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-semibold text-brand-foreground">
+                                {t['timeline.archive.aboard']}
+                              </span>
+                            )}
+                          </span>
+                        </span>
+                      </span>
+
+                      <span className="mt-4 flex flex-col gap-1.5">
+                        {entry.segments.map((seg) => {
+                          const end = seg.endDate ?? (hasToday ? todayIso : null);
+                          const days = end ? Math.max(1, daysBetween(seg.startDate, end)) : null;
+                          return (
+                            <span
+                              key={seg.id}
+                              className="flex flex-wrap items-baseline gap-x-1.5 font-mono text-[11px] tabular-nums text-neutral-600"
+                            >
+                              <span className="text-neutral-800">{seg.startLocation}</span>
+                              <span>{formatDotDate(seg.startDate)}</span>
+                              <span className="text-neutral-400" aria-hidden="true">
+                                →
+                              </span>
+                              {seg.endDate ? (
+                                <>
+                                  {seg.endLocation && (
+                                    <span className="text-neutral-800">{seg.endLocation}</span>
+                                  )}
+                                  <span>{formatDotDate(seg.endDate)}</span>
+                                </>
+                              ) : (
+                                <span className="text-neutral-800">
+                                  {t['timeline.archive.ongoing']}
+                                </span>
+                              )}
+                              {days !== null && (
+                                <span className="text-brand-dark">
+                                  {'· '}
+                                  {t['timeline.archive.days'].replace('{n}', String(days))}
+                                </span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </span>
+
+                      {entry.bio && (
+                        <span
+                          className={`mt-3 block text-sm leading-relaxed text-neutral-600 ${
+                            isSelected ? '' : 'line-clamp-3'
+                          }`}
+                        >
+                          {entry.bio}
+                        </span>
+                      )}
+                    </button>
+                  </li>
                 );
               })}
-            </div>
-          </motion.div>
+            </ul>
+          </div>
         )}
       </div>
     </section>

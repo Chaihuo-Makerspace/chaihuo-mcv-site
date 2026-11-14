@@ -5,7 +5,7 @@ const ui: Record<Locale, Record<string, string>> = {
     // Site
     'site.name': '柴火基地车',
     'site.description':
-      '柴火基地车 — 一台即将穿越中国的移动 AI 实验室，深入山野与乡土，用技术连接每一个角落。',
+      '柴火基地车 — 一台走遍中国的移动 AI 实验室，深入山野与乡土，用技术连接每一个角落。',
 
     // Navigation
     'nav.home': '首页',
@@ -40,7 +40,7 @@ const ui: Record<Locale, Record<string, string>> = {
   en: {
     'site.name': 'Chaihuo MCV',
     'site.description':
-      'Chaihuo MCV — A mobile AI laboratory traversing China, bringing technology to every corner of the land.',
+      'Chaihuo MCV — A mobile AI laboratory that crossed China, bringing technology to every corner of the land.',
 
     'nav.home': 'Home',
     'nav.journals': 'Journals',

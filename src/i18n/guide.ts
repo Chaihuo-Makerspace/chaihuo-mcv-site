@@ -13,11 +13,12 @@ const guide: Record<Locale, Record<string, string>> = {
     'methods.subtitle': '从跟车到落地，找到你的位置',
 
     'ride.title': '上车同行',
-    'ride.body': `跟车出发，深度参与 ${PROJECT_PLANNED_DAYS} 天旅程。可选单段或全程，灵活加入。`,
+    'ride.body': `第一季 ${PROJECT_PLANNED_DAYS} 天旅程已回到深圳。下一季的同行招募开放后，我们会第一时间邮件通知。`,
+    'ride.finaleBadge': '2026 第一季已圆满收官',
     'ride.role1': '技术担当 1-2人',
     'ride.role2': '媒体担当 1-2人',
-    'ride.apply': '发送邮件报名',
-    'ride.applySubject': '柴火基地车同行申请',
+    'ride.apply': '关注下一季 · 邮件联系',
+    'ride.applySubject': '关注柴火基地车下一季',
 
     'cocreate.title': '在地共创',
     'cocreate.body': '与基地车在当地联合举办工作坊、主题分享会，共同推动可持续发展创新落地。',
@@ -30,12 +31,14 @@ const guide: Record<Locale, Record<string, string>> = {
     'empower.role1': '创业者 · 中小企业主',
     'empower.role2': '教育 · 农业 · 环保 · 建筑',
     'empower.qrLabel': '扫码打开微信问卷',
+    'local.openBadge': '持续开放',
 
-    'apply.ride': '同行报名：',
-    'apply.rideDetail': '发送简历/作品集 + 意向路段 + 意向角色至',
-    'apply.rideSubject': '，邮件标题注明「柴火基地车同行申请」',
+    'apply.ride': '关注下一季：',
+    'apply.rideDetail': '发送简历/作品集 + 意向角色至',
+    'apply.rideSubject': '，邮件标题注明「关注柴火基地车下一季」',
     'apply.local': '在地合作：',
-    'apply.localDetail': '扫描卡片中的二维码填写合作意向，我们会第一时间对接沟通',
+    'apply.localDetail':
+      '在地共创与在地赋能持续开放，扫描卡片中的二维码填写合作意向，我们会尽快对接',
 
     'faq.title': '常见问题',
     'faq.subtitle': '7 个问题，3 分钟了解所有细节',
@@ -52,11 +55,12 @@ const guide: Record<Locale, Record<string, string>> = {
     'methods.subtitle': 'From riding along to making an impact on the ground',
 
     'ride.title': 'Ride Along',
-    'ride.body': `Join the crew for a ${PROJECT_PLANNED_DAYS}-day journey across China. Choose a segment or the full trip — flexible participation.`,
+    'ride.body': `Season one's ${PROJECT_PLANNED_DAYS}-day journey has wrapped up back in Shenzhen. We'll email you as soon as crew applications open for the next season.`,
+    'ride.finaleBadge': '2026 Season One complete',
     'ride.role1': 'Tech crew: 1–2 people',
     'ride.role2': 'Media crew: 1–2 people',
-    'ride.apply': 'Apply via Email',
-    'ride.applySubject': 'Chaihuo MCV Ride-Along Application',
+    'ride.apply': 'Follow next season · Email us',
+    'ride.applySubject': 'Following Chaihuo MCV next season',
 
     'cocreate.title': 'Local Co-Creation',
     'cocreate.body':
@@ -71,13 +75,14 @@ const guide: Record<Locale, Record<string, string>> = {
     'empower.role1': 'Entrepreneurs · SME owners',
     'empower.role2': 'Education · Agriculture · Environment · Architecture',
     'empower.qrLabel': 'Scan QR for WeChat form',
+    'local.openBadge': 'Still open',
 
-    'apply.ride': 'To ride along: ',
-    'apply.rideDetail': 'Send your resume/portfolio + preferred route segment + preferred role to',
-    'apply.rideSubject': ', subject line: "Chaihuo MCV Ride-Along Application"',
+    'apply.ride': 'Next season: ',
+    'apply.rideDetail': 'Send your resume/portfolio + preferred role to',
+    'apply.rideSubject': ', subject line: "Following Chaihuo MCV next season"',
     'apply.local': 'For local partnerships: ',
     'apply.localDetail':
-      "Scan the QR code on the cards above to submit your interest — we'll get back to you ASAP",
+      "Local co-creation and empowerment remain open — scan the QR code on the cards above and we'll be in touch soon",
 
     'faq.title': 'FAQ',
     'faq.subtitle': '7 questions, 3 minutes to learn everything',
