@@ -14,6 +14,10 @@ interface Props {
   ogImage?: string;
   /** 追加的 JSON-LD 结构化数据（GEO），按页面注入（如首页 Project schema） */
   jsonLd?: Record<string, unknown>[];
+  /** og:type：内容页（日记）传 'article' */
+  ogType?: 'website' | 'article';
+  /** 不希望被索引的页面（设计对照页等） */
+  noindex?: boolean;
 }
 
 const locale = (Astro.currentLocale ?? 'zh') as Locale;
@@ -24,6 +28,8 @@ const {
   description = dict['site.description'],
   ogImage = '/og-default.png',
   jsonLd = [],
+  ogType = 'website',
+  noindex = false,
 } = Astro.props;
 const pathname = Astro.url.pathname;
 const siteUrl = (Astro.site ?? new URL('https://mcv.chaihuo.org')).origin;
@@ -49,7 +55,8 @@ const websiteJsonLd = {
   '@type': 'WebSite',
   name: dict['site.name'],
   alternateName: locale === 'zh' ? 'Chaihuo MCV' : '柴火基地车',
-  url: siteUrl + '/',
+  url: siteUrl + (locale === 'zh' ? '/' : '/en/'),
+  publisher: { '@id': 'https://www.chaihuo.org' },
   inLanguage: locale === 'zh' ? 'zh-CN' : 'en',
 };
 const jsonLdBlock = [organizationJsonLd, websiteJsonLd, ...jsonLd];
@@ -65,6 +72,14 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="build-id" content={BUILD_ID} />
+    <meta name="theme-color" content="#f3d230" />
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
+    {/* 首屏标题字体预加载，缩短 FOUT/CLS 窗口（与 fonts.css 同源同 URL 才会命中） */}
+    <link rel="preload" href="/fonts/space-grotesk-700.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/SmileySans-hero-subset.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="dns-prefetch" href="https://www.clarity.ms" />
+    <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
     <title>{siteTitle}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL.href} />
@@ -75,7 +90,8 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
     <link rel="alternate" hreflang="x-default" href={locale === 'zh' ? canonicalURL.href : alternateURL.href} />
 
     {/* Open Graph */}
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={dict['site.name']} />
     <meta property="og:title" content={siteTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL.href} />
@@ -92,22 +108,32 @@ const alternateURL = new URL(alternate.path, Astro.site ?? 'https://mcv.chaihuo.
     {/* JSON-LD 结构化数据（GEO） */}
     <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLdBlock)} />
 
-    {/* Microsoft Clarity */}
+    {/* 统计脚本（Clarity + GA4）：等 load 后空闲时再注入，不与首屏资源争带宽/主线程。
+        gtag/clarity 队列桩先就位，早期调用不会丢失。 */}
     <script is:inline>
-      (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window,document,"clarity","script","wc0b9nadad");
-    </script>
-
-    {/* Google Analytics 4 */}
-    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-27XRD69LSR"></script>
-    <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-27XRD69LSR');
+      (function (w, d) {
+        w.dataLayer = w.dataLayer || [];
+        w.gtag = function () { w.dataLayer.push(arguments); };
+        w.gtag('js', new Date());
+        w.gtag('config', 'G-27XRD69LSR');
+        w.clarity = w.clarity || function () { (w.clarity.q = w.clarity.q || []).push(arguments); };
+        function inject(src) {
+          var t = d.createElement('script');
+          t.async = true;
+          t.src = src;
+          d.head.appendChild(t);
+        }
+        function boot() {
+          inject('https://www.googletagmanager.com/gtag/js?id=G-27XRD69LSR');
+          inject('https://www.clarity.ms/tag/wc0b9nadad');
+        }
+        function idle() {
+          if (w.requestIdleCallback) w.requestIdleCallback(boot, { timeout: 3000 });
+          else setTimeout(boot, 1500);
+        }
+        if (d.readyState === 'complete') idle();
+        else w.addEventListener('load', idle, { once: true });
+      })(window, document);
     </script>
     {/* 新部署自动刷新（思路同 Nuxt app manifest：导航触发优先，低频轮询兜底）：
         ① ClientRouter 切换页面时本就要抓取新页面 HTML，直接比对其中的 build-id，零额外请求；

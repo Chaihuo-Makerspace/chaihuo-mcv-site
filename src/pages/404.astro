@@ -10,7 +10,7 @@ const locale = (Astro.currentLocale ?? 'zh') as Locale;
 const t = notFoundDict[locale];
 ---
 
-<BaseLayout title={t.title} description={t.description}>
+<BaseLayout title={t.title} description={t.description} noindex>
   <meta slot="head" name="robots" content="noindex,nofollow" />
   <NotFoundContent client:load locale={locale} t={t} />
 </BaseLayout>
