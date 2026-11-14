@@ -135,6 +135,10 @@ export default function HomeContent({
     [sortedCities],
   );
   const lastVisited = useMemo(() => currentCity(sortedCities) ?? null, [sortedCities]);
+  const latestVisitedStop = useMemo(
+    () => sortedCities.filter((city) => city.visited).at(-1) ?? lastVisited,
+    [sortedCities, lastVisited],
+  );
   const visitedCount = useMemo(
     () => officialCities.filter((city) => city.visited).length,
     [officialCities],
@@ -160,11 +164,12 @@ export default function HomeContent({
     ? Math.round(
         (Date.parse(`${finaleEnd}T00:00:00Z`) - Date.parse(`${timeline.projectStart}T00:00:00Z`)) /
           86_400_000,
-      ) + 1
+      )
     : null;
   const dotDate = (iso: string) => `${iso.slice(5, 7)}.${iso.slice(8, 10)}`;
   const originLabel = sortedCities.find((c) => c.isOrigin)?.label ?? sortedCities[0]?.label;
   const progressPct = isFinale ? 100 : Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100);
+  const summaryNote = latestVisitedStop?.event?.summary ?? lastVisited?.event?.summary;
 
   // 媒体报道信息流：featured 置顶，其余按日期倒序；水平滑动卡片流
   const pressCards = useMemo(() => {
@@ -551,9 +556,9 @@ export default function HomeContent({
                         )}
                       </div>
                     </div>
-                    {lastVisited.event?.summary && (
+                    {summaryNote && (
                       <p className="mt-4 text-sm leading-relaxed text-neutral-700 line-clamp-2">
-                        {lastVisited.event.summary}
+                        {summaryNote}
                       </p>
                     )}
                   </motion.div>

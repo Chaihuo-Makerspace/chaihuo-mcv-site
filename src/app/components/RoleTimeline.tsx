@@ -267,23 +267,24 @@ export default function RoleTimeline({
   // 客户端拿到今天之前（SSR / 首帧）沿用「无下车日 = 在车」的旧判定，避免闪烁。
   const hasToday = todayPct !== null;
 
-  // 收官态：所有省段都已走过、所有任期都已结束。由数据推出，不写死日期。
+  // 收官态：所有省段都已走过、所有任期都已封口（均有 endDate）。由数据推出，不写死日期。
   const finaleIso = useMemo(() => {
-    if (!hasToday || segments.length === 0) return null;
+    if (segments.length === 0) return null;
     if (legs.some((leg) => leg.planned)) return null;
     let last = '';
     for (const seg of segments) {
-      if (!seg.endDate || seg.endDate > todayIso) return null;
+      if (!seg.endDate) return null;
       if (seg.endDate > last) last = seg.endDate;
     }
     return last || null;
-  }, [hasToday, segments, legs, todayIso]);
+  }, [segments, legs]);
   const isFinale = finaleIso !== null;
   // 竖线位置：进行中 = 今天；收官 = 最后一棒交还的那天
   const pointerPct = useMemo(() => {
-    if (todayPct === null) return null;
-    if (!finaleIso) return todayPct;
-    return Math.max(0, Math.min(100, pctOf(finaleIso, projectStart, totalDays)));
+    if (finaleIso) {
+      return Math.max(0, Math.min(100, pctOf(finaleIso, projectStart, totalDays)));
+    }
+    return todayPct;
   }, [todayPct, finaleIso, projectStart, totalDays]);
 
   // 时间轴 ↔ 档案墙联动
@@ -796,13 +797,14 @@ export default function RoleTimeline({
                               const endPct = Math.max(endPctRaw, startPct + 0.5);
                               const widthPct = endPct - startPct;
 
-                              // 任期三态：今天落在段内 = 在车（黄bar，今天之后渐隐）；段已走完 = 卸任（灰）；
-                              // 段还没开始 = 已排定（淡黄）。旧写法只看 endDate === null，于是给在车成员
-                              // 排定未来下车日后（黄夏 10-08、叶雨/关乃莹 10-31），他会当场被画成已卸任。
-                              const isPastTerm = hasToday
-                                ? seg.endDate !== null && seg.endDate <= todayIso
-                                : seg.endDate !== null;
-                              const isFutureTerm = hasToday && seg.startDate > todayIso;
+                              // 任期三态：收官后全员已走完；进行中今天落在段内 = 在车，今天之后 = 已排定。
+                              const isPastTerm = isFinale
+                                ? true
+                                : hasToday
+                                  ? seg.endDate !== null && seg.endDate <= todayIso
+                                  : seg.endDate !== null;
+                              const isFutureTerm =
+                                !isFinale && hasToday && seg.startDate > todayIso;
                               const isCurrentTerm = !isPastTerm && !isFutureTerm;
                               const isSelected = selectedCrewId === seg.crewId;
                               // 任期重叠且上车日期接近的人只在竖直方向错开；横坐标保留真实日期
