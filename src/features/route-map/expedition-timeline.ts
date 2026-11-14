@@ -1,3 +1,4 @@
+import { PROJECT_FINALE_DATE, PROJECT_START } from '@/config/project';
 import config from '@/data/expedition-config.json';
 import type { Stop } from './stops-loader';
 import { isRouteOnlyCity } from './types';
@@ -38,10 +39,12 @@ const toIso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 // 出发日(深圳首发,见 src/content/stops/00-shenzhen.md event.date)。
 // 「天在路上」按日历天数计,全站共用这一口径——不按最后到达城市的
 // event 日期计,否则车辆停在某城期间数字停走,且与首页对不上。
-const DEPARTURE_MS = Date.UTC(2026, 3, 22);
+const DEPARTURE_MS = toMs(PROJECT_START);
+// 收官后固定为 207 天；上限等同 Date.UTC(2026, 10, 15)。
+const FINALE_MS = toMs(PROJECT_FINALE_DATE);
 export function daysOnRoad(now = new Date()): number {
   const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.max(0, Math.floor((today - DEPARTURE_MS) / dayMs));
+  return Math.max(0, Math.floor((Math.min(today, FINALE_MS) - DEPARTURE_MS) / dayMs));
 }
 
 /**

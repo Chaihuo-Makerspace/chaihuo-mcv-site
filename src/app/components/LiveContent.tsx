@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PROJECT_FINALE_DATE } from '@/config/project';
 import type { Locale } from '@/i18n/index';
 
 export interface LiveMeta {
@@ -17,6 +18,8 @@ interface LiveContentProps {
 }
 
 const POLL_INTERVAL_MS = 60_000;
+// 保留收官当天抓拍；北京时间 11 月 15 日结束后转为归档。
+const ARCHIVE_AFTER_MS = Date.parse(`${PROJECT_FINALE_DATE}T00:00:00+08:00`) + 86_400_000;
 // 超过 2 小时没有新图视为离线（车辆开工间隔不固定，3 分钟一抓，留足余量）
 const OFFLINE_AFTER_MS = 2 * 60 * 60 * 1000;
 
@@ -55,12 +58,30 @@ export default function LiveContent({
   const [now, setNow] = useState(() => Date.now());
   const [imgError, setImgError] = useState(false);
 
+  const isArchived = now >= ARCHIVE_AFTER_MS;
+  const isOnline =
+    !isArchived && meta !== null && now - new Date(meta.capturedAt).getTime() < OFFLINE_AFTER_MS;
+
   useEffect(() => {
+    if (!isOnline) return;
     let cancelled = false;
+    const controller = new AbortController();
     const tick = async () => {
-      setNow(Date.now());
+      const currentNow = Date.now();
+      setNow(currentNow);
+      if (
+        currentNow >= ARCHIVE_AFTER_MS ||
+        !meta ||
+        currentNow - new Date(meta.capturedAt).getTime() >= OFFLINE_AFTER_MS
+      ) {
+        clearInterval(timer);
+        return;
+      }
       try {
-        const response = await fetch('/live/status.json', { cache: 'no-store' });
+        const response = await fetch('/live/status.json', {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
         if (!response.ok) return;
         const data: { meta?: LiveMeta | null } = await response.json();
         if (!cancelled && data.meta?.capturedAt && data.meta.capturedAt !== meta?.capturedAt) {
@@ -75,11 +96,9 @@ export default function LiveContent({
     return () => {
       cancelled = true;
       clearInterval(timer);
+      controller.abort();
     };
-    // meta 变化时重建定时器即可（几分钟才变一次，代价为零）
-  }, [meta?.capturedAt]);
-
-  const isOnline = meta !== null && now - new Date(meta.capturedAt).getTime() < OFFLINE_AFTER_MS;
+  }, [isOnline, meta]);
 
   return (
     <section className="bg-surface">
@@ -100,7 +119,11 @@ export default function LiveContent({
                 isOnline ? 'bg-brand' : 'bg-neutral-400'
               }`}
             />
-            {isOnline ? t['status.online'] : t['status.offline']}
+            {isArchived
+              ? t['status.archived']
+              : isOnline
+                ? t['status.online']
+                : t['status.offline']}
           </div>
 
           <div className="mt-3 overflow-hidden rounded-lg">
@@ -118,13 +141,15 @@ export default function LiveContent({
                 />
                 {!isOnline && (
                   <div className="absolute inset-x-0 bottom-0 bg-surface-dark/70 px-4 py-3 text-sm text-surface-dark-foreground">
-                    {t['offline.note']}
+                    {isArchived ? t['archive.note'] : t['offline.note']}
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex aspect-video items-center justify-center px-6 text-center">
-                <p className="text-neutral-400">{t['empty.note']}</p>
+                <p className="text-neutral-400">
+                  {isArchived ? t['archive.empty'] : t['empty.note']}
+                </p>
               </div>
             )}
           </div>
@@ -139,7 +164,9 @@ export default function LiveContent({
               {' · '}
             </>
           )}
-          {fill(t['interval.note'], { n: String(intervalMinutes) })}
+          {isArchived
+            ? t['archive.interval']
+            : fill(t['interval.note'], { n: String(intervalMinutes) })}
         </p>
       </div>
     </section>

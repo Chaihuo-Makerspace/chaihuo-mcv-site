@@ -486,9 +486,9 @@
       "location_en": "Fuzhou"
     },
     "disembarkedAt": {
-      "date": "2026-11-25",
-      "location": "待定",
-      "location_en": "TBD"
+      "date": "2026-11-15",
+      "location": "深圳",
+      "location_en": "Shenzhen"
     }
   },
   {
@@ -501,9 +501,9 @@
       "location_en": "Ji'an"
     },
     "disembarkedAt": {
-      "date": "2026-11-25",
-      "location": "待定",
-      "location_en": "TBD"
+      "date": "2026-11-15",
+      "location": "深圳",
+      "location_en": "Shenzhen"
     }
   },
   {
@@ -516,9 +516,9 @@
       "location_en": "Nanchang"
     },
     "disembarkedAt": {
-      "date": "2026-11-25",
-      "location": "待定",
-      "location_en": "TBD"
+      "date": "2026-11-15",
+      "location": "深圳",
+      "location_en": "Shenzhen"
     }
   },
   {
@@ -529,6 +529,11 @@
       "date": "2026-11-06",
       "location": "武汉",
       "location_en": "Wuhan"
+    },
+    "disembarkedAt": {
+      "date": "2026-11-15",
+      "location": "深圳",
+      "location_en": "Shenzhen"
     }
   }
 ]

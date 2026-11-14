@@ -1,10 +1,11 @@
 // Project-level constants. PROJECT_PLANNED_DAYS is the single source for the journey length:
 // the home timeline axis, the「/ N 天」counter and every「N 天」line in src/i18n read it.
-// 2026-11 改线（武汉→巴东→恩施）后由 200 改为 220。启动时的 press 报道标题与
-// 00-shenzhen 出发记录是历史原文，不跟随修改。
+// 2026-04-22 从深圳出发，2026-11-15 回到深圳收官，日历差为 207 天。
+// 启动时的 press 报道标题与 00-shenzhen 出发记录是历史原文，不跟随修改。
 
 export const PROJECT_START = '2026-04-22';
-export const PROJECT_PLANNED_DAYS = 220;
+export const PROJECT_FINALE_DATE = '2026-11-15';
+export const PROJECT_PLANNED_DAYS = 207;
 
 const computeEndDate = (start: string, days: number): string => {
   const d = new Date(`${start}T00:00:00Z`);
