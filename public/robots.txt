@@ -1,4 +1,24 @@
+# 柴火基地车 · Chaihuo MCV — 公开归档站点，欢迎搜索引擎与 AI 检索/引用。
 User-agent: *
 Allow: /
+Disallow: /live/admin
+Disallow: /api/
+
+# 生成式引擎 / AI 检索爬虫：明确放行公开内容
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: Baiduspider
+User-agent: Sogou web spider
+User-agent: YisouSpider
+Allow: /
+Disallow: /live/admin
+Disallow: /api/
 
 Sitemap: https://mcv.chaihuo.org/sitemap.xml

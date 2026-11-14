@@ -7,6 +7,7 @@ import { localePath } from '@/i18n/index';
 import journalsDict from '@/i18n/journals';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { localizeJournal } from '@/lib/journals';
+import { journalJsonLd } from '@/lib/seo';
 
 export const prerender = true;
 
@@ -29,9 +30,17 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 
 const localized = localizeJournal(entry, cities, locale);
+const pageUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://mcv.chaihuo.org').href;
+const jsonLd = journalJsonLd(localized, pageUrl, locale);
 ---
 
-<BaseLayout title={localized.title} description={localized.excerpt}>
+<BaseLayout
+  title={localized.title}
+  description={localized.excerpt}
+  ogType="article"
+  ogImage={localized.coverImage}
+  jsonLd={jsonLd}
+>
   <!-- Scroll Progress Indicator -->
   <div id="reading-progress" class="fixed top-0 left-0 w-0 h-[3px] bg-brand z-50 transition-all duration-75"></div>
 

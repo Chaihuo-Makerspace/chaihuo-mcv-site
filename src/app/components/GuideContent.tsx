@@ -96,8 +96,13 @@ export default function GuideContent({ faqGroups, t }: GuideContentProps) {
                 className="bg-surface-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="p-8">
-                  <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5">
-                    <Truck className="w-6 h-6 text-brand-dark" />
+                  <div className="flex items-start justify-between gap-3 mb-5">
+                    <div className="w-12 h-12 bg-neutral-100 rounded-xl flex items-center justify-center">
+                      <Truck className="w-6 h-6 text-neutral-500" />
+                    </div>
+                    <span className="rounded-full bg-neutral-900 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                      {t['ride.finaleBadge']}
+                    </span>
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{t['ride.title']}</h3>
                   <p className="text-neutral-500 text-sm leading-relaxed mb-5">{t['ride.body']}</p>
@@ -115,7 +120,7 @@ export default function GuideContent({ faqGroups, t }: GuideContentProps) {
 
                   <a
                     href={`mailto:business@chaihuo.org?subject=${encodeURIComponent(t['ride.applySubject'])}`}
-                    className="inline-flex items-center gap-2 w-full justify-center py-3 rounded-lg bg-brand text-brand-foreground font-medium hover:bg-brand-hover transition-colors duration-200 cursor-pointer text-sm"
+                    className="inline-flex items-center gap-2 w-full justify-center py-3 rounded-lg border border-neutral-300 text-neutral-800 font-medium hover:border-neutral-900 hover:text-neutral-900 transition-colors duration-200 cursor-pointer text-sm"
                   >
                     <Mail className="w-4 h-4" />
                     {t['ride.apply']}
@@ -128,11 +133,16 @@ export default function GuideContent({ faqGroups, t }: GuideContentProps) {
                 variants={fadeUp}
                 transition={springTransition}
                 whileHover={{ y: -4 }}
-                className="bg-surface-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="bg-surface-card rounded-2xl overflow-hidden shadow-sm ring-1 ring-brand/50 hover:shadow-md transition-shadow"
               >
                 <div className="p-8">
-                  <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5">
-                    <Sprout className="w-6 h-6 text-brand-dark" />
+                  <div className="flex items-start justify-between gap-3 mb-5">
+                    <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center">
+                      <Sprout className="w-6 h-6 text-brand-dark" />
+                    </div>
+                    <span className="rounded-full bg-brand px-2.5 py-1 text-[11px] font-semibold text-brand-foreground">
+                      {t['local.openBadge']}
+                    </span>
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{t['cocreate.title']}</h3>
                   <p className="text-neutral-500 text-sm leading-relaxed mb-5">
@@ -166,11 +176,16 @@ export default function GuideContent({ faqGroups, t }: GuideContentProps) {
                 variants={fadeUp}
                 transition={springTransition}
                 whileHover={{ y: -4 }}
-                className="bg-surface-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="bg-surface-card rounded-2xl overflow-hidden shadow-sm ring-1 ring-brand/50 hover:shadow-md transition-shadow"
               >
                 <div className="p-8">
-                  <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5">
-                    <Zap className="w-6 h-6 text-brand-dark" />
+                  <div className="flex items-start justify-between gap-3 mb-5">
+                    <div className="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-brand-dark" />
+                    </div>
+                    <span className="rounded-full bg-brand px-2.5 py-1 text-[11px] font-semibold text-brand-foreground">
+                      {t['local.openBadge']}
+                    </span>
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{t['empower.title']}</h3>
                   <p className="text-neutral-500 text-sm leading-relaxed mb-5">

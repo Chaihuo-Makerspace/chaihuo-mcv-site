@@ -1,6 +1,6 @@
 {
   "zh": {
-    "intro": "柴火AI基地车是一个由柴火创客空间、矽递科技主办，深圳科学技术馆联合发起的技术公益实验项目。它通过沉浸式展示、方案交流和工作坊培训，计划走遍全国二十多个省份，把人工智能与开源技术带到基层真实场景，同时培养更多能够在本地继续服务碎片化需求的技术先锋与在地伙伴。",
+    "intro": "柴火AI基地车是一个由柴火创客空间、矽递科技主办，深圳科学技术馆联合发起的技术公益实验项目。它通过沉浸式展示、方案交流和工作坊培训，走过了全国二十多个省份，把人工智能与开源技术带到基层真实场景，同时培养更多能够在本地继续服务碎片化需求的技术先锋与在地伙伴。",
     "highlights": [
       {
         "label": "沉浸式展示",
@@ -16,7 +16,7 @@
     ]
   },
   "en": {
-    "intro": "The Chaihuo AI Base Vehicle is a public-welfare technology experiment initiated by Chaihuo Makerspace and Seeed Studio, co-initiated by Shenzhen Science & Technology Museum. Through immersive showcases, solution exchange, and hands-on workshops, it plans to travel across more than twenty provinces, bringing AI and open-source technology to real grassroots scenarios while nurturing local technology pioneers and partners who can keep serving fragmented local needs.",
+    "intro": "The Chaihuo AI Base Vehicle is a public-welfare technology experiment initiated by Chaihuo Makerspace and Seeed Studio, co-initiated by Shenzhen Science & Technology Museum. Through immersive showcases, solution exchange, and hands-on workshops, it traveled across more than twenty provinces, bringing AI and open-source technology to real grassroots scenarios while nurturing local technology pioneers and partners who can keep serving fragmented local needs.",
     "highlights": [
       {
         "label": "Immersive showcase",

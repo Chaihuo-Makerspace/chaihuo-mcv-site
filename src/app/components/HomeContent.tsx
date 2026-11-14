@@ -135,6 +135,10 @@ export default function HomeContent({
     [sortedCities],
   );
   const lastVisited = useMemo(() => currentCity(sortedCities) ?? null, [sortedCities]);
+  const latestVisitedStop = useMemo(
+    () => sortedCities.filter((city) => city.visited).at(-1) ?? lastVisited,
+    [sortedCities, lastVisited],
+  );
   const visitedCount = useMemo(
     () => officialCities.filter((city) => city.visited).length,
     [officialCities],
@@ -148,6 +152,24 @@ export default function HomeContent({
     setDepartureDays(daysOnRoad());
   }, []);
   const kmLabel = roadKm.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN');
+
+  // 收官态：所有官方站点都已抵达。起止日期取接力时间轴的首日与最后一棒交还日，不写死。
+  const isFinale = cityTotal > 0 && visitedCount === cityTotal;
+  const finaleEnd = useMemo(() => {
+    let last = '';
+    for (const seg of timeline.segments) if (seg.endDate && seg.endDate > last) last = seg.endDate;
+    return last || null;
+  }, [timeline.segments]);
+  const finaleDays = finaleEnd
+    ? Math.round(
+        (Date.parse(`${finaleEnd}T00:00:00Z`) - Date.parse(`${timeline.projectStart}T00:00:00Z`)) /
+          86_400_000,
+      )
+    : null;
+  const dotDate = (iso: string) => `${iso.slice(5, 7)}.${iso.slice(8, 10)}`;
+  const originLabel = sortedCities.find((c) => c.isOrigin)?.label ?? sortedCities[0]?.label;
+  const progressPct = isFinale ? 100 : Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100);
+  const summaryNote = latestVisitedStop?.event?.summary ?? lastVisited?.event?.summary;
 
   // 媒体报道信息流：featured 置顶，其余按日期倒序；水平滑动卡片流
   const pressCards = useMemo(() => {
@@ -381,30 +403,58 @@ export default function HomeContent({
         {/* 实时任务状态条 — hero 图片之后,独立一条,居中 */}
         <div className="bg-neutral-900 text-white">
           <div className="page-rail py-3.5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
-            {/* 天数挂载后才计算,SSR 为 null;为 null 时整段连同后面的分隔符一起不渲染 */}
-            {departureDays !== null && (
+            {isFinale && finaleEnd ? (
               <>
-                <span className="text-white/70">
-                  {(t['status.days'] ?? '已出发 {days} 天').replace(
-                    '{days}',
-                    String(departureDays),
+                <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-brand-foreground">
+                  {t['status.finaleBadge']}
+                </span>
+                <span className="font-semibold tabular-nums text-white">
+                  {timeline.projectStart.replaceAll('-', '.')} — {dotDate(finaleEnd)}
+                </span>
+                <span className="text-white/25" aria-hidden="true">
+                  ·
+                </span>
+                <span className="text-white/70 tabular-nums">
+                  {t['status.finaleStats']
+                    .replace('{days}', String(finaleDays))
+                    .replace('{count}', String(visitedCount))
+                    .replace('{km}', kmLabel)}
+                </span>
+              </>
+            ) : (
+              <>
+                {/* 天数挂载后才计算,SSR 为 null;为 null 时整段连同后面的分隔符一起不渲染 */}
+                {departureDays !== null && (
+                  <>
+                    <span className="text-white/70">
+                      {(t['status.days'] ?? '已出发 {days} 天').replace(
+                        '{days}',
+                        String(departureDays),
+                      )}
+                    </span>
+                    <span className="text-white/25" aria-hidden="true">
+                      ·
+                    </span>
+                  </>
+                )}
+                <span className="flex items-center gap-2 font-semibold text-white">
+                  <span className="w-2 h-2 rounded-full bg-brand" />
+                  {(t['status.current'] ?? '位于 {city}').replace(
+                    '{city}',
+                    lastVisited?.label ?? '',
                   )}
                 </span>
                 <span className="text-white/25" aria-hidden="true">
                   ·
                 </span>
+                <span className="text-white/70">
+                  {(t['status.cities'] ?? '已抵达 {count} 城').replace(
+                    '{count}',
+                    String(visitedCount),
+                  )}
+                </span>
               </>
             )}
-            <span className="flex items-center gap-2 font-semibold text-white">
-              <span className="w-2 h-2 rounded-full bg-brand" />
-              {(t['status.current'] ?? '位于 {city}').replace('{city}', lastVisited?.label ?? '')}
-            </span>
-            <span className="text-white/25" aria-hidden="true">
-              ·
-            </span>
-            <span className="text-white/70">
-              {(t['status.cities'] ?? '已抵达 {count} 城').replace('{count}', String(visitedCount))}
-            </span>
           </div>
         </div>
 
@@ -448,13 +498,15 @@ export default function HomeContent({
                     <p className="flex items-baseline gap-x-2 flex-wrap">
                       {/* null 时渲染 en-dash 占位;min-w + tabular-nums 固定宽度,挂载后不顶开布局 */}
                       <span className="inline-block min-w-[2ch] text-3xl font-extrabold tabular-nums tracking-tight text-neutral-900">
-                        {departureDays ?? '–'}
+                        {isFinale ? (finaleDays ?? PROJECT_PLANNED_DAYS) : (departureDays ?? '–')}
                       </span>
                       <span className="text-sm font-bold tabular-nums text-neutral-400">
-                        {(t['telemetry.daysTotal'] ?? '/ {total} 天').replace(
-                          '{total}',
-                          String(PROJECT_PLANNED_DAYS),
-                        )}
+                        {isFinale
+                          ? t['telemetry.daysDone']
+                          : (t['telemetry.daysTotal'] ?? '/ {total} 天').replace(
+                              '{total}',
+                              String(PROJECT_PLANNED_DAYS),
+                            )}
                       </span>
                       <span className="text-xs tabular-nums text-neutral-500">
                         {'· '}
@@ -471,26 +523,42 @@ export default function HomeContent({
                         <div
                           className="absolute inset-y-0 left-0 rounded-full bg-brand"
                           style={{
-                            width: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
+                            width: `${progressPct}%`,
                           }}
                         />
                         <span
                           className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-brand/30"
                           style={{
-                            left: `${Math.min(100, (visitedCount / Math.max(1, cityTotal)) * 100)}%`,
+                            left: `${progressPct}%`,
                           }}
                         />
                       </div>
                       <div className="mt-2 flex items-baseline justify-between gap-3 text-xs">
-                        <span className="text-neutral-500">
-                          {sortedCities.find((c) => c.isOrigin)?.label ?? sortedCities[0]?.label}
-                        </span>
-                        <span className="font-bold text-neutral-900">{lastVisited.label}</span>
+                        {isFinale && finaleEnd ? (
+                          <>
+                            <span className="text-neutral-500 tabular-nums">
+                              {t['telemetry.departed'].replace('{city}', originLabel ?? '')}
+                              {' · '}
+                              {dotDate(timeline.projectStart)}
+                            </span>
+                            <span className="font-bold text-neutral-900 tabular-nums">
+                              {t['telemetry.finished'].replace('{city}', lastVisited.label)}
+                              {' · '}
+                              {dotDate(finaleEnd)}
+                              <span className="ml-2 text-brand-dark">100%</span>
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-neutral-500">{originLabel}</span>
+                            <span className="font-bold text-neutral-900">{lastVisited.label}</span>
+                          </>
+                        )}
                       </div>
                     </div>
-                    {lastVisited.event?.summary && (
+                    {summaryNote && (
                       <p className="mt-4 text-sm leading-relaxed text-neutral-700 line-clamp-2">
-                        {lastVisited.event.summary}
+                        {summaryNote}
                       </p>
                     )}
                   </motion.div>
@@ -531,10 +599,17 @@ export default function HomeContent({
                         <span className="w-2.5 h-2.5 rounded-full bg-brand" />
                         {t['map.visited'] ?? '已到达'}
                       </span>
-                      <span className="flex items-center gap-1.5 font-medium select-none">
-                        <span className="w-2.5 h-2.5 rounded-full bg-surface-card border border-neutral-500" />
-                        {t['map.planned'] ?? '计划中'}
-                      </span>
+                      {isFinale ? (
+                        <span className="flex items-center gap-1.5 font-medium select-none">
+                          <span className="w-2.5 h-2.5 rounded-full border-2 border-brand-dark bg-surface-card" />
+                          {t['map.departFinish']}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 font-medium select-none">
+                          <span className="w-2.5 h-2.5 rounded-full bg-surface-card border border-neutral-500" />
+                          {t['map.planned'] ?? '计划中'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </motion.div>

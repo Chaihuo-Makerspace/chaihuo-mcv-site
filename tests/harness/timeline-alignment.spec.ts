@@ -10,10 +10,17 @@ test('scheduled crew starts align with their planned route leg', async ({ page }
   const plannedDates = await plannedLegs.evaluateAll((elements) =>
     elements.map((element) => element.getAttribute('data-route-leg-start-date')),
   );
-  expect(plannedDates.length).toBeGreaterThan(0);
+  const allLegs = page.locator('[data-route-leg-start-date]');
+  const targetDates =
+    plannedDates.length > 0
+      ? plannedDates
+      : await allLegs.evaluateAll((elements) =>
+          elements.map((element) => element.getAttribute('data-route-leg-start-date')),
+        );
+  expect(targetDates.length).toBeGreaterThan(0);
 
   let matchedCrew = 0;
-  for (const date of plannedDates) {
+  for (const date of targetDates) {
     if (!date) continue;
     const leg = page.locator(`[data-route-leg-start-date="${date}"]`);
     const crewMembers = page.locator(`[data-timeline-start-date="${date}"]`);

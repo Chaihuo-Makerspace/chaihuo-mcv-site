@@ -242,6 +242,41 @@
           "month": "5月",
           "text": "走进贵阳，与两位当地创客畅聊科创教育",
           "en": "In Guiyang — a candid conversation with two local makers on STEM education."
+        },
+        {
+          "month": "5月 · May",
+          "text": "沿川藏线经塔公、理塘、波密与林芝，于 5 月 30 日抵达拉萨",
+          "en": "Followed the Sichuan–Tibet route through Tagong, Litang, Bomi and Nyingchi, reaching Lhasa on May 30."
+        },
+        {
+          "month": "6月 · Jun",
+          "text": "在格尔木接车，经茫崖、若羌进入新疆，走过天山南北，于 6 月 28 日抵达乌鲁木齐",
+          "en": "Collected the vehicle in Golmud, entered Xinjiang via Mangya and Ruoqiang, and travelled south and north of the Tianshan Mountains, reaching Urumqi on June 28."
+        },
+        {
+          "month": "7月 · Jul",
+          "text": "从哈密东行，经敦煌、张掖与兰州穿越河西走廊，再经银川、榆林、西安抵达临汾",
+          "en": "Headed east from Hami through the Hexi Corridor via Dunhuang, Zhangye and Lanzhou, then crossed the Loess Plateau via Yinchuan, Yulin and Xi’an to Linfen."
+        },
+        {
+          "month": "8月 · Aug",
+          "text": "经太原、呼和浩特与北京进入东北，走过长春、哈尔滨、沈阳，再经天津抵达济南",
+          "en": "Travelled via Taiyuan, Hohhot and Beijing into Northeast China, visiting Changchun, Harbin and Shenyang before returning via Tianjin to Jinan."
+        },
+        {
+          "month": "9月 · Sep",
+          "text": "从威海南下，经河南与合肥进入长三角，在杭州交流创客经验，在南京参与影石黑客松展示与技术培训",
+          "en": "Headed south from Weihai through Henan and Hefei into the Yangtze River Delta, exchanging maker experiences in Hangzhou and supporting an Insta360 hackathon in Nanjing with demonstrations and technical training."
+        },
+        {
+          "month": "10月 · Oct",
+          "text": "走过上海、苏州、无锡与义乌，沿东南海岸抵达福州、厦门，再经三明、吉安、南昌前往长沙",
+          "en": "Visited Shanghai, Suzhou, Wuxi and Yiwu, continued along the southeast coast to Fuzhou and Xiamen, then travelled via Sanming, Ji’an and Nanchang to Changsha."
+        },
+        {
+          "month": "11月 · Nov",
+          "text": "经武汉、巴东与恩施返程，11 月 13 日回到广州，11 月 15 日回到深圳，历时 207 天的普罗米修斯号环中国之旅圆满收官",
+          "en": "Returned via Wuhan, Badong and Enshi, reaching Guangzhou on November 13 and Shenzhen on November 15 to complete the 207-day Prometheus journey around China."
         }
       ]
     }

@@ -3,19 +3,23 @@ import type { Locale } from './index';
 const live: Record<Locale, Record<string, string>> = {
   zh: {
     title: '实时视角',
-    description: '普罗米修斯号基地车车载摄像头的实时画面，车辆开工期间自动更新。',
+    description: '普罗米修斯号的车载视角，保留环中国旅途中的抓拍与精选瞬间。',
     'hero.title': '基地车 · 实时视角',
     'hero.body':
-      '这是普罗米修斯号车载摄像头看到的画面。车辆开工期间自动抓拍；熄火离线时，这里保留最后一张照片。',
+      '透过普罗米修斯号的车载镜头，回看环中国旅途中的风景。这里保留最近一帧与沿途精选瞬间。',
     'status.online': '在线',
     'status.offline': '离线',
+    'status.archived': '旅途归档',
+    'archive.note': '2026 环中国行程已圆满收官，画面定格于旅途最后一帧；下方保留沿途精选瞬间。',
+    'archive.empty': '2026 环中国行程已圆满收官，暂无车载抓拍画面。',
+    'archive.interval': '旅途抓拍归档 · 已停止自动更新',
     'captured.at': '更新于 {time}',
     'time.just': '刚刚',
     'time.minutes': '{n} 分钟前',
     'time.hours': '{n} 小时前',
     'time.days': '{n} 天前',
-    'offline.note': '车辆未开工，摄像头离线中。开工上线后自动更新。',
-    'empty.note': '还没有抓拍记录。车辆开工上线后，这里会自动出现画面。',
+    'offline.note': '镜头暂时休息，这里保留最近一帧。下方可以回看沿途精选瞬间。',
+    'empty.note': '暂时没有车载抓拍画面，可以先看看下方的沿途精选瞬间。',
     'image.alt': '普罗米修斯号车载摄像头最新画面',
     'gallery.title': '历史抓拍',
     'gallery.empty': '暂无历史抓拍。车辆开工期间自动留档。',
@@ -27,7 +31,7 @@ const live: Record<Locale, Record<string, string>> = {
     'gallery.imageAlt': '拍摄于 {time} 的车载抓拍画面',
     'interval.note': '车辆开工期间每 {n} 分钟自动抓拍',
     'featured.title': '路上的瞬间',
-    'featured.subtitle': '值得留下的画面，由车上的人每天挑出',
+    'featured.subtitle': '值得留下的画面，由旅途中的伙伴精选',
     'featured.prev': '上一张',
     'featured.next': '下一张',
     'featured.position': '{current} / {total}',
@@ -37,21 +41,27 @@ const live: Record<Locale, Record<string, string>> = {
   en: {
     title: 'Live View',
     description:
-      'Live view from the Prometheus MCV onboard camera, updated automatically while the vehicle is running.',
+      'The view from the Prometheus onboard camera, preserving captures and selected moments from the journey around China.',
     'hero.title': 'Prometheus · Live View',
     'hero.body':
-      'This is what the onboard camera of Prometheus sees. While the vehicle is running, new frames are captured automatically; when it is off, the last frame stays here.',
+      'Revisit the journey around China through the onboard camera of Prometheus. The latest frame and selected moments from the road are preserved here.',
     'status.online': 'Live',
     'status.offline': 'Offline',
+    'status.archived': 'Journey archive',
+    'archive.note':
+      'The 2026 journey around China has come to a successful close. The view rests on the final frame, with selected moments from the road preserved below.',
+    'archive.empty':
+      'The 2026 journey around China has come to a successful close. No onboard capture is available.',
+    'archive.interval': 'Journey capture archive · Automatic updates have ended',
     'captured.at': 'Updated {time}',
     'time.just': 'just now',
     'time.minutes': '{n} min ago',
     'time.hours': '{n} hours ago',
     'time.days': '{n} days ago',
     'offline.note':
-      'The vehicle is off and the camera is offline. It updates automatically once back on the road.',
+      'The camera is resting, with the latest frame preserved here. Revisit selected moments from the road below.',
     'empty.note':
-      'No captures yet. Frames will appear here automatically once the vehicle is running.',
+      'No onboard capture is available yet. Explore selected moments from the road below.',
     'image.alt': 'Latest frame from the Prometheus onboard camera',
     'gallery.title': 'Captures',
     'gallery.empty':
@@ -64,7 +74,7 @@ const live: Record<Locale, Record<string, string>> = {
     'gallery.imageAlt': 'Onboard frame captured at {time}',
     'interval.note': 'Auto-captured every {n} min while the vehicle is running',
     'featured.title': 'Moments from the Road',
-    'featured.subtitle': 'Frames worth keeping, picked daily by the crew on board',
+    'featured.subtitle': 'Frames worth keeping, selected by the expedition crew',
     'featured.prev': 'Previous',
     'featured.next': 'Next',
     'featured.position': '{current} / {total}',
