@@ -400,5 +400,11 @@
     "label": "广州",
     "label_en": "Guangzhou",
     "province": "广东省"
+  },
+  "韶关": {
+    "id": "city-440200",
+    "label": "韶关",
+    "label_en": "Shaoguan",
+    "province": "广东省"
   }
 }
