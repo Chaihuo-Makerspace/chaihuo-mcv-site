@@ -73,6 +73,7 @@ const home: Record<Locale, Record<string, string>> = {
     'timeline.archive.ongoing': '在路上',
     'timeline.archive.days': '{n} 天',
     'timeline.scrollHint': `← 拖动查看完整 ${PROJECT_PLANNED_DAYS} 天 →`,
+    'timeline.gap': '交接空档 {from}–{to}',
 
     'lab.title': '移动的AI实验室',
     'lab.subtitle': '一个可移动的AI实验室，集成边缘算力、数字加工与实验场景能力',
@@ -178,6 +179,7 @@ const home: Record<Locale, Record<string, string>> = {
     'timeline.archive.ongoing': 'On the road',
     'timeline.archive.days': '{n} days',
     'timeline.scrollHint': `← Drag to see all ${PROJECT_PLANNED_DAYS} days →`,
+    'timeline.gap': 'Handoff gap {from}–{to}',
 
     'lab.title': 'Mobile AI Laboratory',
     'lab.subtitle':
