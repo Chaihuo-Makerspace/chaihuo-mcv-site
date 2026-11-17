@@ -339,6 +339,37 @@ export default function RoleTimeline({
     return result;
   }, [segmentsByRole]);
 
+  // 同一车道内前后两棒之间的空档（表格里没有在车记录的交接真空，如 7.4–7.6 哈密等出发）。
+  // 用一条浅色虚线把两段连接起来，避免空档看起来像「漏画」。
+  const laneGaps = useMemo(() => {
+    const result = new Map<
+      string,
+      { id: string; startPct: number; endPct: number; label: string }[]
+    >();
+    for (const [role, segs] of segmentsByRole) {
+      const sorted = [...segs]
+        .filter((seg) => seg.endDate !== null)
+        .sort((a, b) => a.startDate.localeCompare(b.startDate));
+      const gaps: { id: string; startPct: number; endPct: number; label: string }[] = [];
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const prev = sorted[i];
+        const next = sorted[i + 1];
+        const prevEnd = prev.endDate as string;
+        if (next.startDate <= prevEnd) continue;
+        gaps.push({
+          id: `${role}-gap-${prev.id}`,
+          startPct: pctOf(prevEnd, projectStart, totalDays),
+          endPct: pctOf(next.startDate, projectStart, totalDays),
+          label: t['timeline.gap']
+            .replace('{from}', formatShortDate(prevEnd, locale))
+            .replace('{to}', formatShortDate(next.startDate, locale)),
+        });
+      }
+      result.set(role, gaps);
+    }
+    return result;
+  }, [segmentsByRole, projectStart, totalDays, t, locale]);
+
   // Role key → localized label lookup
   const roleLabel = useMemo(() => {
     const map = new Map<string, string>();
@@ -786,6 +817,24 @@ export default function RoleTimeline({
                             className="absolute inset-x-0 -translate-y-1/2 h-1.5 rounded-full bg-brand-light"
                             style={{ top: railTop }}
                           />
+
+                          {/* 空档连接：同车道前后两棒之间没有在车记录的时段，用浅色虚线连起来 */}
+                          {(laneGaps.get(role.key) ?? []).map((gap) => (
+                            <div
+                              key={gap.id}
+                              title={gap.label}
+                              aria-hidden="true"
+                              data-timeline-gap
+                              className="absolute -translate-y-1/2"
+                              style={{
+                                left: `${gap.startPct}%`,
+                                width: `${Math.max(0.2, gap.endPct - gap.startPct)}%`,
+                                top: railTop,
+                              }}
+                            >
+                              <div className="h-0 border-t-2 border-dashed border-brand/35" />
+                            </div>
+                          ))}
 
                           {/* Segments */}
                           <div className="relative w-full h-full">
