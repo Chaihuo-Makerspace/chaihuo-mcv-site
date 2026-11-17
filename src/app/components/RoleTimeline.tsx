@@ -175,6 +175,8 @@ const CLUSTER_STEP = 34;
 const CLUSTER_AVATAR = 24;
 /** 起动日相差不超过这么多天、且任期重叠 → 视为「一起在车」，上下错开而不是左右排开 */
 const CLUSTER_DAYS = 10;
+/** 任期只重叠这么多天以内 = 交接日前后的衔接，不算「一起在车」，各自留在车道中线 */
+const HANDOFF_OVERLAP_DAYS = 2;
 
 interface LaneLayout {
   /** 段 id → 相对车道中线的竖直偏移（px） */
@@ -189,7 +191,7 @@ interface LaneLayout {
  * 同一角色同期多人此前被 4% 的防重叠间距一格一格往右推，头像+名字串成一条斜线。
  * 现在：任期重叠且上车日期接近的人只在竖直方向错开，横坐标始终由各自真实
  * 上车日期决定。同日上车的李世雯/潘石/葛子涵天然共用同一个 x；10-08 上海
- * 上车的叶雨与 10-15 无锡上车的关乃莹虽然上下错开，仍分别对齐各自的计划站点。
+ * 上车的叶雨与 10-15 无锡上车的关乃莹只在交接日重叠 1 天，属交接衔接，不错开。
  * 车道只按批大小略微撑开（3 人 = 100px，不是三倍高度）。
  */
 function computeLaneLayout(segments: Segment[]): LaneLayout {
@@ -202,7 +204,7 @@ function computeLaneLayout(segments: Segment[]): LaneLayout {
     const end = seg.endDate ?? '9999-12-31';
     const joinsCurrent =
       clusters.length > 0 &&
-      seg.startDate < clusterEnd &&
+      daysBetween(seg.startDate, clusterEnd) > HANDOFF_OVERLAP_DAYS &&
       daysBetween(clusterStart, seg.startDate) <= CLUSTER_DAYS;
     if (!joinsCurrent) {
       clusters.push([seg]);
