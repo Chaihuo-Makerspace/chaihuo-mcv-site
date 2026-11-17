@@ -1,6 +1,6 @@
 ---
 id: guangzhou-final
-order: 71
+order: 72
 visited: true
 routeOnly: true
 revisitOf: guangzhou

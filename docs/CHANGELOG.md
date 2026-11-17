@@ -7,6 +7,8 @@ history.
 
 ## Completed Features
 
+- Auto-created stops now insert by journal date instead of always appending at the tail (`create-stops-from-journals.mjs`): after the journey ended there is no planned tail, so a late diary's city was appended after the closing stop and the route drew a backwards 深圳→韶关 edge. Later stops shift by one with the same temp-rename dance, `_template.md` is no longer read as a stop, and renumbering only runs when a stop is actually created. First affected stop 韶关 (`city-440200`, order 71, arrived 2026.11.12 evening) moved back before 广州/深圳 close; its diary card is pinned there via `journal-city-overrides.json`.
+
 - Home hero carousel has three background slides, including the snow mountain MCV image.
 - Yuque journal sync includes the latest public DOC entries, runs every 10 minutes or by manual dispatch without dependency install, and skips inaccessible 401/403 docs.
 - Production deployment runbook documents the Yuque sync, Jenkins webhook, and pnpm lockfile debugging path.
