@@ -9,7 +9,7 @@
       "location_en": "Shenzhen"
     },
     "disembarkedAt": {
-      "date": "2026-07-01",
+      "date": "2026-07-03",
       "location": "哈密",
       "location_en": "Hami",
       "handoffTo": "ye-yu"
@@ -132,7 +132,7 @@
     "crewId": "ye-yu",
     "role": "领队",
     "boardedAt": {
-      "date": "2026-07-01",
+      "date": "2026-07-07",
       "location": "哈密",
       "location_en": "Hami"
     },
