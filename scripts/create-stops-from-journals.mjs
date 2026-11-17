@@ -66,22 +66,30 @@ function readJson(filePath) {
   }
 }
 
+function parseStopDate(raw) {
+  const m = raw?.match(/(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  return m ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : null;
+}
+
 function readStops() {
   const stops = [];
   for (const file of readdirSync(stopsDir)) {
     if (!file.endsWith('.md') || file.includes('.en.')) continue;
+    if (file.startsWith('_')) continue; // _template.md 不是站点
     const text = readFileSync(join(stopsDir, file), 'utf8');
     const fm = text.match(/^---\n([\s\S]*?)\n---/);
     if (!fm) continue;
     const get = (key) => fm[1].match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))?.[1]?.trim();
-    const id = get('id');
-    const label = get('label');
+    const unquote = (v) => v?.replace(/^"(.*)"$/, '$1');
+    const id = unquote(get('id'));
+    const label = unquote(get('label'));
     const order = Number(get('order') ?? 0);
     const lng = Number(get('lng'));
     const lat = Number(get('lat'));
     const province = get('province');
     const visited = get('visited') === 'true';
-    if (id && label) stops.push({ id, label, order, lng, lat, province, visited, file });
+    const date = parseStopDate(fm[1].match(/^\s+date:\s*(.+)$/m)?.[1]);
+    if (id && label) stops.push({ id, label, order, lng, lat, province, visited, date, file });
   }
   return stops;
 }
@@ -304,10 +312,10 @@ async function main() {
   // 别名里的 id 也视为已知（如 长春 已被登记过就不再建）
   for (const a of Object.values(aliases)) if (a?.id) known.add(a.id);
 
-  // 新站插在「最后一个已访问站」之后、尚未抵达的计划尾段（如终点广东）之前；
-  // 否则新站会排到计划终点后面，省带和路线出现 闽→粤→闽 的倒序。
-  const maxOrder = stops.reduce((m, s) => (s.visited ? Math.max(m, s.order) : m), 0);
-  const plannedTail = stops.filter((s) => !s.visited && s.order > maxOrder);
+  // 新站按日记日期插到路线上对应的位置（日期不晚于它的最后一站之后），而不是
+  // 一律追加到末尾：行程收官后已没有被访问的计划尾段，追加会让迟到的城市排到
+  // 收官站后面，画出「深圳收官 → 韶关」这种倒序长边。无日期的站视为最晚。
+  const seq = [...stops].sort((a, b) => a.order - b.order).map((s) => ({ kind: 'stop', ...s }));
   const visited = new Set();
   const created = [];
   const pending = [];
@@ -353,7 +361,6 @@ async function main() {
     }
 
     visited.add(normalized);
-    const order = maxOrder + created.length + 1;
     const id = slugifyId(point.adcode, normalized);
     if (!id) {
       pending.push({ city: name, journal: journal.title, reason: '无法生成稳定 id' });
@@ -361,7 +368,7 @@ async function main() {
     }
     const date = toDotDate(journal.date);
     created.push({
-      order,
+      iso: String(journal.date).slice(0, 10),
       id,
       label: normalized,
       labelEn: point.labelEn,
@@ -372,38 +379,70 @@ async function main() {
     });
   }
 
-  // 计划尾段整体后移，给新站腾出 order（倒序改名，避免文件名撞车）
+  // 按日记日期把新站插进序列，其后各站整体顺延（order 必须连续 0..N-1）。
+  // 倒序改名会撞车（71→72 与 72→73 首尾相接），所以先全部改成临时名再落终名。
+  const baseOrder = seq[0]?.order ?? 0;
+  const merged = [...seq];
   if (created.length > 0) {
-    for (const tail of [...plannedTail].sort((a, b) => b.order - a.order)) {
-      const next = tail.order + created.length;
-      const nextPad = String(next).padStart(2, '0');
-      const base = tail.file.replace(/^\d+-/, '').replace(/\.md$/, '');
-      if (shouldApply) {
-        const zhText = readFileSync(join(stopsDir, tail.file), 'utf8');
-        writeFileSync(
-          join(stopsDir, tail.file),
-          zhText.replace(/^order:\s*\d+$/m, `order: ${next}`),
-        );
-        renameSync(join(stopsDir, tail.file), join(stopsDir, `${nextPad}-${base}.md`));
-        const enFile = tail.file.replace(/\.md$/, '.en.md');
-        if (existsSync(join(stopsDir, enFile))) {
-          renameSync(join(stopsDir, enFile), join(stopsDir, `${nextPad}-${base}.en.md`));
+    const inserts = created
+      .map((c) => {
+        let idx = 0;
+        for (let i = 0; i < merged.length; i++) {
+          const key = merged[i].date ?? '9999-12-31';
+          if (key <= c.iso) idx = i + 1;
         }
-      }
-      log(`${shouldApply ? 'Moved' : 'Would move'} planned ${tail.file} → order ${next}`);
+        return { ...c, idx };
+      })
+      .sort((a, b) => a.idx - b.idx || (a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : 0));
+    let offset = 0;
+    for (const ins of inserts) {
+      merged.splice(ins.idx + offset, 0, { kind: 'new', ...ins });
+      offset++;
     }
+  }
+  merged.forEach((item, i) => {
+    item.newOrder = baseOrder + i;
+  });
+
+  const shifted =
+    created.length > 0 ? merged.filter((it) => it.kind === 'stop' && it.newOrder !== it.order) : [];
+  for (const it of shifted) {
+    it.baseName = it.file.replace(/^\d+-/, '').replace(/\.md$/, '');
+    if (!shouldApply) continue;
+    it.zh = `.tmp-${it.file}`;
+    renameSync(join(stopsDir, it.file), join(stopsDir, it.zh));
+    const enFile = it.file.replace(/\.md$/, '.en.md');
+    if (existsSync(join(stopsDir, enFile))) {
+      it.en = `.tmp-${enFile}`;
+      renameSync(join(stopsDir, enFile), join(stopsDir, it.en));
+    }
+  }
+  for (const it of shifted) {
+    const pad = String(it.newOrder).padStart(2, '0');
+    if (shouldApply) {
+      const zhText = readFileSync(join(stopsDir, it.zh), 'utf8');
+      writeFileSync(
+        join(stopsDir, it.zh),
+        zhText.replace(/^order:\s*\d+$/m, `order: ${it.newOrder}`),
+      );
+      renameSync(join(stopsDir, it.zh), join(stopsDir, `${pad}-${it.baseName}.md`));
+      if (it.en) {
+        renameSync(join(stopsDir, it.en), join(stopsDir, `${pad}-${it.baseName}.en.md`));
+      }
+    }
+    log(`${shouldApply ? 'Renumbered' : 'Would renumber'} ${it.file} → order ${it.newOrder}`);
   }
 
   // 写文件
-  for (const stop of created) {
-    const pad = String(stop.order).padStart(2, '0');
+  for (const stop of merged.filter((it) => it.kind === 'new')) {
+    const pad = String(stop.newOrder).padStart(2, '0');
     const zhPath = join(stopsDir, `${pad}-${stop.id}.md`);
     const enPath = join(stopsDir, `${pad}-${stop.id}.en.md`);
     if (existsSync(zhPath) || existsSync(enPath)) {
       log(`Skip write ${pad}-${stop.id} — file already exists`);
       continue;
     }
-    const files = buildStopFiles(stop);
+    const files = buildStopFiles({ ...stop, order: stop.newOrder });
     if (shouldApply) {
       writeFileSync(zhPath, files.zh);
       writeFileSync(enPath, files.en);
